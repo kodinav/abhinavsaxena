@@ -1,0 +1,42 @@
+---
+interface Props { class?: string }
+const { class: cls = '' } = Astro.props;
+---
+<button type="button" class={`theme-toggle ${cls}`} data-theme-toggle aria-label="Toggle colour theme" data-magnetic="0.25">
+  <span class="theme-toggle__disc" aria-hidden="true"></span>
+</button>
+<style>
+  .theme-toggle {
+    --size: 2.25rem;
+    position: relative;
+    width: var(--size);
+    height: var(--size);
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    border: 1px solid var(--line);
+    transition: border-color var(--dur-2), transform var(--dur-2) var(--ease-out);
+  }
+  .theme-toggle:hover { border-color: var(--ink); }
+  .theme-toggle__disc {
+    width: 0.9rem;
+    height: 0.9rem;
+    border-radius: 50%;
+    background: var(--ink);
+    position: relative;
+    overflow: hidden;
+    transition: transform var(--dur-3) var(--ease-spring);
+  }
+  /* a "phase" of the moon: half disc */
+  .theme-toggle__disc::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: var(--paper);
+    transform: translateX(45%) scale(0.95);
+    transition: transform var(--dur-3) var(--ease-spring);
+  }
+  .theme-toggle[data-state='dark'] .theme-toggle__disc::after { transform: translateX(100%) scale(0.95); }
+  .theme-toggle[data-state='light'] .theme-toggle__disc::after { transform: translateX(45%) scale(0.95); }
+</style>

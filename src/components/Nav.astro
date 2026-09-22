@@ -1,0 +1,219 @@
+---
+import { site } from '@/data/site';
+import ThemeToggle from './ThemeToggle.astro';
+---
+<header class="site-nav" data-nav>
+  <div class="site-nav__inner container">
+    <a href="/" class="brand" data-magnetic="0.2" aria-label="Abhinav Saxena — home">
+      <span class="brand__name">Abhinav Saxena</span>
+      <span class="brand__dot" aria-hidden="true"></span>
+    </a>
+    <nav class="primary" aria-label="Primary">
+      <ul role="list">
+        {site.nav.map((item) => (
+          <li><a href={item.href} data-magnetic="0.25">{item.label}</a></li>
+        ))}
+      </ul>
+    </nav>
+    <div class="site-nav__tools">
+      <ThemeToggle class="nav-theme" />
+      <button type="button" class="menu-toggle" data-menu-toggle aria-expanded="false" aria-controls="site-menu" data-magnetic="0.25">
+        <span class="menu-toggle__label"><span class="menu-toggle__open">Index</span><span class="menu-toggle__close">Close</span></span>
+        <span class="menu-toggle__icon" aria-hidden="true"><i></i><i></i></span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<div class="menu" id="site-menu" data-menu hidden>
+  <div class="menu__panel">
+    <div class="menu__grid container">
+      <nav class="menu__main" aria-label="All sections">
+        <ol role="list">
+          <li><a href="/"><span class="n">00</span><span class="t">Home</span></a></li>
+          {site.nav.map((item, i) => (
+            <li><a href={item.href}><span class="n">{String(i + 1).padStart(2, '0')}</span><span class="t">{item.long ?? item.label}</span></a></li>
+          ))}
+          {site.more.filter((m) => m.href !== '/rss.xml').map((item, i) => (
+            <li><a href={item.href}><span class="n">{String(site.nav.length + i + 1).padStart(2, '0')}</span><span class="t">{item.label}</span></a></li>
+          ))}
+        </ol>
+      </nav>
+      <div class="menu__aside">
+        <p class="menu__statement serif">
+          Philosophy at the point where machines begin to know, act, and answer.
+        </p>
+        <dl class="menu__meta">
+          <div><dt>Correspondence</dt><dd><a class="link" href={`mailto:${site.email}`}>{site.email}</a></dd></div>
+          <div><dt>Feed</dt><dd><a class="link" href="/rss.xml">RSS</a></dd></div>
+          <div><dt>Appearance</dt><dd><ThemeToggle /></dd></div>
+        </dl>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .site-nav {
+    position: fixed;
+    inset: 0 0 auto 0;
+    z-index: 100;
+    height: var(--nav-h);
+    display: flex;
+    align-items: center;
+    transition: transform var(--dur-3) var(--ease-out), background-color var(--dur-2), box-shadow var(--dur-2);
+    background: transparent;
+  }
+  .site-nav::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: rgb(var(--paper-rgb) / 0.72);
+    -webkit-backdrop-filter: saturate(140%) blur(14px);
+    backdrop-filter: saturate(140%) blur(14px);
+    opacity: 0;
+    transition: opacity var(--dur-2);
+    border-bottom: 1px solid var(--line);
+    -webkit-mask-image: linear-gradient(#000, #000);
+  }
+  .site-nav.is-scrolled::after { opacity: 1; }
+  .site-nav.is-hidden { transform: translateY(-100%); }
+  .site-nav.menu-open::after { opacity: 0; }
+
+  .site-nav__inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--s-m);
+  }
+  .brand {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.4em;
+    font-family: var(--font-serif);
+    font-size: var(--step-0);
+    letter-spacing: 0.02em;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+  .brand__dot {
+    width: 5px; height: 5px; border-radius: 50%;
+    background: var(--accent);
+    transform: translateY(-1px);
+    transition: transform var(--dur-2) var(--ease-spring);
+  }
+  .brand:hover .brand__dot { transform: translateY(-1px) scale(1.6); }
+
+  .primary ul { display: flex; gap: clamp(1rem, 2.2vw, 2rem); }
+  .primary a {
+    position: relative;
+    display: inline-block;
+    padding: 0.5rem 0;
+    font-family: var(--font-sans);
+    font-size: var(--step--1);
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    color: var(--ink-2);
+    transition: color var(--dur-1);
+  }
+  .primary a::after {
+    content: '';
+    position: absolute;
+    left: 50%; bottom: 0.15rem;
+    width: 4px; height: 4px; border-radius: 50%;
+    background: var(--accent);
+    transform: translate(-50%, 0) scale(0);
+    transition: transform var(--dur-2) var(--ease-spring);
+  }
+  .primary a:hover { color: var(--ink); }
+  .primary a[aria-current='page'] { color: var(--ink); }
+  .primary a[aria-current='page']::after { transform: translate(-50%, 0) scale(1); }
+
+  .site-nav__tools { display: flex; align-items: center; gap: var(--s-xs); }
+  .menu-toggle {
+    display: inline-flex; align-items: center; gap: 0.6rem;
+    height: 2.25rem; padding: 0 0.9rem 0 1rem;
+    border-radius: 999px; border: 1px solid var(--line);
+    font-family: var(--font-sans); font-size: var(--step--1); font-weight: 500; letter-spacing: 0.02em;
+    transition: border-color var(--dur-2), background var(--dur-2), color var(--dur-2);
+  }
+  .menu-toggle:hover { border-color: var(--ink); }
+  .menu-toggle__label { display: grid; }
+  .menu-toggle__label > span { grid-area: 1 / 1; transition: opacity var(--dur-2), transform var(--dur-2) var(--ease-out); }
+  .menu-toggle__close { opacity: 0; transform: translateY(4px); }
+  .menu-toggle[aria-expanded='true'] .menu-toggle__open { opacity: 0; transform: translateY(-4px); }
+  .menu-toggle[aria-expanded='true'] .menu-toggle__close { opacity: 1; transform: none; }
+  .site-nav.menu-open .primary, .site-nav.menu-open .nav-theme { opacity: 0; pointer-events: none; }
+  .primary, .nav-theme { transition: opacity var(--dur-2); }
+  .menu-toggle__icon { position: relative; width: 12px; height: 12px; }
+  .menu-toggle__icon i { position: absolute; left: 0; top: 50%; width: 100%; height: 1px; background: currentColor; transition: transform var(--dur-2) var(--ease-out); }
+  .menu-toggle__icon i:first-child { transform: translateY(-3px); }
+  .menu-toggle__icon i:last-child { transform: translateY(3px); }
+  .menu-toggle[aria-expanded='true'] .menu-toggle__icon i:first-child { transform: rotate(45deg); }
+  .menu-toggle[aria-expanded='true'] .menu-toggle__icon i:last-child { transform: rotate(-45deg); }
+
+  /* ----- overlay ----- */
+  .menu { position: fixed; inset: 0; z-index: 90; }
+  .menu[hidden] { display: none; }
+  .menu__panel {
+    position: absolute; inset: 0;
+    background: var(--paper);
+    display: flex; flex-direction: column;
+    overflow-y: auto;
+    clip-path: inset(0 0 100% 0);
+    transition: clip-path 560ms var(--ease-in-out);
+  }
+  .menu.is-open .menu__panel { clip-path: inset(0 0 0 0); }
+  .menu__grid {
+    flex: 1;
+    display: grid;
+    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+    gap: var(--s-2xl);
+    padding-block: calc(var(--nav-h) + var(--s-xl)) var(--s-2xl);
+    align-content: start;
+  }
+  .menu__main ol { display: flex; flex-direction: column; }
+  .menu__main a {
+    display: flex; align-items: baseline; gap: var(--s-m);
+    padding: 0.18em 0;
+    font-family: var(--font-serif);
+    font-size: var(--step-5);
+    line-height: 1.05;
+    letter-spacing: -0.015em;
+    color: var(--ink);
+    opacity: 0;
+    transform: translateY(18px);
+    transition: opacity 500ms var(--ease-out), transform 500ms var(--ease-out), color var(--dur-1);
+    transition-delay: calc(120ms + var(--i, 0) * 45ms);
+  }
+  .menu.is-open .menu__main a { opacity: 1; transform: none; }
+  .menu__main li:nth-child(1) a { --i: 0 } .menu__main li:nth-child(2) a { --i: 1 } .menu__main li:nth-child(3) a { --i: 2 }
+  .menu__main li:nth-child(4) a { --i: 3 } .menu__main li:nth-child(5) a { --i: 4 } .menu__main li:nth-child(6) a { --i: 5 }
+  .menu__main li:nth-child(7) a { --i: 6 } .menu__main li:nth-child(8) a { --i: 7 } .menu__main li:nth-child(9) a { --i: 8 }
+  .menu__main a .n { font-family: var(--font-sans); font-size: var(--step--2); letter-spacing: 0.12em; color: var(--ink-3); width: 2.5em; font-variant-numeric: tabular-nums; }
+  .menu__main a .t { transition: transform var(--dur-2) var(--ease-out); }
+  .menu__main a:hover .t { transform: translateX(6px); }
+  .menu__main a:hover { color: var(--accent); }
+  .menu__aside { padding-top: 0.6rem; opacity: 0; transition: opacity 600ms var(--ease-out) 350ms; }
+  .menu.is-open .menu__aside { opacity: 1; }
+  .menu__statement { font-size: var(--step-2); line-height: 1.25; color: var(--ink-2); text-wrap: balance; max-width: 22ch; font-style: italic; }
+  .menu__meta { margin-top: var(--s-xl); display: flex; flex-direction: column; gap: var(--s-s); }
+  .menu__meta div { display: grid; grid-template-columns: 9rem 1fr; align-items: center; gap: var(--s-s); padding-block: var(--s-2xs); border-top: 1px solid var(--line); }
+  .menu__meta dt { font-family: var(--font-sans); font-size: var(--step--2); letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-3); }
+  .menu__meta dd { margin: 0; font-size: var(--step--1); }
+
+  @media (max-width: 860px) {
+    .primary { display: none; }
+    .nav-theme { display: none; }
+    .menu__grid { grid-template-columns: 1fr; gap: var(--s-xl); }
+    .menu__main a { font-size: var(--step-4); }
+    .menu__statement { max-width: none; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .menu__panel { clip-path: none; opacity: 0; transition: opacity 1ms; }
+    .menu.is-open .menu__panel { opacity: 1; }
+    .menu__main a { opacity: 1; transform: none; }
+    .menu__aside { opacity: 1; }
+  }
+</style>

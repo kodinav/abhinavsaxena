@@ -1,0 +1,46 @@
+---
+import type { CollectionEntry } from 'astro:content';
+interface Props { exp: CollectionEntry<'lab'>; index: number; headingLevel?: 'h2' | 'h3' }
+const { exp, index, headingLevel = 'h3' } = Astro.props;
+const H = headingLevel;
+const d = exp.data;
+---
+<a class="lab-card" href={`/lab/${exp.id}`} data-reveal data-cursor="Run">
+  <div class="lab-card__top">
+    <span class="lab-card__num tnum">Exp. {String(index).padStart(2, '0')}</span>
+    <span class="lab-card__dur">{d.duration}</span>
+  </div>
+  <H class="lab-card__title serif">{d.title}</H>
+  <p class="lab-card__q serif">{d.question}</p>
+  <div class="lab-card__tags">{d.tags.slice(0, 3).map((t) => <span class="tag">{t}</span>)}</div>
+  <span class="lab-card__run">Run experiment <span class="arr" aria-hidden="true"></span></span>
+</a>
+<style>
+  .lab-card {
+    display: flex; flex-direction: column;
+    padding: var(--s-m);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-l);
+    background: linear-gradient(180deg, transparent, rgb(var(--ink-rgb) / 0.02));
+    min-height: 100%;
+    transition: border-color var(--dur-2), transform var(--dur-3) var(--ease-out), box-shadow var(--dur-3);
+    position: relative;
+    overflow: hidden;
+  }
+  .lab-card::before {
+    content: ''; position: absolute; inset: 0;
+    background: radial-gradient(60% 50% at 100% 0%, rgb(var(--accent-rgb) / 0.12), transparent 70%);
+    opacity: 0; transition: opacity var(--dur-3);
+  }
+  .lab-card:hover { border-color: var(--line-2); transform: translateY(-3px); box-shadow: var(--shadow); }
+  .lab-card:hover::before { opacity: 1; }
+  .lab-card__top { display: flex; justify-content: space-between; font-family: var(--font-sans); font-size: var(--step--2); letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-3); }
+  .lab-card__title { margin-top: var(--s-m); font-size: var(--step-2); line-height: 1.15; }
+  .lab-card__q { margin-top: 0.5rem; font-style: italic; color: var(--ink-2); line-height: 1.35; flex: 1; text-wrap: pretty; }
+  .lab-card__tags { margin-top: var(--s-m); display: flex; flex-wrap: wrap; gap: 0.35rem 0.8rem; }
+  .lab-card__run { margin-top: var(--s-m); display: inline-flex; align-items: center; gap: 0.5em; font-family: var(--font-sans); font-size: var(--step--1); font-weight: 500; color: var(--ink); }
+  .lab-card:hover .lab-card__run { color: var(--accent); }
+  .lab-card__run .arr { display: inline-block; width: 1.1em; height: 1em; position: relative; }
+  .lab-card__run .arr::before { content: ''; position: absolute; left: 0; top: 50%; width: 100%; height: 1px; background: currentColor; }
+  .lab-card__run .arr::after { content: ''; position: absolute; right: 0; top: 50%; width: 0.45em; height: 0.45em; border-top: 1px solid currentColor; border-right: 1px solid currentColor; transform: translateY(-50%) rotate(45deg); }
+</style>

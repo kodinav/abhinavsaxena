@@ -1,0 +1,88 @@
+---
+import Base from '@/layouts/Base.astro';
+import EssayCard from '@/components/EssayCard.astro';
+import { getEssays } from '@/lib/content';
+import { breadcrumbJsonLd } from '@/lib/seo';
+
+const essays = await getEssays();
+const lead = essays.find((e) => e.data.featured) ?? essays[0];
+const rest = essays.filter((e) => e.id !== lead?.id);
+const tags = Array.from(new Set(essays.flatMap((e) => e.data.tags))).sort();
+const byYear = new Map<number, typeof rest>();
+for (const e of rest) {
+  const y = e.data.date.getUTCFullYear();
+  if (!byYear.has(y)) byYear.set(y, []);
+  byYear.get(y)!.push(e);
+}
+---
+<Base title="Essays" description="Long-form essays by Abhinav Saxena on machine knowledge, agency, responsibility, testimony and the phenomenology of technology." path="/essays" jsonLd={[breadcrumbJsonLd([{ name: 'Home', path: '/' }, { name: 'Essays', path: '/essays' }])]}>
+  <section class="section essays" data-essays>
+    <div class="container">
+      <header class="essays__head">
+        <span class="eyebrow" data-reveal>Essays</span>
+        <h1 class="h1" data-reveal>Long-form thinking</h1>
+        <p class="lede" data-reveal>Arguments developed at length, with footnotes, for readers who want more than a position. New essays are announced on the <a class="link" href="/rss.xml">RSS feed</a>.</p>
+      </header>
+
+      {lead && (
+        <div class="essays__lead" data-reveal>
+          <span class="tag">Start here</span>
+          <EssayCard essay={lead} size="l" headingLevel="h2" />
+        </div>
+      )}
+
+      <div class="essays__filter" role="group" aria-label="Filter by tag" data-reveal>
+        <button type="button" class="chip" data-tag="" aria-pressed="true">All</button>
+        {tags.map((t) => <button type="button" class="chip" data-tag={t} aria-pressed="false">{t}</button>)}
+      </div>
+
+      <div class="essays__years">
+        {Array.from(byYear.entries()).map(([year, list]) => (
+          <section class="essays__year" data-year-group>
+            <h2 class="essays__year-label serif tnum">{year}</h2>
+            <div class="essays__list">
+              {list.map((e) => (
+                <div data-essay data-tags={e.data.tags.join('|')}><EssayCard essay={e} size="m" /></div>
+              ))}
+            </div>
+          </section>
+        ))}
+        <p class="essays__empty serif" data-empty hidden>No essays with that tag yet.</p>
+      </div>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .essays__head { max-width: 64ch; }
+  .essays__head .h1, .essays__head .lede { margin-top: var(--s-s); }
+  .essays__lead { margin-top: var(--s-2xl); }
+  .essays__lead .tag { display: block; margin-bottom: var(--s-xs); color: var(--accent); }
+  .essays__filter { margin-top: var(--s-2xl); display: flex; flex-wrap: wrap; gap: 0.4rem; padding-bottom: var(--s-m); }
+  .essays__year { display: grid; grid-template-columns: 8rem 1fr; gap: var(--s-l); padding-top: var(--s-m); }
+  .essays__year-label { font-size: var(--step-3); line-height: 1; color: var(--ink-3); position: sticky; top: calc(var(--nav-h) + 1rem); align-self: start; }
+  .essays__year.is-empty { display: none; }
+  .essays__empty { padding: var(--s-xl) 0; font-style: italic; color: var(--ink-2); font-size: var(--step-1); }
+  [data-essay].is-hidden { display: none; }
+  @media (max-width: 760px) { .essays__year { grid-template-columns: 1fr; gap: var(--s-xs); } .essays__year-label { position: static; font-size: var(--step-1); } }
+</style>
+
+<script>
+  import { onPage } from '@/lib/page';
+  onPage<HTMLElement>('[data-essays]', (root) => {
+    const chips = Array.from(root.querySelectorAll<HTMLElement>('[data-tag]'));
+    const items = Array.from(root.querySelectorAll<HTMLElement>('[data-essay]'));
+    const groups = Array.from(root.querySelectorAll<HTMLElement>('[data-year-group]'));
+    const empty = root.querySelector<HTMLElement>('[data-empty]');
+    const apply = (tag: string) => {
+      chips.forEach((c) => c.setAttribute('aria-pressed', String(c.dataset.tag === tag)));
+      let n = 0;
+      items.forEach((it) => { const ok = !tag || (it.dataset.tags ?? '').split('|').includes(tag); it.classList.toggle('is-hidden', !ok); if (ok) n++; });
+      groups.forEach((g) => g.classList.toggle('is-empty', !g.querySelector('[data-essay]:not(.is-hidden)')));
+      if (empty) empty.hidden = n > 0;
+    };
+    const onClick = (e: Event) => { const c = (e.target as HTMLElement).closest<HTMLElement>('[data-tag]'); if (c) apply(c.dataset.tag ?? ''); };
+    root.addEventListener('click', onClick);
+    return () => root.removeEventListener('click', onClick);
+  });
+</script>

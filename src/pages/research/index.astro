@@ -1,0 +1,69 @@
+---
+import Base from '@/layouts/Base.astro';
+import Constellation from '@/components/Constellation.astro';
+import { getResearch, getEssays, getPublications, getLab } from '@/lib/content';
+import { breadcrumbJsonLd } from '@/lib/seo';
+
+const [areas, essays, pubs, lab] = await Promise.all([getResearch(), getEssays(), getPublications(), getLab()]);
+const counts = (id: string) => ({
+  essays: essays.filter((e) => e.data.areas.some((a) => a.id === id)).length,
+  pubs: pubs.filter((p) => p.data.areas.some((a) => a.id === id)).length,
+  lab: lab.filter((l) => l.data.areas.some((a) => a.id === id)).length,
+});
+---
+<Base title="Research" description="Research areas of Abhinav Saxena: philosophy of AI, ethics of AI, philosophy of mind, epistemology, social epistemology, ethics and technology, Indian philosophy, phenomenology and existentialism." path="/research" jsonLd={[breadcrumbJsonLd([{ name: 'Home', path: '/' }, { name: 'Research', path: '/research' }])]}>
+  <section class="section">
+    <div class="container">
+      <header class="page-head">
+        <span class="eyebrow" data-reveal>Research</span>
+        <h1 class="h1" data-reveal>Nine areas, one territory</h1>
+        <p class="lede" data-reveal>My work does not divide neatly into fields. The same question — what becomes of knowledge, agency and responsibility when machines take part — surfaces in each of these areas in a different form. The constellation shows where they touch.</p>
+      </header>
+      <div class="research-map" data-reveal>
+        <Constellation />
+      </div>
+    </div>
+  </section>
+  <section class="section">
+    <div class="container">
+      <h2 class="tag">Index</h2>
+      <ol class="area-index" role="list" data-reveal-group="60">
+        {areas.map((a, i) => {
+          const c = counts(a.id);
+          return (
+            <li class="area-index__item" data-reveal>
+              <a class="area-index__link" href={`/research/${a.id}`} data-cursor="Open">
+                <span class="area-index__num tnum">{String(i + 1).padStart(2, '0')}</span>
+                <span class="area-index__main">
+                  <span class="area-index__title serif">{a.data.title}</span>
+                  <span class="area-index__short serif">{a.data.short}</span>
+                </span>
+                <span class="area-index__counts tnum">
+                  {c.essays > 0 && <span>{c.essays} essay{c.essays === 1 ? '' : 's'}</span>}
+                  {c.pubs > 0 && <span>{c.pubs} paper{c.pubs === 1 ? '' : 's'}</span>}
+                  {c.lab > 0 && <span>{c.lab} experiment{c.lab === 1 ? '' : 's'}</span>}
+                </span>
+              </a>
+            </li>
+          );
+        })}
+      </ol>
+    </div>
+  </section>
+</Base>
+<style>
+  .page-head { max-width: 64ch; }
+  .page-head .h1, .page-head .lede { margin-top: var(--s-s); }
+  .research-map { margin-top: var(--s-2xl); }
+  .area-index { margin-top: var(--s-m); border-top: 1px solid var(--line); }
+  .area-index__item { border-bottom: 1px solid var(--line); }
+  .area-index__link { display: grid; grid-template-columns: 3rem minmax(0, 1fr) 14rem; gap: var(--s-m); align-items: baseline; padding: var(--s-m) 0; transition: color var(--dur-2); }
+  .area-index__num { font-family: var(--font-sans); font-size: var(--step--2); letter-spacing: 0.1em; color: var(--ink-3); }
+  .area-index__main { display: flex; flex-direction: column; gap: 0.25rem; }
+  .area-index__title { font-size: var(--step-3); line-height: 1.1; transition: transform var(--dur-2) var(--ease-out); }
+  .area-index__short { color: var(--ink-2); font-style: italic; font-size: var(--step-0); }
+  .area-index__counts { display: flex; flex-direction: column; gap: 0.15rem; font-family: var(--font-sans); font-size: var(--step--2); letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-3); text-align: right; }
+  .area-index__link:hover { color: var(--accent); }
+  .area-index__link:hover .area-index__title { transform: translateX(6px); }
+  @media (max-width: 760px) { .area-index__link { grid-template-columns: 2rem 1fr; } .area-index__counts { grid-column: 2; flex-direction: row; gap: 0.8rem; text-align: left; } }
+</style>

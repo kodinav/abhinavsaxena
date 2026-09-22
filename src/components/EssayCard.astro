@@ -1,0 +1,36 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import { formatDate, readingLabel, readingTimeOf } from '@/lib/format';
+interface Props { essay: CollectionEntry<'essays'>; size?: 'l' | 'm' | 's'; headingLevel?: 'h2' | 'h3' }
+const { essay, size = 'm', headingLevel = 'h3' } = Astro.props;
+const H = headingLevel;
+const d = essay.data;
+---
+<article class={`essay-card essay-card--${size}`} data-reveal>
+  <a class="essay-card__link" href={`/essays/${essay.id}`} data-cursor="Read">
+    <div class="essay-card__meta">
+      <time datetime={d.date.toISOString()}>{formatDate(d.date, { day: undefined })}</time>
+      <span aria-hidden="true">·</span>
+      <span>{readingLabel(readingTimeOf(essay.body))}</span>
+    </div>
+    <H class="essay-card__title serif">{d.title}</H>
+    {d.subtitle && <p class="essay-card__sub serif">{d.subtitle}</p>}
+    {size !== 's' && <p class="essay-card__desc">{d.description}</p>}
+    <span class="essay-card__more arrow-link">Read the essay <span class="arr" aria-hidden="true"></span></span>
+  </a>
+</article>
+<style>
+  .essay-card { border-top: 1px solid var(--line); }
+  .essay-card__link { display: block; padding: var(--s-m) 0; height: 100%; }
+  .essay-card__meta { display: flex; gap: 0.5rem; font-family: var(--font-sans); font-size: var(--step--2); letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-3); }
+  .essay-card__title { margin-top: var(--s-s); font-size: var(--step-3); line-height: 1.1; letter-spacing: -0.012em; text-wrap: balance; transition: color var(--dur-2); }
+  .essay-card--l .essay-card__title { font-size: var(--step-5); }
+  .essay-card--s .essay-card__title { font-size: var(--step-2); }
+  .essay-card__sub { margin-top: 0.4em; font-style: italic; color: var(--ink-2); font-size: var(--step-1); line-height: 1.3; }
+  .essay-card--l .essay-card__sub { font-size: var(--step-2); }
+  .essay-card__desc { margin-top: var(--s-s); color: var(--ink-2); max-width: 58ch; text-wrap: pretty; }
+  .essay-card__more { margin-top: var(--s-m); }
+  .essay-card__link:hover .essay-card__title { color: var(--accent); }
+  .essay-card__link:hover .essay-card__more { color: var(--accent); }
+  .essay-card__link:hover .essay-card__more :global(.arr) { transform: translateX(3px); }
+</style>

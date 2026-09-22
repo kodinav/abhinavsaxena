@@ -1,0 +1,72 @@
+---
+title: The Responsibility Gap Is a Map, Not a Hole
+subtitle: On what disappears, and what merely moves, when a learning system causes harm
+description: The standard worry is that autonomous systems open a gap into which responsibility vanishes. I argue that the gap is better read as a map of where control and knowledge actually sit — and that reading it is the philosophical task.
+date: 2026-04-02
+areas: [ethics-of-ai, ethics-and-technology]
+tags: [responsibility, responsibility gap, accountability, autonomous systems]
+featured: true
+references:
+  - text: "Matthias, A. (2004). The responsibility gap: Ascribing responsibility for the actions of learning automata. *Ethics and Information Technology* 6(3), 175–183."
+  - text: "Sparrow, R. (2007). Killer Robots. *Journal of Applied Philosophy* 24(1), 62–77."
+  - text: "Nissenbaum, H. (1996). Accountability in a computerized society. *Science and Engineering Ethics* 2(1), 25–42."
+  - text: "Strawson, P. F. (1962). Freedom and Resentment. *Proceedings of the British Academy* 48, 1–25."
+  - text: "Nyholm, S. (2018). Attributing Agency to Automated Systems: Reflections on Human–Robot Collaborations and Responsibility-Loci. *Science and Engineering Ethics* 24, 1201–1219."
+  - text: "Coeckelbergh, M. (2020). Artificial Intelligence, Responsibility Attribution, and a Relational Justification of Explainability. *Science and Engineering Ethics* 26, 2051–2068."
+  - text: "Santoni de Sio, F., & Mecacci, G. (2021). Four Responsibility Gaps with Artificial Intelligence: Why they Matter and How to Address them. *Philosophy & Technology* 34, 1057–1084."
+---
+
+In 2004 Andreas Matthias published a short paper with a long afterlife.[^1] Its argument was simple. Traditionally we hold a person responsible for a machine's behaviour because the person controls the machine: the driver for the car, the operator for the crane. But learning systems behave in ways that their designers did not specify and could not have predicted, and their operators do not control them in the relevant sense either. So no human satisfies the control condition. The machine, meanwhile, is not the kind of thing that can be blamed. Hence a *responsibility gap*: harm for which no one is responsible.
+
+The argument has structured two decades of debate, and the debate has mostly taken the form of proposals to fill the gap — by holding designers strictly liable, by treating the system as a quasi-agent, by insisting on meaningful human control. What has been less examined is the metaphor. A gap is an absence, a place where something should be and is not. I want to suggest that this is the wrong picture, and that it has made the debate harder than it needs to be.
+
+## What a gap would have to be
+
+Consider what would have to be true for responsibility to be genuinely *absent* rather than merely hard to locate. There would have to be a harm, caused by an action, such that no agent stood in any responsibility-grounding relation to it: no one intended it, no one foresaw it, no one could have foreseen it, no one accepted a risk of it, no one was in a position to prevent it, no one benefited from the arrangement that produced it. Only then is there nothing to attach responsibility to.
+
+Now look at an actual case. A system is trained by a team, on data selected by a team, evaluated against benchmarks chosen by a team, deployed by an organisation that judged the benefits worth the risks, used by a person who accepted its output, in a regulatory environment designed by people who decided how much scrutiny was required. The harm occurs. Was it intended? No. Foreseen? Perhaps not in its particulars. Was a risk of harms of its general kind accepted, knowingly, by people who benefited from accepting it? Almost always yes.
+
+The point is not that any one of these people is *the* responsible party. It is that responsibility-grounding relations are all over the case. What is missing is not responsibility but a single locus of it — and the expectation of a single locus is not something ethics ever promised us. It is an artefact of the paradigm case, the driver and the car, in which the relations happened to coincide.
+
+## Responsibility was always distributed
+
+Helen Nissenbaum saw this clearly before learning systems were widespread.[^2] Her "problem of many hands" describes how, in complex organisations, contributions to an outcome are spread so widely that each contributor can truthfully say her part was small. The result is not that no one is responsible but that everyone has an excuse, and the excuses are individually plausible and collectively absurd.
+
+Learning systems intensify the problem of many hands in two ways. They add hands — the system's own behaviour is a contribution not fully attributable to any human — and they hide hands, because the causal path from a design decision to an outcome runs through a model no one can read. But intensifying a problem is not the same as creating a new one. The problem of many hands has a well-understood structure and a set of well-understood responses: attribute responsibility by role rather than by causal share; hold organisations responsible as organisations; make forward-looking responsibility (the duty to prevent) explicit rather than relying on backward-looking blame.
+
+None of these responses requires that some human have controlled the system's specific behaviour. They require only that humans made decisions about whether, where and how to use a system they knew they could not fully control — and *those* decisions are controlled, in exactly the ordinary sense.
+
+## Reading the map
+
+If the gap is not a hole, what is it? I suggest that it is a *map*: a representation of how control, knowledge and benefit are actually distributed across the humans and systems involved in an outcome. The vertigo people feel when contemplating harm by autonomous systems is the vertigo of looking at a map that does not have a single X on it. But maps without a single X are still maps. They can be read.
+
+Reading the map means asking, for each party, four questions. What did they control? What did they know, or have reason to know? What did they gain from the arrangement? What could they have done differently at reasonable cost? The answers will differ by party, and the distribution of responsibility follows the distribution of answers. A developer who knew the system failed on a class of inputs and shipped it anyway sits differently on the map from one who tested carefully and was surprised. A deployer who used the system in a context it was documented not to support sits differently from one who followed the documentation. A user who overrode a warning sits differently from one who was never shown one.
+
+Filip Santoni de Sio and Giulio Mecacci have argued that there is not one gap but four: a culpability gap, a moral-accountability gap, a public-accountability gap and an active-responsibility gap.[^3] I think this is exactly right, and I think it supports the cartographic reading. Four gaps are four dimensions on which the map can be drawn. Once one sees that "who is responsible?" was always four questions — who is to blame, who must answer, who must answer *publicly*, who must act to prevent recurrence — the sense that autonomous systems produce a *void* dissolves into the more tractable sense that they produce a complicated distribution.
+
+## The reactive attitudes
+
+There is one part of the standard worry that the cartographic reading does not dissolve, and I want to be honest about it. P. F. Strawson argued that responsibility is not, at bottom, a metaphysical relation but a practice: the practice of holding one another to expectations through the reactive attitudes — resentment, gratitude, indignation, forgiveness.[^4] To hold someone responsible is to be willing to feel these things toward them, and to have those feelings be apt.
+
+The reactive attitudes need a target that can, in principle, respond. We resent a person because she could have understood our expectation and chose not to meet it. We do not resent a storm. The question is what we do with harm caused by a system that is neither person nor storm — that behaves as if it understood expectations, that can be told it was wrong, that will "do better" in the sense of updating, but toward which resentment feels somehow misdirected.
+
+Here I think there is a genuine philosophical novelty, and it is not a gap in responsibility but a gap in the *reactive attitudes* — in what we know how to feel. Sven Nyholm has suggested that human–machine collaborations be treated as agency relations in which the human retains the role of principal, so that the reactive attitudes have their proper target in the human.[^5] Mark Coeckelbergh has argued that the demand for explanation is at root a demand to have someone answer, relationally, for what was done.[^6] Both are, in my terms, proposals for where to point the reactive attitudes when the map shows no single X. I find them promising precisely because they treat the problem as one of *pointing* — of practice — rather than of metaphysical absence.
+
+## What follows
+
+Three things follow from reading the gap as a map.
+
+The first is that the burden of proof shifts. Someone who claims that a harm by an autonomous system is *nobody's* responsibility owes us the map — the demonstration that no party controlled anything, knew anything, gained anything, or could have done otherwise. In practice this demonstration almost never succeeds. The gap is asserted far more often than it is shown.
+
+The second is that the design of institutions matters more than the metaphysics of machines. If responsibility is distributed, then the question is whether the distribution is *legible* — whether the roles are defined, the knowledge documented, the decisions recorded, so that when harm occurs the map can be read. Most responsibility gaps in practice are legibility gaps: not cases where no one is responsible, but cases where no one wrote down who was.
+
+The third is that the machine's own status can be set aside, at least for now. Whether a system is an agent, whether it could ever be a fit subject of blame, whether it "understands" what it did — these are real questions in the philosophy of mind, and I care about them. But they are not prior to the ethics. The map can be read without them. We do not need to know what the system is in order to know what the people around it owed, and to whom.
+
+A hole is something you fall into. A map is something you use. The responsibility gap, I have argued, is the second kind of thing, misdescribed as the first. The task is not to fill it but to learn to read it.
+
+[^1]: Matthias (2004). Sparrow (2007) applied the argument to autonomous weapons in an influential paper that gave the "gap" its most vivid form.
+[^2]: Nissenbaum (1996).
+[^3]: Santoni de Sio & Mecacci (2021).
+[^4]: Strawson (1962).
+[^5]: Nyholm (2018).
+[^6]: Coeckelbergh (2020).

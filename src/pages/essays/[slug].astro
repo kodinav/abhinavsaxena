@@ -1,0 +1,201 @@
+---
+import Base from '@/layouts/Base.astro';
+import EssayCard from '@/components/EssayCard.astro';
+import ThemeToggle from '@/components/ThemeToggle.astro';
+import { getEntry, render } from 'astro:content';
+import { getEssays, relatedEssays } from '@/lib/content';
+import { formatDate, readingLabel } from '@/lib/format';
+import { articleJsonLd, breadcrumbJsonLd } from '@/lib/seo';
+import { site } from '@/data/site';
+
+export async function getStaticPaths() {
+  const essays = await getEssays();
+  return essays.map((essay) => ({ params: { slug: essay.id }, props: { essay } }));
+}
+const { essay } = Astro.props;
+const all = await getEssays();
+const { Content, headings, remarkPluginFrontmatter } = await render(essay);
+const d = essay.data;
+const readingTime = (remarkPluginFrontmatter as any).readingTime as number | undefined;
+const wordCount = (remarkPluginFrontmatter as any).wordCount as number | undefined;
+const areas = (await Promise.all(d.areas.map((a) => getEntry(a)))).filter(Boolean);
+const related = relatedEssays(essay, all, 3);
+const idx = all.findIndex((e) => e.id === essay.id);
+const newer = idx > 0 ? all[idx - 1] : null;
+const older = idx < all.length - 1 ? all[idx + 1] : null;
+const path = `/essays/${essay.id}`;
+const toc = headings.filter((h) => h.depth === 2);
+const url = `${site.url}${path}`;
+const shareX = `https://twitter.com/intent/tweet?text=${encodeURIComponent(d.title)}&url=${encodeURIComponent(url)}`;
+const shareMail = `mailto:?subject=${encodeURIComponent(d.title)}&body=${encodeURIComponent(`${d.description}\n\n${url}`)}`;
+const jsonLd = [
+  articleJsonLd({ path, title: d.title, description: d.description, published: d.date, updated: d.updated, tags: d.tags, wordCount }),
+  breadcrumbJsonLd([{ name: 'Home', path: '/' }, { name: 'Essays', path: '/essays' }, { name: d.title, path }]),
+];
+---
+<Base title={d.title} description={d.description} path={path} type="article" published={d.date} updated={d.updated} tags={d.tags} jsonLd={jsonLd} bodyClass="reading">
+  <div class="reader" data-reader>
+    <div class="reader__progress" aria-hidden="true"><span data-progress></span></div>
+
+    <header class="reader__head container">
+      <div class="reader__meta" data-reveal>
+        {areas.map((a) => a && <a class="reader__area" href={`/research/${a.id}`}>{a.data.title}</a>)}
+        <span class="reader__dot" aria-hidden="true">·</span>
+        <time datetime={d.date.toISOString()}>{formatDate(d.date)}</time>
+        <span class="reader__dot" aria-hidden="true">·</span>
+        <span>{readingLabel(readingTime)}</span>
+      </div>
+      <h1 class="reader__title display" data-reveal>{d.title}</h1>
+      {d.subtitle && <p class="reader__subtitle serif" data-reveal style="--reveal-delay: 80ms">{d.subtitle}</p>}
+      <p class="reader__standfirst serif" data-reveal style="--reveal-delay: 160ms">{d.description}</p>
+      <div class="reader__byline" data-reveal style="--reveal-delay: 220ms">
+        <span class="reader__rule" aria-hidden="true"></span>
+        <span>By <a class="link" href="/about">Abhinav Saxena</a></span>
+        {d.updated && <span class="muted">Updated {formatDate(d.updated)}</span>}
+      </div>
+    </header>
+
+    <div class="reader__layout container">
+      <aside class="reader__side">
+        <div class="reader__sticky">
+          {toc.length > 0 && (
+            <details class="toc" data-toc-details open>
+              <summary class="toc__summary"><span class="tag">Contents</span><span class="toc__chev" aria-hidden="true"></span></summary>
+              <nav class="toc__nav" aria-label="Contents" data-toc>
+                <ol role="list">
+                  {toc.map((h) => <li><a href={`#${h.slug}`}>{h.text}</a></li>)}
+                </ol>
+              </nav>
+            </details>
+          )}
+          <div class="reader__controls" aria-label="Reading controls">
+            <span class="tag">Reading</span>
+            <div class="reader__ctl-row">
+              <button type="button" class="ctl" data-type-smaller aria-label="Smaller text"><span class="serif">A</span><small>−</small></button>
+              <button type="button" class="ctl" data-type-larger aria-label="Larger text"><span class="serif">A</span><small>+</small></button>
+              <button type="button" class="ctl ctl--wide" data-type-wide aria-pressed="false" aria-label="Toggle wide measure"><i></i><i></i><i></i></button>
+              <ThemeToggle class="ctl-theme" />
+            </div>
+            <div class="reader__ctl-row reader__share">
+              <button type="button" class="ctl-text" data-copy="url"><span data-copy-label>Copy link</span></button>
+              <button type="button" class="ctl-text" data-share hidden>Share</button>
+              <a class="ctl-text" href={shareX} target="_blank" rel="noopener">Post on X</a>
+              <a class="ctl-text" href={shareMail}>Email</a>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <article class="reader__article prose prose--essay" data-article>
+        <Content />
+      </article>
+    </div>
+
+    <footer class="reader__foot container">
+      {d.references.length > 0 && (
+        <section class="refs" aria-labelledby="refs-title">
+          <h2 class="tag" id="refs-title">References</h2>
+          <ol class="refs__list">
+            {d.references.map((r) => (
+              <li>
+                <span set:html={r.text.replace(/\*(.+?)\*/g, '<em>$1</em>')} />
+                {r.url && <a class="refs__link" href={r.url} target="_blank" rel="noopener">{r.url.replace(/^https?:\/\//, '')} <span aria-hidden="true">↗</span></a>}
+              </li>
+            ))}
+          </ol>
+        </section>
+      )}
+
+      <div class="reader__tags">
+        {d.tags.map((t) => <a class="chip" href={`/essays?tag=${encodeURIComponent(t)}`}>{t}</a>)}
+      </div>
+
+      <div class="reader__cite">
+        <span class="tag">Cite this essay</span>
+        <p class="serif">Saxena, A. ({d.date.getUTCFullYear()}). <em>{d.title}</em>. abhinavsaxena.in. {url}</p>
+        <button type="button" class="ctl-text" data-copy={`Saxena, A. (${d.date.getUTCFullYear()}). ${d.title}. abhinavsaxena.in. ${url}`}><span data-copy-label>Copy citation</span></button>
+      </div>
+
+      <nav class="reader__nav" aria-label="Adjacent essays">
+        {older ? <a class="reader__nav-link" href={`/essays/${older.id}`} rel="prev"><span class="tag">← Earlier</span><span class="serif">{older.data.title}</span></a> : <span></span>}
+        {newer ? <a class="reader__nav-link reader__nav-link--next" href={`/essays/${newer.id}`} rel="next"><span class="tag">Later →</span><span class="serif">{newer.data.title}</span></a> : <span></span>}
+      </nav>
+
+      {related.length > 0 && (
+        <section class="related" aria-labelledby="related-title">
+          <h2 class="tag" id="related-title">Related essays</h2>
+          <div class="related__grid" data-reveal-group="80">
+            {related.map((e) => <EssayCard essay={e} size="s" />)}
+          </div>
+        </section>
+      )}
+    </footer>
+  </div>
+</Base>
+
+<style>
+  .reader { --reader-scale: 1; --reader-measure: var(--measure); }
+  .reader__progress { position: fixed; top: 0; left: 0; right: 0; height: 2px; z-index: 110; pointer-events: none; }
+  .reader__progress span { display: block; height: 100%; background: var(--accent); transform-origin: left; transform: scaleX(0); }
+  .reader__head { padding-top: var(--s-2xl); }
+  .reader__meta { display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem; font-family: var(--font-sans); font-size: var(--step--2); letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-3); }
+  .reader__area { color: var(--accent); }
+  .reader__title { margin-top: var(--s-m); font-size: var(--step-6); max-width: 16ch; }
+  .reader__subtitle { margin-top: var(--s-s); font-size: var(--step-3); font-style: italic; line-height: 1.15; color: var(--ink-2); max-width: 30ch; text-wrap: balance; }
+  .reader__standfirst { margin-top: var(--s-l); font-size: var(--step-1); line-height: 1.45; color: var(--ink-2); max-width: 58ch; text-wrap: pretty; }
+  .reader__byline { margin-top: var(--s-l); display: flex; align-items: center; gap: var(--s-s); font-family: var(--font-sans); font-size: var(--step--1); }
+  .reader__rule { width: 3rem; height: 1px; background: var(--ink); }
+  .reader__layout { margin-top: var(--s-2xl); display: grid; grid-template-columns: 16rem minmax(0, 1fr); gap: var(--s-2xl); align-items: start; }
+  .reader__side { align-self: stretch; }
+  .reader__sticky { position: sticky; top: calc(var(--nav-h) + 1.5rem); display: flex; flex-direction: column; gap: var(--s-l); }
+  .toc__summary { list-style: none; display: flex; align-items: center; justify-content: space-between; cursor: pointer; padding-bottom: 0.5rem; }
+  .toc__summary::-webkit-details-marker { display: none; }
+  .toc__chev { width: 0.5rem; height: 0.5rem; border-right: 1px solid var(--ink-3); border-bottom: 1px solid var(--ink-3); transform: rotate(45deg); transition: transform var(--dur-2); display: none; }
+  .toc[open] .toc__chev { transform: rotate(-135deg); }
+  .toc__nav ol { border-left: 1px solid var(--line); }
+  .toc__nav a { display: block; padding: 0.35rem 0 0.35rem 1rem; margin-left: -1px; border-left: 1px solid transparent; font-family: var(--font-sans); font-size: var(--step--1); color: var(--ink-3); line-height: 1.35; transition: color var(--dur-1), border-color var(--dur-2); text-wrap: pretty; }
+  .toc__nav a:hover { color: var(--ink); }
+  .toc__nav a.is-active { color: var(--ink); border-color: var(--accent); }
+  .reader__controls .tag { display: block; margin-bottom: 0.5rem; }
+  .reader__ctl-row { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; }
+  .reader__share { margin-top: 0.75rem; gap: 0.25rem 1rem; }
+  .ctl { display: inline-flex; align-items: baseline; justify-content: center; gap: 0.1rem; height: 2.25rem; min-width: 2.25rem; padding: 0 0.6rem; border: 1px solid var(--line); border-radius: 999px; font-size: var(--step--1); transition: border-color var(--dur-2), color var(--dur-2); }
+  .ctl small { font-size: 0.7em; }
+  .ctl:hover { border-color: var(--ink); }
+  .ctl[disabled] { opacity: 0.35; pointer-events: none; }
+  .ctl--wide { align-items: center; gap: 2px; }
+  .ctl--wide i { display: block; width: 3px; height: 10px; background: currentColor; }
+  .ctl--wide[aria-pressed='true'] { border-color: var(--ink); background: var(--ink); color: var(--paper); }
+  .ctl-text { font-family: var(--font-sans); font-size: var(--step--1); font-weight: 500; color: var(--ink-2); padding: 0.25rem 0; transition: color var(--dur-1); }
+  .ctl-text:hover, .ctl-text.is-copied { color: var(--accent); }
+  .reader__article { padding-bottom: var(--s-xl); }
+  .reader__foot { margin-top: var(--s-xl); padding-top: var(--s-xl); border-top: 1px solid var(--line); display: flex; flex-direction: column; gap: var(--s-2xl); }
+  .refs { max-width: var(--measure-wide); }
+  .refs__list { margin-top: var(--s-s); padding-left: 1.5em; font-family: var(--font-serif); font-size: var(--step-0); color: var(--ink-2); display: flex; flex-direction: column; gap: 0.5em; }
+  .refs__list li::marker { color: var(--ink-3); font-family: var(--font-sans); font-size: 0.8em; }
+  .refs__link { display: inline-block; margin-left: 0.4em; font-family: var(--font-sans); font-size: var(--step--2); color: var(--accent); word-break: break-all; }
+  .reader__tags { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+  .reader__cite .tag { display: block; margin-bottom: 0.5rem; }
+  .reader__cite p { color: var(--ink-2); max-width: var(--measure); }
+  .reader__cite .ctl-text { margin-top: 0.5rem; }
+  .reader__nav { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s-m); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+  .reader__nav-link { display: flex; flex-direction: column; gap: 0.5rem; padding: var(--s-m) 0; font-size: var(--step-1); line-height: 1.2; transition: color var(--dur-2); }
+  .reader__nav-link--next { text-align: right; align-items: flex-end; }
+  .reader__nav-link:hover { color: var(--accent); }
+  .related__grid { margin-top: var(--s-s); display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--s-l); }
+  @media (max-width: 1000px) {
+    .reader__layout { grid-template-columns: 1fr; gap: var(--s-l); }
+    .reader__sticky { position: static; gap: var(--s-m); }
+    .toc { border: 1px solid var(--line); border-radius: var(--radius-l); padding: 0.75rem 1rem; }
+    .toc__summary { padding-bottom: 0; }
+    .toc[open] .toc__summary { padding-bottom: 0.5rem; }
+    .toc__chev { display: block; }
+    .related__grid { grid-template-columns: 1fr; }
+    .reader__nav { grid-template-columns: 1fr; }
+    .reader__nav-link--next { text-align: left; align-items: flex-start; }
+  }
+</style>
+
+<script>
+  import '@/scripts/reading';
+</script>

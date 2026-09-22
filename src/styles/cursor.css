@@ -1,0 +1,65 @@
+.cursor {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity var(--dur-2);
+}
+.cursor.is-visible { opacity: 1; }
+.cursor__dot,
+.cursor__ring {
+  position: absolute;
+  top: 0;
+  left: 0;
+  will-change: transform;
+}
+.cursor__dot {
+  width: 6px;
+  height: 6px;
+  margin: -3px 0 0 -3px;
+  border-radius: 50%;
+  background: var(--ink);
+  transition: opacity var(--dur-1);
+}
+.cursor__ring {
+  width: 34px;
+  height: 34px;
+  margin: -17px 0 0 -17px;
+  border-radius: 50%;
+  border: 1px solid rgb(var(--ink-rgb) / 0.55);
+  display: grid;
+  place-items: center;
+  transition: width var(--dur-2) var(--ease-out), height var(--dur-2) var(--ease-out), margin var(--dur-2) var(--ease-out), background-color var(--dur-2), border-color var(--dur-2);
+}
+.cursor__label {
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--paper);
+  opacity: 0;
+  transition: opacity var(--dur-1);
+  white-space: nowrap;
+}
+.cursor.is-active .cursor__ring {
+  width: 52px;
+  height: 52px;
+  margin: -26px 0 0 -26px;
+  border-color: rgb(var(--accent-rgb) / 0.9);
+  background: rgb(var(--accent-rgb) / 0.08);
+}
+.cursor.is-active .cursor__dot { background: var(--accent); }
+.cursor.has-label .cursor__ring {
+  width: 72px;
+  height: 72px;
+  margin: -36px 0 0 -36px;
+  background: rgb(var(--ink-rgb) / 0.92);
+  border-color: transparent;
+}
+.cursor.has-label .cursor__label { opacity: 1; }
+.cursor.has-label .cursor__dot { opacity: 0; }
+.cursor.is-text .cursor__ring { width: 2px; height: 28px; margin: -14px 0 0 -1px; border-radius: 1px; background: var(--ink); }
+.cursor.is-text .cursor__dot { opacity: 0; }
+.cursor.is-down { --cs: 0.85; }

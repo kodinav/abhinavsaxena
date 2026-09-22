@@ -1,0 +1,128 @@
+---
+import Base from '@/layouts/Base.astro';
+import { site } from '@/data/site';
+import { cv } from '@/data/cv';
+import { getPublications } from '@/lib/content';
+import { formatAuthors, statusLabel } from '@/lib/format';
+import { breadcrumbJsonLd } from '@/lib/seo';
+import { existsSync } from 'node:fs';
+
+const pubs = await getPublications();
+const pdfPath = '/cv/abhinav-saxena-cv.pdf';
+const pdfExists = existsSync(new URL('../../public' + pdfPath, import.meta.url));
+const sections = cv.sections;
+const today = new Date();
+---
+<Base title="Curriculum Vitae" description="Curriculum vitae of Abhinav Saxena — education, positions, research areas, publications, presentations, teaching and service." path="/cv" jsonLd={[breadcrumbJsonLd([{ name: 'Home', path: '/' }, { name: 'CV', path: '/cv' }])]} bodyClass="cv-page">
+  <div class="cv">
+    <header class="section cv__head">
+      <div class="container grid">
+        <div class="cv__side">
+          <span class="eyebrow" data-reveal>Curriculum vitae</span>
+          <nav class="cv__index no-print" aria-label="CV sections" data-reveal>
+            <ol role="list">{sections.map((s) => <li><a href={`#${s.id}`}>{s.title}</a></li>)}</ol>
+          </nav>
+        </div>
+        <div class="cv__main">
+          <h1 class="h1" data-reveal>Abhinav Saxena</h1>
+          <p class="cv__role" data-reveal>Philosopher · Researcher · Writer</p>
+          <p class="lede" data-reveal>{cv.summary}</p>
+          <dl class="cv__contact" data-reveal>
+            <div><dt>Email</dt><dd><a class="link" href={`mailto:${site.email}`}>{site.email}</a></dd></div>
+            <div><dt>Web</dt><dd><a class="link" href={site.url}>abhinavsaxena.in</a></dd></div>
+            {site.affiliation && <div><dt>Affiliation</dt><dd>{site.affiliation}</dd></div>}
+            {site.location && <div><dt>Location</dt><dd>{site.location}</dd></div>}
+          </dl>
+          <div class="cv__actions no-print" data-reveal>
+            {pdfExists ? <a class="btn btn--solid" href={pdfPath} download data-magnetic="0.2">Download PDF</a> : <button type="button" class="btn btn--solid" data-print data-magnetic="0.2">Download PDF</button>}
+            <button type="button" class="btn" data-print>Print</button>
+            <span class="muted cv__updated">Updated {today.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })}</span>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    {sections.map((s) => (
+      <section class="section cv-section" id={s.id} aria-labelledby={`${s.id}-title`}>
+        <div class="container grid">
+          <div class="cv__side"><h2 class="tag" id={`${s.id}-title`}>{s.title}</h2></div>
+          <div class="cv__main">
+            {s.fromPublications ? (
+              <ol class="cv__list" role="list">
+                {pubs.map((p) => (
+                  <li class="cv__entry">
+                    <span class="cv__period tnum">{p.data.year}</span>
+                    <span class="cv__body">
+                      <span class="serif cv__title">{p.data.title}</span>
+                      <span class="cv__org">{formatAuthors(p.data.authors)}. <em>{p.data.venue}</em>. {statusLabel[p.data.status]}.</span>
+                      {p.data.placeholder && <span class="pub__sample">replace</span>}
+                    </span>
+                  </li>
+                ))}
+              </ol>
+            ) : (
+              <ol class="cv__list" role="list">
+                {s.entries.map((e) => (
+                  <li class="cv__entry">
+                    <span class="cv__period tnum">{e.period ?? ''}</span>
+                    <span class="cv__body">
+                      <span class="serif cv__title">{e.title}</span>
+                      {e.org && <span class="cv__org">{e.org}{e.place ? `, ${e.place}` : ''}</span>}
+                      {e.detail && <span class="cv__detail">{e.detail}</span>}
+                      {e.placeholder && <span class="pub__sample">replace</span>}
+                    </span>
+                  </li>
+                ))}
+              </ol>
+            )}
+          </div>
+        </div>
+      </section>
+    ))}
+  </div>
+</Base>
+<style>
+  .cv__side { grid-column: 1 / span 3; }
+  .cv__main { grid-column: 4 / span 8; }
+  .cv__role { margin-top: var(--s-xs); font-family: var(--font-sans); font-size: var(--step--1); letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-3); }
+  .cv__head .lede { margin-top: var(--s-m); }
+  .cv__contact { margin-top: var(--s-l); display: flex; flex-direction: column; gap: 0.35rem; font-size: var(--step--1); }
+  .cv__contact div { display: grid; grid-template-columns: 7rem 1fr; gap: var(--s-s); }
+  .cv__contact dt { font-family: var(--font-sans); font-size: var(--step--2); letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-3); }
+  .cv__contact dd { margin: 0; }
+  .cv__actions { margin-top: var(--s-l); display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-s); }
+  .cv__updated { font-size: var(--step--2); margin-left: var(--s-xs); }
+  .cv__index { margin-top: var(--s-l); position: sticky; top: calc(var(--nav-h) + 1rem); }
+  .cv__index a { display: block; padding: 0.3rem 0; font-family: var(--font-sans); font-size: var(--step--1); color: var(--ink-3); transition: color var(--dur-1); }
+  .cv__index a:hover { color: var(--ink); }
+  .cv-section { padding-block: var(--s-xl); }
+  .cv-section .container { grid-template-rows: auto; }
+  .cv__list { border-top: 1px solid var(--line); }
+  .cv__entry { display: grid; grid-template-columns: 9rem 1fr; gap: var(--s-m); padding: var(--s-s) 0; border-bottom: 1px solid var(--line); }
+  .cv__period { font-family: var(--font-sans); font-size: var(--step--1); color: var(--ink-3); }
+  .cv__body { display: flex; flex-direction: column; gap: 0.2rem; }
+  .cv__title { font-size: var(--step-1); line-height: 1.25; }
+  .cv__org { font-family: var(--font-sans); font-size: var(--step--1); color: var(--ink-2); }
+  .cv__detail { font-family: var(--font-sans); font-size: var(--step--1); color: var(--ink-3); }
+  @media (max-width: 900px) {
+    .cv__side, .cv__main { grid-column: 1 / -1; }
+    .cv__main { margin-top: var(--s-s); }
+    .cv__index { display: none; }
+    .cv__entry { grid-template-columns: 1fr; gap: 0.2rem; }
+  }
+  @media print {
+    .cv__side { grid-column: 1 / span 3; }
+    .cv__main { grid-column: 4 / span 8; }
+    .cv-section { padding-block: 1.2rem; border-top: 0; }
+    .cv__head { padding-top: 0; }
+    .cv__entry { grid-template-columns: 7rem 1fr; }
+  }
+</style>
+<script>
+  import { onPage } from '@/lib/page';
+  onPage<HTMLElement>('.cv', (root) => {
+    const onClick = (e: Event) => { if ((e.target as HTMLElement).closest('[data-print]')) window.print(); };
+    root.addEventListener('click', onClick);
+    return () => root.removeEventListener('click', onClick);
+  });
+</script>

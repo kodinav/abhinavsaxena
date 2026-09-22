@@ -1,0 +1,96 @@
+---
+import Base from '@/layouts/Base.astro';
+import PublicationEntry from '@/components/PublicationEntry.astro';
+import { getPublications, getResearch } from '@/lib/content';
+import { statusLabel, venueTypeLabel } from '@/lib/format';
+import { scholarlyArticleJsonLd, breadcrumbJsonLd } from '@/lib/seo';
+
+const [pubs, areas] = await Promise.all([getPublications(), getResearch()]);
+const areaTitles = Object.fromEntries(areas.map((a) => [a.id, a.data.title]));
+const years = Array.from(new Set(pubs.map((p) => p.data.year))).sort((a, b) => b - a);
+const usedAreas = areas.filter((a) => pubs.some((p) => p.data.areas.some((x) => x.id === a.id)));
+const statuses = Array.from(new Set(pubs.map((p) => p.data.status)));
+const types = Array.from(new Set(pubs.map((p) => p.data.venueType)));
+const hasPlaceholders = pubs.some((p) => p.data.placeholder);
+const jsonLd = [
+  breadcrumbJsonLd([{ name: 'Home', path: '/' }, { name: 'Publications', path: '/publications' }]),
+  ...pubs.filter((p) => !p.data.placeholder).map((p) =>
+    scholarlyArticleJsonLd({ id: p.id, title: p.data.title, authors: p.data.authors, year: p.data.year, venue: p.data.venue, venueType: p.data.venueType, doi: p.data.doi, url: p.data.url, abstract: p.body?.slice(0, 500), topics: p.data.topics }),
+  ),
+];
+---
+<Base title="Publications" description="Papers by Abhinav Saxena in philosophy of AI, ethics of AI, philosophy of mind, epistemology and social epistemology — searchable by year, topic, venue and research area." path="/publications" jsonLd={jsonLd}>
+  <section class="section archive" data-archive>
+    <div class="container">
+      <header class="archive__head">
+        <span class="eyebrow" data-reveal>Publications</span>
+        <h1 class="h1" data-reveal>The archive</h1>
+        <p class="lede" data-reveal>Papers, chapters and works in progress. Each entry opens to its abstract; citations copy in one click.</p>
+        {hasPlaceholders && (
+          <p class="archive__note" data-reveal>
+            Entries marked <span class="pub__sample">Sample entry — replace</span> are placeholders showing the archive's format. Real publications will replace them.
+          </p>
+        )}
+      </header>
+
+      <div class="archive__tools" data-reveal>
+        <label class="archive__search">
+          <span class="visually-hidden">Search publications</span>
+          <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="5" fill="none" stroke="currentColor"/><path d="M11 11l4 4" stroke="currentColor"/></svg>
+          <input type="search" data-search placeholder="Search title, venue, topic…  ( / )" autocomplete="off" />
+        </label>
+        <div class="archive__filters">
+          <div class="filter-group" data-filter-group="area" role="group" aria-label="Filter by research area">
+            <span class="filter-group__label">Area</span>
+            {usedAreas.map((a) => <button type="button" class="chip" data-filter-value={a.id} aria-pressed="false">{a.data.title}</button>)}
+          </div>
+          <div class="filter-group" data-filter-group="year" role="group" aria-label="Filter by year">
+            <span class="filter-group__label">Year</span>
+            {years.map((y) => <button type="button" class="chip tnum" data-filter-value={String(y)} aria-pressed="false">{y}</button>)}
+          </div>
+          <div class="filter-group" data-filter-group="type" role="group" aria-label="Filter by type">
+            <span class="filter-group__label">Type</span>
+            {types.map((t) => <button type="button" class="chip" data-filter-value={t} aria-pressed="false">{venueTypeLabel[t]}</button>)}
+          </div>
+          <div class="filter-group" data-filter-group="status" role="group" aria-label="Filter by status">
+            <span class="filter-group__label">Status</span>
+            {statuses.map((s) => <button type="button" class="chip" data-filter-value={s} aria-pressed="false">{statusLabel[s]}</button>)}
+          </div>
+        </div>
+        <div class="archive__status">
+          <span class="muted" aria-live="polite">Showing <span data-count class="tnum">{pubs.length} of {pubs.length}</span></span>
+          <button type="button" class="link archive__clear" data-clear hidden>Clear filters</button>
+        </div>
+      </div>
+
+      <div class="archive__list">
+        {pubs.map((p, i) => <PublicationEntry pub={p} index={pubs.length - i} areaTitles={areaTitles} headingLevel="h2" />)}
+        <p class="archive__empty serif" data-empty hidden>Nothing matches. Try a broader search, or clear the filters.</p>
+      </div>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .archive__head { max-width: 64ch; }
+  .archive__head .h1 { margin-top: var(--s-s); }
+  .archive__head .lede { margin-top: var(--s-s); }
+  .archive__note { margin-top: var(--s-m); font-size: var(--step--1); color: var(--ink-2); }
+  .archive__tools { margin-top: var(--s-xl); position: sticky; top: 0; z-index: 5; background: var(--paper); padding: calc(var(--nav-h) + var(--s-2xs)) 0 var(--s-s); margin-top: calc(var(--s-xl) - var(--nav-h)); border-bottom: 1px solid var(--line); }
+  .archive__search { display: flex; align-items: center; gap: 0.75rem; max-width: 34rem; border-bottom: 1px solid var(--line-2); color: var(--ink-3); transition: border-color var(--dur-2); }
+  .archive__search:focus-within { border-color: var(--ink); color: var(--ink); }
+  .archive__search input { flex: 1; border: 0; background: transparent; padding: 0.6rem 0; font-family: var(--font-serif); font-size: var(--step-1); outline: none; color: var(--ink); }
+  .archive__search input::placeholder { color: var(--ink-3); font-style: italic; }
+  .archive__filters { margin-top: var(--s-s); display: flex; flex-direction: column; gap: 0.5rem; }
+  .filter-group { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem; }
+  .filter-group__label { font-family: var(--font-sans); font-size: var(--step--2); letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-3); width: 4rem; }
+  .archive__status { margin-top: var(--s-s); display: flex; gap: var(--s-m); font-size: var(--step--1); align-items: center; }
+  .archive__clear { font-family: var(--font-sans); font-size: var(--step--1); }
+  .archive__list { margin-top: var(--s-m); border-bottom: 1px solid var(--line); }
+  .archive__empty { padding: var(--s-xl) 0; font-size: var(--step-1); font-style: italic; color: var(--ink-2); }
+  @media (max-width: 760px) { .archive__tools { position: static; } .filter-group__label { width: 100%; } }
+</style>
+
+<script>
+  import '@/scripts/publications';
+</script>

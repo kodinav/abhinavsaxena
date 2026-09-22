@@ -1,0 +1,34 @@
+---
+import Base from '@/layouts/Base.astro';
+import LabCard from '@/components/LabCard.astro';
+import { getLab } from '@/lib/content';
+import { breadcrumbJsonLd } from '@/lib/seo';
+const lab = await getLab();
+---
+<Base title="Philosophy Lab" description="Interactive thought experiments by Abhinav Saxena: the Turing test inverted, digital Ship of Theseus, epistemic chains, agency without consciousness, the responsibility gap, and machine knowledge." path="/lab" jsonLd={[breadcrumbJsonLd([{ name: 'Home', path: '/' }, { name: 'Philosophy Lab', path: '/lab' }])]}>
+  <section class="section">
+    <div class="container">
+      <header class="page-head">
+        <span class="eyebrow" data-reveal>Philosophy Lab</span>
+        <h1 class="h1" data-reveal>Thought experiments you can run</h1>
+        <p class="lede" data-reveal>A thought experiment is an instrument: you set its parameters and read off your intuitions. These are built to be operated rather than read. Each takes a few minutes, and each is designed to show you where your answer came from.</p>
+      </header>
+      <ol class="lab-index" role="list" data-reveal-group="80">
+        {lab.map((x, i) => <li><LabCard exp={x} index={i + 1} headingLevel="h2" /></li>)}
+      </ol>
+      <div class="lab-colophon" data-reveal>
+        <span class="tag">How the lab is built</span>
+        <p class="serif">Every experiment is a small, dependency-free module loaded only when its page opens. Nothing is tracked or stored; your answers stay in your browser tab. New instruments are added as the research raises new questions.</p>
+      </div>
+    </div>
+  </section>
+</Base>
+<style>
+  .page-head { max-width: 64ch; }
+  .page-head .h1, .page-head .lede { margin-top: var(--s-s); }
+  .lab-index { margin-top: var(--s-2xl); display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--s-m); }
+  .lab-colophon { margin-top: var(--s-2xl); max-width: 58ch; color: var(--ink-2); }
+  .lab-colophon .tag { display: block; margin-bottom: 0.5rem; }
+  @media (max-width: 1000px) { .lab-index { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 640px) { .lab-index { grid-template-columns: 1fr; } }
+</style>

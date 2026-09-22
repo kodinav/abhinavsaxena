@@ -1,0 +1,56 @@
+---
+import { site } from '@/data/site';
+const year = new Date().getFullYear();
+const active = site.profiles.filter((p) => p.url);
+const pending = site.profiles.filter((p) => !p.url);
+---
+<footer class="site-footer">
+  <div class="container">
+    <div class="site-footer__grid">
+      <div class="site-footer__id">
+        <a href="/" class="site-footer__name serif">Abhinav Saxena</a>
+        <p class="site-footer__role">Philosopher · Researcher · Writer</p>
+        <p class="site-footer__line serif">Philosophy × AI × Mind × Ethics × Technology</p>
+      </div>
+      <nav class="site-footer__nav" aria-label="Footer">
+        <ul role="list">
+          {site.nav.map((i) => <li><a class="link" href={i.href}>{i.long ?? i.label}</a></li>)}
+        </ul>
+        <ul role="list">
+          {site.more.map((i) => <li><a class="link" href={i.href}>{i.label}</a></li>)}
+        </ul>
+      </nav>
+      <div class="site-footer__profiles">
+        <span class="eyebrow">Profiles</span>
+        <ul role="list">
+          {active.map((p) => <li><a class="link" href={p.url} rel="me noopener" target="_blank">{p.label}</a></li>)}
+          {pending.slice(0, 4).map((p) => <li class="pending"><span>{p.label}</span><small>link pending</small></li>)}
+        </ul>
+        <a class="link site-footer__mail" href={`mailto:${site.email}`}>{site.email}</a>
+      </div>
+    </div>
+    <div class="site-footer__bottom">
+      <span class="muted">© {year} Abhinav Saxena. Text licensed for quotation with attribution.</span>
+      <a href="#top" class="site-footer__top arrow-link" data-magnetic="0.3">Back to top <span class="arr up" aria-hidden="true"></span></a>
+    </div>
+  </div>
+</footer>
+<style>
+  .site-footer { border-top: 1px solid var(--line); padding-block: var(--s-2xl) var(--s-l); margin-top: var(--s-3xl); font-size: var(--step--1); }
+  .site-footer__grid { display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: var(--s-xl); }
+  .site-footer__name { font-size: var(--step-2); }
+  .site-footer__role { margin-top: 0.5rem; color: var(--ink-3); letter-spacing: 0.04em; }
+  .site-footer__line { margin-top: var(--s-m); font-style: italic; color: var(--ink-2); }
+  .site-footer__nav { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s-m); }
+  .site-footer__nav li + li, .site-footer__profiles li + li { margin-top: 0.5rem; }
+  .site-footer__profiles ul { margin-top: var(--s-s); }
+  .pending { color: var(--ink-3); display: flex; gap: 0.5rem; align-items: baseline; }
+  .pending small { font-size: var(--step--2); letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-3); }
+  .site-footer__mail { display: inline-block; margin-top: var(--s-m); }
+  .site-footer__bottom { margin-top: var(--s-2xl); padding-top: var(--s-s); border-top: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; gap: var(--s-m); font-size: var(--step--2); }
+  .arr.up { transform: rotate(-90deg); }
+  @media (max-width: 860px) {
+    .site-footer__grid { grid-template-columns: 1fr; gap: var(--s-l); }
+    .site-footer__bottom { flex-direction: column; align-items: flex-start; }
+  }
+</style>

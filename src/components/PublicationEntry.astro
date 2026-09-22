@@ -1,0 +1,95 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import { render } from 'astro:content';
+import { formatAuthors, formatCitation, statusLabel, venueTypeLabel, doiUrl } from '@/lib/format';
+interface Props { pub: CollectionEntry<'publications'>; index: number; areaTitles: Record<string, string>; compact?: boolean; headingLevel?: 'h2' | 'h3' }
+const { pub, index, areaTitles, compact = false, headingLevel = 'h3' } = Astro.props;
+const H = headingLevel;
+const d = pub.data;
+const { Content } = await render(pub);
+const doi = doiUrl(d.doi);
+const link = doi ?? d.url;
+const citation = formatCitation(d);
+---
+<article
+  class={`pub ${compact ? 'pub--compact' : ''} pub--${d.status}`}
+  id={pub.id}
+  data-pub
+  data-year={d.year}
+  data-status={d.status}
+  data-type={d.venueType}
+  data-areas={d.areas.map((a) => a.id).join(' ')}
+  data-search={[d.title, d.venue, d.authors.join(' '), d.topics.join(' '), d.year, d.areas.map((a) => areaTitles[a.id]).join(' ')].join(' ').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')}
+  data-reveal
+>
+  <div class="pub__margin">
+    <span class="pub__num tnum">№ {String(index).padStart(3, '0')}</span>
+    <span class="pub__year tnum">{d.year}</span>
+  </div>
+  <div class="pub__body">
+    <div class="pub__stamps">
+      <span class={`pub__status pub__status--${d.status}`}>{statusLabel[d.status]}</span>
+      <span class="pub__type">{venueTypeLabel[d.venueType]}</span>
+      {d.placeholder && <span class="pub__sample">Sample entry — replace</span>}
+    </div>
+    <H class="pub__title serif">{d.title}</H>
+    <p class="pub__authors">{formatAuthors(d.authors)}</p>
+    <p class="pub__venue serif">
+      {d.venueType === 'chapter' && <span>In </span>}<em>{d.venue}</em>{d.volume && <span>, {d.volume}</span>}{d.issue && <span>({d.issue})</span>}{d.pages && <span>, {d.pages}</span>}
+    </p>
+    {!compact && (
+      <div class="pub__areas">
+        {d.areas.map((a) => <a class="chip" href={`/research/${a.id}`}>{areaTitles[a.id]}</a>)}
+        {d.topics.map((t) => <span class="tag">{t}</span>)}
+      </div>
+    )}
+    <div class="pub__actions">
+      <button type="button" class="pub__toggle" aria-expanded="false" aria-controls={`abs-${pub.id}`}>
+        <span class="pub__toggle-icon" aria-hidden="true"><i></i><i></i></span>Abstract
+      </button>
+      {link && <a class="pub__link" href={link} target="_blank" rel="noopener">{doi ? 'DOI' : 'Link'} <span aria-hidden="true">↗</span></a>}
+      {d.pdf && <a class="pub__link" href={d.pdf} target="_blank" rel="noopener">PDF <span aria-hidden="true">↗</span></a>}
+      <button type="button" class="pub__link" data-copy={citation}><span data-copy-label>Copy citation</span></button>
+    </div>
+    <div class="pub__abstract" id={`abs-${pub.id}`} hidden>
+      <div class="pub__abstract-inner prose prose--compact"><Content /></div>
+    </div>
+  </div>
+</article>
+<style is:global>
+  .pub { display: grid; grid-template-columns: 7rem 1fr; gap: var(--s-m); padding: var(--s-l) 0; border-top: 1px solid var(--line); transition: opacity var(--dur-2); }
+  .pub--compact { padding: var(--s-m) 0; }
+  .pub--in-progress .pub__title { color: var(--ink-2); }
+  .pub__margin { display: flex; flex-direction: column; gap: 0.25rem; font-family: var(--font-sans); font-size: var(--step--2); letter-spacing: 0.1em; color: var(--ink-3); }
+  .pub__year { font-family: var(--font-serif); font-size: var(--step-2); letter-spacing: 0; color: var(--ink); line-height: 1; }
+  .pub__stamps { display: flex; flex-wrap: wrap; gap: 0.5rem 0.9rem; align-items: center; font-family: var(--font-sans); font-size: var(--step--2); letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-3); }
+  .pub__status { display: inline-flex; align-items: center; gap: 0.4em; color: var(--ink-2); }
+  .pub__status::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--ink-3); }
+  .pub__status--published::before { background: var(--accent); }
+  .pub__status--forthcoming::before { background: var(--accent); opacity: 0.6; }
+  .pub__status--under-review::before, .pub__status--in-progress::before { background: transparent; border: 1px solid var(--ink-3); }
+  .pub__sample { color: var(--accent); border: 1px dashed rgb(var(--accent-rgb) / 0.6); padding: 0.1em 0.5em; border-radius: 999px; align-self: flex-start; width: fit-content; font-family: var(--font-sans); font-size: var(--step--2); letter-spacing: 0.08em; text-transform: uppercase; }
+  .pub__title { margin-top: var(--s-xs); font-size: var(--step-2); line-height: 1.18; letter-spacing: -0.01em; text-wrap: balance; max-width: 34ch; }
+  .pub--compact .pub__title { font-size: var(--step-1); }
+  .pub__authors { margin-top: 0.4rem; font-family: var(--font-sans); font-size: var(--step--1); color: var(--ink-2); }
+  .pub__venue { margin-top: 0.15rem; color: var(--ink-2); font-size: var(--step-0); }
+  .pub__areas { margin-top: var(--s-s); display: flex; flex-wrap: wrap; gap: 0.4rem 0.8rem; align-items: center; }
+  .pub__actions { margin-top: var(--s-s); display: flex; flex-wrap: wrap; gap: 0.5rem 1.4rem; align-items: center; font-family: var(--font-sans); font-size: var(--step--1); font-weight: 500; }
+  .pub__toggle { display: inline-flex; align-items: center; gap: 0.5em; color: var(--ink); }
+  .pub__toggle-icon { position: relative; width: 1.1rem; height: 1.1rem; border: 1px solid var(--line-2); border-radius: 50%; }
+  .pub__toggle-icon i { position: absolute; left: 50%; top: 50%; width: 7px; height: 1px; background: currentColor; transform: translate(-50%, -50%); transition: transform var(--dur-2) var(--ease-out); }
+  .pub__toggle-icon i:last-child { transform: translate(-50%, -50%) rotate(90deg); }
+  .pub__toggle[aria-expanded='true'] .pub__toggle-icon i:last-child { transform: translate(-50%, -50%) rotate(0); }
+  .pub__toggle:hover, .pub__link:hover { color: var(--accent); }
+  .pub__link { color: var(--ink-2); }
+  .pub__link.is-copied { color: var(--accent); }
+  .pub__abstract { overflow: hidden; height: 0; transition: height var(--dur-3) var(--ease-out); }
+  .pub__abstract[hidden] { display: block; height: 0; }
+  .pub__abstract-inner { padding-top: var(--s-m); color: var(--ink-2); max-width: 62ch; }
+  .pub.is-filtered-out { display: none; }
+  @media (max-width: 640px) {
+    .pub { grid-template-columns: 1fr; gap: var(--s-xs); }
+    .pub__margin { flex-direction: row; align-items: baseline; gap: var(--s-s); }
+    .pub__year { font-size: var(--step-1); }
+  }
+</style>

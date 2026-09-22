@@ -1,0 +1,150 @@
+---
+import { getQuestions } from '@/lib/content';
+import { getEntry, render } from 'astro:content';
+
+const questions = await getQuestions();
+const items = await Promise.all(
+  questions.map(async (q) => {
+    const { Content } = await render(q);
+    const areas = await Promise.all(q.data.areas.map((a) => getEntry(a)));
+    const essay = q.data.essay ? await getEntry(q.data.essay) : null;
+    const experiment = q.data.experiment ? await getEntry(q.data.experiment) : null;
+    // wrap emphasised phrases
+    let html = q.data.question;
+    for (const phrase of q.data.emphasis) {
+      html = html.replace(phrase, `<em class="q-em">${phrase}</em>`);
+    }
+    return { q, Content, areas: areas.filter(Boolean), essay, experiment, html };
+  }),
+);
+---
+<section class="questions section" id="questions" aria-labelledby="questions-title">
+  <div class="container">
+    <header class="section-head" data-reveal>
+      <span class="eyebrow"><span class="num">02</span>Current questions</span>
+      <h2 class="h2" id="questions-title">Questions I am working on</h2>
+      <p class="lede">Not settled positions — open problems. Each one is a door into a research area, an essay, or an experiment in the lab.</p>
+    </header>
+    <ol class="questions__list" role="list" data-questions data-reveal-group="60">
+      {items.map(({ q, Content, areas, essay, experiment, html }, i) => (
+        <li class="question" data-question data-reveal>
+          <h3 class="question__h">
+            <button type="button" class="question__trigger" aria-expanded="false" aria-controls={`q-${i + 1}`} id={`q-${i + 1}-trigger`}>
+              <span class="question__num tnum">{String(i + 1).padStart(2, '0')}</span>
+              <span class="question__text serif" set:html={html} />
+              <span class="question__icon" aria-hidden="true"><i></i><i></i></span>
+            </button>
+          </h3>
+          <div class="question__panel" id={`q-${i + 1}`} role="region" aria-labelledby={`q-${i + 1}-trigger`} hidden>
+            <div class="question__inner">
+              <div class="question__body prose prose--compact"><Content /></div>
+              <div class="question__links">
+                <div class="question__areas">
+                  {areas.map((a) => a && <a class="chip" href={`/research/${a.id}`}>{a.data.title}</a>)}
+                </div>
+                <div class="question__go">
+                  {essay && <a class="arrow-link" href={`/essays/${essay.id}`}>Essay: {essay.data.title} <span class="arr" aria-hidden="true"></span></a>}
+                  {experiment && <a class="arrow-link" href={`/lab/${experiment.id}`}>Lab: {experiment.data.title} <span class="arr" aria-hidden="true"></span></a>}
+                </div>
+              </div>
+            </div>
+          </div>
+        </li>
+      ))}
+    </ol>
+  </div>
+</section>
+
+<style>
+  .section-head { max-width: 60ch; margin-bottom: var(--s-xl); }
+  .section-head .h2 { margin-top: var(--s-s); }
+  .section-head .lede { margin-top: var(--s-s); }
+  .questions__list { border-top: 1px solid var(--line); }
+  .question { border-bottom: 1px solid var(--line); }
+  .question__h { margin: 0; font: inherit; }
+  .question__trigger {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 3.5rem 1fr 2.5rem;
+    align-items: start;
+    gap: var(--s-m);
+    padding: var(--s-m) 0;
+    text-align: left;
+    color: var(--ink);
+    transition: color var(--dur-2);
+  }
+  .question__num { font-family: var(--font-sans); font-size: var(--step--2); letter-spacing: 0.12em; color: var(--ink-3); padding-top: 0.55em; }
+  .question__text {
+    font-size: var(--step-3);
+    line-height: 1.15;
+    letter-spacing: -0.012em;
+    text-wrap: balance;
+    max-width: 30ch;
+  }
+  .question__text :global(.q-em) {
+    font-style: italic;
+    background-image: linear-gradient(rgb(var(--accent-rgb) / 0.22), rgb(var(--accent-rgb) / 0.22));
+    background-repeat: no-repeat;
+    background-size: 0% 0.42em;
+    background-position: 0 88%;
+    transition: background-size var(--dur-3) var(--ease-out);
+  }
+  .question__trigger:hover .question__text :global(.q-em),
+  .question__trigger[aria-expanded='true'] .question__text :global(.q-em) { background-size: 100% 0.42em; }
+  .question__trigger:hover { color: var(--ink); }
+  .question__icon { position: relative; width: 2.5rem; height: 2.5rem; border: 1px solid var(--line); border-radius: 50%; justify-self: end; transition: border-color var(--dur-2), background var(--dur-2); }
+  .question__icon i { position: absolute; left: 50%; top: 50%; width: 12px; height: 1px; background: currentColor; transform: translate(-50%, -50%); transition: transform var(--dur-2) var(--ease-out); }
+  .question__icon i:last-child { transform: translate(-50%, -50%) rotate(90deg); }
+  .question__trigger[aria-expanded='true'] .question__icon i:last-child { transform: translate(-50%, -50%) rotate(0deg); }
+  .question__trigger:hover .question__icon { border-color: var(--ink); }
+  .question__panel { overflow: hidden; height: 0; transition: height var(--dur-3) var(--ease-out); }
+  .question__panel[hidden] { display: block; height: 0; }
+  .question__inner { padding: 0 0 var(--s-l) 3.5rem; padding-left: calc(3.5rem + var(--s-m)); display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: var(--s-xl); }
+  .question__body { font-size: var(--step-0); color: var(--ink-2); max-width: 52ch; }
+  .question__areas { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+  .question__go { margin-top: var(--s-m); display: flex; flex-direction: column; gap: var(--s-xs); }
+  @media (max-width: 760px) {
+    .question__trigger { grid-template-columns: 2.25rem 1fr 2rem; gap: var(--s-s); }
+    .question__icon { width: 2rem; height: 2rem; }
+    .question__inner { padding-left: calc(2.25rem + var(--s-s)); grid-template-columns: 1fr; gap: var(--s-m); }
+    .question__text { font-size: var(--step-2); }
+  }
+</style>
+
+<script>
+  import { onPage, prefersReducedMotion } from '@/lib/page';
+  onPage<HTMLElement>('[data-questions]', (list) => {
+    const items = Array.from(list.querySelectorAll<HTMLElement>('[data-question]'));
+    const reduced = prefersReducedMotion();
+    const setOpen = (item: HTMLElement, open: boolean) => {
+      const btn = item.querySelector<HTMLButtonElement>('.question__trigger')!;
+      const panel = item.querySelector<HTMLElement>('.question__panel')!;
+      btn.setAttribute('aria-expanded', String(open));
+      if (open) {
+        panel.hidden = false;
+        const h = panel.scrollHeight;
+        if (reduced) { panel.style.height = 'auto'; return; }
+        panel.style.height = '0px';
+        requestAnimationFrame(() => { panel.style.height = h + 'px'; });
+        const done = () => { if (btn.getAttribute('aria-expanded') === 'true') panel.style.height = 'auto'; panel.removeEventListener('transitionend', done); };
+        panel.addEventListener('transitionend', done);
+      } else {
+        if (reduced) { panel.hidden = true; panel.style.height = '0px'; return; }
+        panel.style.height = panel.scrollHeight + 'px';
+        requestAnimationFrame(() => { panel.style.height = '0px'; });
+        const done = () => { if (btn.getAttribute('aria-expanded') === 'false') panel.hidden = true; panel.removeEventListener('transitionend', done); };
+        panel.addEventListener('transitionend', done);
+      }
+    };
+    const onClick = (e: Event) => {
+      const btn = (e.target as HTMLElement).closest<HTMLButtonElement>('.question__trigger');
+      if (!btn) return;
+      const item = btn.closest<HTMLElement>('[data-question]')!;
+      const open = btn.getAttribute('aria-expanded') === 'true';
+      items.forEach((it) => { if (it !== item && it.querySelector('.question__trigger')!.getAttribute('aria-expanded') === 'true') setOpen(it, false); });
+      setOpen(item, !open);
+    };
+    list.addEventListener('click', onClick);
+    return () => list.removeEventListener('click', onClick);
+  });
+</script>

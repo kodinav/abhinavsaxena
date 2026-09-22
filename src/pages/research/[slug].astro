@@ -1,0 +1,121 @@
+---
+import Base from '@/layouts/Base.astro';
+import EssayCard from '@/components/EssayCard.astro';
+import LabCard from '@/components/LabCard.astro';
+import PublicationEntry from '@/components/PublicationEntry.astro';
+import { getEntry, render } from 'astro:content';
+import { getResearch, getEssays, getPublications, getLab, byArea } from '@/lib/content';
+import { breadcrumbJsonLd } from '@/lib/seo';
+
+export async function getStaticPaths() {
+  const areas = await getResearch();
+  return areas.map((area) => ({ params: { slug: area.id }, props: { area } }));
+}
+const { area } = Astro.props;
+const [areas, essays, pubs, lab] = await Promise.all([getResearch(), getEssays(), getPublications(), getLab()]);
+const { Content } = await render(area);
+const d = area.data;
+const areaTitles = Object.fromEntries(areas.map((a) => [a.id, a.data.title]));
+const relEssays = byArea(essays, area.id);
+const relPubs = byArea(pubs, area.id);
+const relLab = byArea(lab, area.id);
+const neighbours = (await Promise.all(d.related.map((r) => getEntry(r)))).filter(Boolean);
+const concepts = (await Promise.all(d.concepts.map((c) => getEntry(c)))).filter(Boolean);
+const idx = areas.findIndex((a) => a.id === area.id);
+const path = `/research/${area.id}`;
+---
+<Base title={d.title} description={`${d.title} — ${d.short} Research by Abhinav Saxena.`} path={path} jsonLd={[breadcrumbJsonLd([{ name: 'Home', path: '/' }, { name: 'Research', path: '/research' }, { name: d.title, path }])]}>
+  <article class="area">
+    <header class="section area__head">
+      <div class="container grid">
+        <div class="area__head-side">
+          <span class="eyebrow" data-reveal><span class="num">{String(idx + 1).padStart(2, '0')}</span>Research area</span>
+        </div>
+        <div class="area__head-main">
+          <h1 class="h1" data-reveal>{d.title}</h1>
+          <p class="lede" data-reveal style="--reveal-delay: 80ms">{d.short}</p>
+        </div>
+      </div>
+    </header>
+
+    <div class="section area__body">
+      <div class="container grid">
+        <aside class="area__aside">
+          <div class="area__sticky" data-reveal>
+            <div>
+              <span class="tag">Key questions</span>
+              <ol class="area__qs" role="list">
+                {d.keyQuestions.map((q) => <li class="serif">{q}</li>)}
+              </ol>
+            </div>
+            {concepts.length > 0 && (
+              <div class="area__concepts">
+                <span class="tag">Concepts</span>
+                <div class="area__chips">{concepts.map((c) => c && <a class="chip" href={`/ideas#${c.id}`}>{c.data.title}</a>)}</div>
+              </div>
+            )}
+            {neighbours.length > 0 && (
+              <div class="area__concepts">
+                <span class="tag">Neighbouring areas</span>
+                <div class="area__chips">{neighbours.map((n) => n && <a class="chip" href={`/research/${n.id}`}>{n.data.title}</a>)}</div>
+              </div>
+            )}
+          </div>
+        </aside>
+        <div class="area__main prose" data-reveal style="--reveal-delay: 120ms">
+          <Content />
+        </div>
+      </div>
+    </div>
+
+    {(relEssays.length > 0 || relPubs.length > 0 || relLab.length > 0) && (
+      <div class="section area__related">
+        <div class="container">
+          {relEssays.length > 0 && (
+            <section class="area__block">
+              <h2 class="tag">Essays in this area</h2>
+              <div class="area__essays" data-reveal-group="80">{relEssays.map((e) => <EssayCard essay={e} size="s" />)}</div>
+            </section>
+          )}
+          {relLab.length > 0 && (
+            <section class="area__block">
+              <h2 class="tag">Experiments in this area</h2>
+              <div class="area__lab" data-reveal-group="80">{relLab.map((x) => <LabCard exp={x} index={lab.indexOf(x) + 1} />)}</div>
+            </section>
+          )}
+          {relPubs.length > 0 && (
+            <section class="area__block">
+              <h2 class="tag">Publications in this area</h2>
+              <div class="area__pubs">{relPubs.map((p) => <PublicationEntry pub={p} index={pubs.length - pubs.indexOf(p)} areaTitles={areaTitles} compact />)}</div>
+            </section>
+          )}
+        </div>
+      </div>
+    )}
+  </article>
+</Base>
+<style>
+  .area__head { padding-bottom: var(--s-xl); }
+  .area__head-side { grid-column: 1 / span 3; }
+  .area__head-main { grid-column: 4 / span 8; }
+  .area__head-main .lede { margin-top: var(--s-s); }
+  .area__body { padding-top: 0; border-top: 0; }
+  .area__aside { grid-column: 1 / span 3; }
+  .area__sticky { position: sticky; top: calc(var(--nav-h) + 1.5rem); display: flex; flex-direction: column; gap: var(--s-l); }
+  .area__qs { margin-top: var(--s-xs); display: flex; flex-direction: column; gap: 0.75rem; font-size: var(--step-0); color: var(--ink-2); line-height: 1.4; }
+  .area__qs li { padding-left: 1rem; position: relative; text-wrap: pretty; }
+  .area__qs li::before { content: ''; position: absolute; left: 0; top: 0.6em; width: 5px; height: 5px; border-radius: 50%; background: var(--accent); }
+  .area__concepts .tag { display: block; margin-bottom: 0.5rem; }
+  .area__chips { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+  .area__main { grid-column: 4 / span 8; }
+  .area__block + .area__block { margin-top: var(--s-2xl); }
+  .area__essays { margin-top: var(--s-s); display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--s-l); }
+  .area__lab { margin-top: var(--s-s); display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--s-m); }
+  .area__pubs { margin-top: var(--s-s); border-bottom: 1px solid var(--line); }
+  @media (max-width: 900px) {
+    .area__head-side, .area__head-main, .area__aside, .area__main { grid-column: 1 / -1; }
+    .area__head-main, .area__main { margin-top: var(--s-m); }
+    .area__sticky { position: static; }
+    .area__essays, .area__lab { grid-template-columns: 1fr; }
+  }
+</style>

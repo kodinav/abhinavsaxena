@@ -1,0 +1,154 @@
+---
+import { getResearch, getPublications, getEssays, getLab } from '@/lib/content';
+
+interface Props { compact?: boolean }
+const { compact = false } = Astro.props;
+
+const [areas, pubs, essays, lab] = await Promise.all([getResearch(), getPublications(), getEssays(), getLab()]);
+const count = (id: string) =>
+  pubs.filter((p) => p.data.areas.some((a) => a.id === id)).length +
+  essays.filter((e) => e.data.areas.some((a) => a.id === id)).length +
+  lab.filter((l) => l.data.areas.some((a) => a.id === id)).length;
+
+const nodes = areas.map((a) => {
+  const ang = ((a.data.angle ?? 0) * Math.PI) / 180;
+  const rad = a.data.radius ?? 0.6;
+  return {
+    id: a.id,
+    label: a.data.title,
+    short: a.data.short,
+    href: `/research/${a.id}`,
+    weight: Math.min(4, count(a.id)),
+    hx: 0.5 + Math.cos(ang) * rad * 0.42,
+    hy: 0.5 + Math.sin(ang) * rad * 0.42,
+  };
+});
+const seen = new Set<string>();
+const links: { source: string; target: string }[] = [];
+for (const a of areas) {
+  for (const r of a.data.related) {
+    const key = [a.id, r.id].sort().join('|');
+    if (seen.has(key)) continue;
+    seen.add(key);
+    links.push({ source: a.id, target: r.id });
+  }
+}
+const graph = JSON.stringify({ nodes, links });
+---
+<div class={`constellation ${compact ? 'constellation--compact' : ''}`} data-constellation data-graph={graph}>
+  <div class="constellation__stage">
+    <svg class="constellation__svg" role="group" aria-label="Research areas drawn as a constellation. Select a node to read about it.">
+      <g class="edges"></g>
+      <g class="nodes"></g>
+    </svg>
+    <p class="constellation__hint muted" aria-hidden="true">Hover to see connections · select to open</p>
+  </div>
+  <aside class="constellation__panel">
+    <div class="constellation__default" data-panel-default>
+      <span class="eyebrow">Nine areas, one territory</span>
+      <p class="constellation__blurb serif">Each star is a research area; each line is a question that crosses between two of them. Select one to see what I am asking there.</p>
+      <ol class="constellation__index" role="list">
+        {areas.map((a, i) => (
+          <li>
+            <a href={`/research/${a.id}`} data-select-area={a.id}>
+              <span class="tnum">{String(i + 1).padStart(2, '0')}</span>
+              <span>{a.data.title}</span>
+            </a>
+          </li>
+        ))}
+      </ol>
+    </div>
+    {areas.map((a) => {
+      const nEss = essays.filter((e) => e.data.areas.some((x) => x.id === a.id));
+      const nPub = pubs.filter((p) => p.data.areas.some((x) => x.id === a.id));
+      const nLab = lab.filter((l) => l.data.areas.some((x) => x.id === a.id));
+      return (
+        <div class="constellation__area" data-area-panel={a.id} hidden>
+          <div class="constellation__area-top">
+            <span class="eyebrow eyebrow--accent">Research area</span>
+            <button type="button" class="constellation__close" data-panel-close aria-label="Close">×</button>
+          </div>
+          <h3 class="h3" tabindex="-1" data-panel-title>{a.data.title}</h3>
+          <p class="constellation__short serif">{a.data.short}</p>
+          <ul class="constellation__qs" role="list">
+            {a.data.keyQuestions.slice(0, compact ? 2 : 3).map((q) => <li>{q}</li>)}
+          </ul>
+          <dl class="constellation__counts">
+            <div><dt>Essays</dt><dd class="tnum">{nEss.length}</dd></div>
+            <div><dt>Papers</dt><dd class="tnum">{nPub.length}</dd></div>
+            <div><dt>Lab</dt><dd class="tnum">{nLab.length}</dd></div>
+          </dl>
+          <div class="constellation__related">
+            <span class="tag">Connects to</span>
+            <div class="constellation__chips">
+              {a.data.related.map((r) => {
+                const t = areas.find((x) => x.id === r.id);
+                return t && <button type="button" class="chip" data-select-area={t.id}>{t.data.title}</button>;
+              })}
+            </div>
+          </div>
+          <a class="arrow-link constellation__go" href={`/research/${a.id}`}>Open this area <span class="arr" aria-hidden="true"></span></a>
+        </div>
+      );
+    })}
+  </aside>
+</div>
+
+<style is:global>
+  .constellation {
+    display: grid;
+    grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+    gap: var(--s-xl);
+    align-items: start;
+  }
+  .constellation__stage { position: relative; }
+  .constellation__svg { width: 100%; display: block; overflow: visible; }
+  .constellation__hint { position: absolute; left: 0; bottom: -0.5rem; font-size: var(--step--2); letter-spacing: 0.06em; }
+  .constellation .edge { stroke: rgb(var(--ink-rgb) / 0.22); stroke-width: 1; transition: stroke var(--dur-2), stroke-width var(--dur-2), opacity var(--dur-2); }
+  .constellation .edge.is-on { stroke: var(--accent); stroke-width: 1.25; }
+  .constellation .edge.is-dim { opacity: 0.25; }
+  .constellation .node { cursor: pointer; outline: none; transition: opacity var(--dur-2); }
+  .constellation .node.is-dim { opacity: 0.35; }
+  .constellation .node .halo { fill: var(--accent); opacity: 0; transition: opacity var(--dur-3), r var(--dur-3); }
+  .constellation .node .ring { fill: none; stroke: rgb(var(--ink-rgb) / 0.35); stroke-width: 1; transition: stroke var(--dur-2), r var(--dur-2); }
+  .constellation .node .core { fill: var(--ink); transition: fill var(--dur-2), r var(--dur-2); }
+  .constellation .node .label { font-family: var(--font-sans); font-size: 13px; font-weight: 500; letter-spacing: 0.02em; fill: var(--ink-2); transition: fill var(--dur-2); paint-order: stroke; stroke: var(--paper); stroke-width: 4px; stroke-linejoin: round; }
+  .constellation .node.is-hover .core, .constellation .node.is-selected .core { fill: var(--accent); }
+  .constellation .node.is-hover .ring, .constellation .node.is-selected .ring { stroke: var(--accent); }
+  .constellation .node.is-selected .halo { opacity: 0.12; }
+  .constellation .node.is-hover .label, .constellation .node.is-selected .label, .constellation .node.is-near .label { fill: var(--ink); }
+  .constellation .node.is-near .core { fill: var(--accent-2); }
+  .constellation .node:focus-visible .ring { stroke: var(--accent); stroke-width: 2; }
+
+  .constellation__panel { align-self: stretch; position: sticky; top: calc(var(--nav-h) + 1.5rem); min-height: 22rem; border-left: 1px solid var(--line); padding-left: var(--s-l); }
+  .constellation__blurb { margin-top: var(--s-s); font-size: var(--step-1); line-height: 1.4; color: var(--ink-2); text-wrap: pretty; }
+  .constellation__index { margin-top: var(--s-m); border-top: 1px solid var(--line); }
+  .constellation__index li { border-bottom: 1px solid var(--line); }
+  .constellation__index a { display: flex; gap: var(--s-s); padding: 0.55rem 0; font-family: var(--font-sans); font-size: var(--step--1); font-weight: 500; color: var(--ink-2); transition: color var(--dur-1), padding-left var(--dur-2) var(--ease-out); }
+  .constellation__index a .tnum { color: var(--ink-3); font-size: var(--step--2); letter-spacing: 0.1em; padding-top: 0.15em; }
+  .constellation__index a:hover { color: var(--accent); padding-left: 0.4rem; }
+  .constellation__area-top { display: flex; align-items: center; justify-content: space-between; }
+  .constellation__close { width: 2rem; height: 2rem; border-radius: 50%; border: 1px solid var(--line); font-size: 1.1rem; line-height: 1; display: grid; place-items: center; }
+  .constellation__close:hover { border-color: var(--ink); }
+  .constellation__area .h3 { margin-top: var(--s-xs); outline: none; }
+  .constellation__short { margin-top: var(--s-xs); font-style: italic; color: var(--ink-2); font-size: var(--step-1); line-height: 1.35; }
+  .constellation__qs { margin-top: var(--s-m); display: flex; flex-direction: column; gap: 0.6rem; font-family: var(--font-serif); font-size: var(--step-0); color: var(--ink-2); }
+  .constellation__qs li { padding-left: 1.1rem; position: relative; text-wrap: pretty; }
+  .constellation__qs li::before { content: ''; position: absolute; left: 0; top: 0.65em; width: 5px; height: 5px; border-radius: 50%; background: var(--accent); }
+  .constellation__counts { margin-top: var(--s-m); display: flex; gap: var(--s-l); }
+  .constellation__counts div { display: flex; flex-direction: column; }
+  .constellation__counts dt { font-family: var(--font-sans); font-size: var(--step--2); letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-3); }
+  .constellation__counts dd { margin: 0; font-family: var(--font-serif); font-size: var(--step-2); }
+  .constellation__related { margin-top: var(--s-m); }
+  .constellation__chips { margin-top: 0.5rem; display: flex; flex-wrap: wrap; gap: 0.4rem; }
+  .constellation__go { margin-top: var(--s-m); }
+  @media (max-width: 900px) {
+    .constellation { grid-template-columns: 1fr; gap: var(--s-l); }
+    .constellation__panel { position: static; border-left: 0; padding-left: 0; border-top: 1px solid var(--line); padding-top: var(--s-m); min-height: 0; }
+    .constellation__hint { position: static; margin-top: 0.5rem; }
+  }
+</style>
+
+<script>
+  import '@/scripts/constellation';
+</script>

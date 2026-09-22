@@ -1,0 +1,70 @@
+---
+import Base from '@/layouts/Base.astro';
+import { site } from '@/data/site';
+import { breadcrumbJsonLd } from '@/lib/seo';
+const active = site.profiles.filter((p) => p.url);
+const pending = site.profiles.filter((p) => !p.url);
+---
+<Base title="Contact" description="Contact Abhinav Saxena — academic correspondence, collaboration, review, talks and profiles." path="/contact" jsonLd={[breadcrumbJsonLd([{ name: 'Home', path: '/' }, { name: 'Contact', path: '/contact' }])]}>
+  <section class="section contact">
+    <div class="container grid">
+      <div class="contact__side"><span class="eyebrow" data-reveal>Contact</span></div>
+      <div class="contact__main">
+        <h1 class="h1" data-reveal>Correspondence</h1>
+        <p class="lede" data-reveal>I read everything I am sent, and answer what I can. Collaboration, review requests, invitations to speak, questions from students, and disagreement are all welcome — the last is often the most useful.</p>
+        <div class="contact__email" data-reveal>
+          <span class="tag">Email</span>
+          <a class="contact__addr serif" href={`mailto:${site.email}`}>{site.email}</a>
+          <button type="button" class="ctl-text" data-copy={site.email}><span data-copy-label>Copy address</span></button>
+        </div>
+        <dl class="contact__meta" data-reveal>
+          {site.affiliation && <div><dt>Affiliation</dt><dd>{site.affiliation}</dd></div>}
+          {site.location && <div><dt>Location</dt><dd>{site.location}</dd></div>}
+          <div><dt>Feed</dt><dd><a class="link" href="/rss.xml">RSS feed of essays</a></dd></div>
+          <div><dt>CV</dt><dd><a class="link" href="/cv">Curriculum vitae</a></dd></div>
+        </dl>
+        <div class="contact__profiles" data-reveal>
+          <span class="tag">Academic & social profiles</span>
+          <ul role="list">
+            {active.map((p) => <li><a class="link" href={p.url} rel="me noopener" target="_blank">{p.label}</a>{p.handle && <span class="muted"> {p.handle}</span>}</li>)}
+            {pending.map((p) => <li class="muted"><span>{p.label}</span> <small>link pending</small></li>)}
+          </ul>
+          {pending.length > 0 && <p class="muted contact__note">Profiles marked pending are being set up. Their links live in <code>src/data/site.ts</code>.</p>}
+        </div>
+        <div class="contact__what" data-reveal>
+          <span class="tag">What to write about</span>
+          <ul class="contact__list" role="list">
+            <li>Collaboration on the philosophy of AI, machine epistemology, or responsibility in sociotechnical systems.</li>
+            <li>Peer review, editorial work, and reading drafts in my areas.</li>
+            <li>Talks, seminars, and public conversations for non-specialist audiences.</li>
+            <li>Corrections. If something on this site is wrong, I would rather know.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+</Base>
+<style>
+  .contact__side { grid-column: 1 / span 3; }
+  .contact__main { grid-column: 4 / span 7; display: flex; flex-direction: column; gap: var(--s-xl); }
+  .contact__main .lede { margin-top: calc(-1 * var(--s-m)); }
+  .contact__email .tag { display: block; margin-bottom: 0.5rem; }
+  .contact__addr { display: block; font-size: clamp(1.35rem, 6.2vw, var(--step-4)); line-height: 1.1; letter-spacing: -0.01em; overflow-wrap: anywhere; transition: color var(--dur-2); }
+  .contact__addr:hover { color: var(--accent); }
+  .contact__email .ctl-text { margin-top: 0.75rem; font-family: var(--font-sans); font-size: var(--step--1); font-weight: 500; color: var(--ink-2); }
+  .contact__email .ctl-text:hover, .contact__email .ctl-text.is-copied { color: var(--accent); }
+  .contact__meta { display: flex; flex-direction: column; gap: 0.5rem; border-top: 1px solid var(--line); padding-top: var(--s-s); }
+  .contact__meta div { display: grid; grid-template-columns: 8rem 1fr; gap: var(--s-s); }
+  .contact__meta dt { font-family: var(--font-sans); font-size: var(--step--2); letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-3); }
+  .contact__meta dd { margin: 0; }
+  .contact__profiles .tag, .contact__what .tag { display: block; margin-bottom: 0.6rem; }
+  .contact__profiles ul { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem 1rem; font-size: var(--step--1); }
+  .contact__profiles small { font-size: var(--step--2); letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-3); }
+  .contact__note { margin-top: var(--s-s); font-size: var(--step--2); }
+  .contact__note code { font-family: ui-monospace, Menlo, monospace; }
+  .contact__list { display: flex; flex-direction: column; gap: 0.5rem; font-family: var(--font-serif); font-size: var(--step-0); color: var(--ink-2); }
+  .contact__list li { padding-left: 1rem; position: relative; }
+  .contact__list li::before { content: ''; position: absolute; left: 0; top: 0.6em; width: 5px; height: 5px; border-radius: 50%; background: var(--accent); }
+  @media (max-width: 900px) { .contact__side, .contact__main { grid-column: 1 / -1; } .contact__main { margin-top: var(--s-s); } .contact__profiles ul { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 520px) { .contact__profiles ul { grid-template-columns: 1fr; } .contact__profiles li { display: flex; justify-content: space-between; gap: 0.5rem; } }
+</style>

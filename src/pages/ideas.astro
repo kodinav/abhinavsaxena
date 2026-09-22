@@ -1,0 +1,164 @@
+---
+import Base from '@/layouts/Base.astro';
+import { getEntry, render } from 'astro:content';
+import { getConcepts, getResearch, getEssays, getLab } from '@/lib/content';
+import { breadcrumbJsonLd } from '@/lib/seo';
+
+const [concepts, areas, essays, lab] = await Promise.all([getConcepts(), getResearch(), getEssays(), getLab()]);
+const areaTitle = Object.fromEntries(areas.map((a) => [a.id, a.data.title]));
+const nodes = concepts.map((c) => ({ id: c.id, label: c.data.title === 'Artificial Intelligence' ? 'AI' : c.data.title, definition: c.data.definition, spine: c.data.spine, order: c.data.order, r: 6 }));
+const seen = new Set<string>();
+const links: { source: string; target: string; type: string; note: string }[] = [];
+for (const c of concepts) for (const r of c.data.relations) {
+  const key = [c.id, r.to.id].sort().join('|');
+  if (seen.has(key)) continue;
+  seen.add(key);
+  links.push({ source: c.id, target: r.to.id, type: r.type, note: r.note });
+}
+const graph = JSON.stringify({ nodes, links });
+const spine = concepts.filter((c) => c.data.spine).sort((a, b) => a.data.order - b.data.order);
+const rendered = await Promise.all(concepts.map(async (c) => {
+  const { Content } = await render(c);
+  const incoming = concepts.flatMap((o) => o.data.relations.filter((r) => r.to.id === c.id).map((r) => ({ from: o, r })));
+  const relEssays = essays.filter((e) => c.data.areas.some((a) => e.data.areas.some((x) => x.id === a.id))).slice(0, 2);
+  const relLab = lab.filter((l) => l.data.concepts.some((x) => x.id === c.id)).slice(0, 2);
+  return { c, Content, incoming, relEssays, relLab };
+}));
+const legend = ['grounds', 'requires', 'presupposes', 'extends', 'mediates', 'constrains', 'challenges'];
+---
+<Base title="Ideas — a map of the concepts" description="An interactive map of the concepts in Abhinav Saxena's work: AI, mind, agency, knowledge, ethics, responsibility, technology and the relations between them." path="/ideas" jsonLd={[breadcrumbJsonLd([{ name: 'Home', path: '/' }, { name: 'Ideas', path: '/ideas' }])]}>
+  <section class="section ideas" data-concept-graph data-graph={graph}>
+    <div class="container">
+      <header class="page-head">
+        <span class="eyebrow" data-reveal>Ideas</span>
+        <h1 class="h1" data-reveal>A map of the concepts</h1>
+        <p class="lede" data-reveal>Seventeen concepts and the relations between them. The large nodes form the thread that runs through all of my work; the smaller ones are where the thread frays into detail. Select any node, or follow the thread from beginning to end.</p>
+        <div class="ideas__tools" data-reveal>
+          <button type="button" class="btn btn--solid" data-thread aria-pressed="false" data-magnetic="0.2">Follow the thread</button>
+          <p class="ideas__thread-out serif" data-thread-out aria-live="polite">AI → Mind → Agency → Knowledge → Ethics → Responsibility → Technology</p>
+        </div>
+      </header>
+
+      <div class="ideas__layout" data-reveal>
+        <div class="ideas__stage" data-stage>
+          <svg class="ideas__svg" role="group" aria-label="Concept map. Select a node to read its definition and relations.">
+            <g class="edges"></g>
+            <g class="edge-labels"></g>
+            <g class="nodes"></g>
+          </svg>
+          <div class="ideas__legend" aria-label="Relation types">
+            {legend.map((l) => <span class="ideas__legend-item">{l}</span>)}
+          </div>
+        </div>
+
+        <aside class="ideas__panel">
+          <div data-panel-default>
+            <span class="eyebrow">The thread</span>
+            <ol class="ideas__spine" role="list">
+              {spine.map((c, i) => (
+                <li><a href={`#${c.id}`} data-select-concept={c.id}><span class="tnum">{String(i + 1).padStart(2, '0')}</span><span class="serif">{c.data.title}</span></a></li>
+              ))}
+            </ol>
+            <span class="eyebrow" style="margin-top: var(--s-l); display: block">Everything else</span>
+            <div class="ideas__chips">
+              {concepts.filter((c) => !c.data.spine).map((c) => <button type="button" class="chip" data-select-concept={c.id}>{c.data.title}</button>)}
+            </div>
+          </div>
+          {rendered.map(({ c, Content, incoming, relEssays, relLab }) => (
+            <div class="ideas__concept" data-concept-panel={c.id} hidden>
+              <div class="ideas__concept-top">
+                <span class="eyebrow eyebrow--accent">{c.data.spine ? 'On the thread' : 'Concept'}</span>
+                <button type="button" class="ideas__close" data-panel-close aria-label="Close">×</button>
+              </div>
+              <h2 class="h3">{c.data.title}</h2>
+              <p class="ideas__def serif">{c.data.definition}</p>
+              <div class="ideas__body prose prose--compact"><Content /></div>
+              <div class="ideas__rels">
+                <span class="tag">Relations</span>
+                <ul role="list">
+                  {c.data.relations.map((r) => {
+                    const t = concepts.find((x) => x.id === r.to.id)!;
+                    return <li><button type="button" class="ideas__rel" data-select-concept={t.id}><span class="ideas__rel-line"><strong>{c.data.title}</strong> <em>{r.type}</em> <strong>{t.data.title}</strong></span><span class="ideas__rel-note">{r.note}</span></button></li>;
+                  })}
+                  {incoming.map(({ from, r }) => (
+                    <li><button type="button" class="ideas__rel" data-select-concept={from.id}><span class="ideas__rel-line"><strong>{from.data.title}</strong> <em>{r.type}</em> <strong>{c.data.title}</strong></span><span class="ideas__rel-note">{r.note}</span></button></li>
+                  ))}
+                </ul>
+              </div>
+              {(c.data.areas.length > 0 || relEssays.length > 0 || relLab.length > 0) && (
+                <div class="ideas__links">
+                  {c.data.areas.length > 0 && <div><span class="tag">Research</span><div class="ideas__chips">{c.data.areas.map((a) => <a class="chip" href={`/research/${a.id}`}>{areaTitle[a.id]}</a>)}</div></div>}
+                  {relEssays.length > 0 && <div><span class="tag">Essays</span><ul role="list" class="ideas__list">{relEssays.map((e) => <li><a class="link" href={`/essays/${e.id}`}>{e.data.title}</a></li>)}</ul></div>}
+                  {relLab.length > 0 && <div><span class="tag">Lab</span><ul role="list" class="ideas__list">{relLab.map((l) => <li><a class="link" href={`/lab/${l.id}`}>{l.data.title}</a></li>)}</ul></div>}
+                </div>
+              )}
+            </div>
+          ))}
+        </aside>
+      </div>
+    </div>
+  </section>
+</Base>
+
+<style is:global>
+  .page-head { max-width: 64ch; }
+  .page-head .h1, .page-head .lede { margin-top: var(--s-s); }
+  .ideas__tools { margin-top: var(--s-l); display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-m); }
+  .ideas__thread-out { font-size: var(--step-0); color: var(--ink-2); max-width: 52ch; min-height: 1.5em; }
+  .ideas__thread-out em { color: var(--accent); }
+  .ideas__layout { margin-top: var(--s-xl); display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: var(--s-xl); align-items: start; }
+  .ideas__stage { position: relative; }
+  .ideas__svg { width: 100%; display: block; overflow: visible; }
+  .ideas__legend { margin-top: var(--s-s); display: flex; flex-wrap: wrap; gap: 0.3rem 1rem; font-family: var(--font-sans); font-size: var(--step--2); letter-spacing: 0.06em; color: var(--ink-3); }
+  .ideas .edge { fill: none; stroke: rgb(var(--ink-rgb) / 0.2); stroke-width: 1; transition: stroke var(--dur-2), opacity var(--dur-2), stroke-width var(--dur-2); }
+  .ideas .edge.is-on { stroke: var(--accent); stroke-width: 1.4; }
+  .ideas .edge.is-dim { opacity: 0.2; }
+  .ideas .edge.is-thread { stroke: var(--accent); stroke-width: 2; stroke-dasharray: 6 4; animation: dash 1.2s linear infinite; }
+  @keyframes dash { to { stroke-dashoffset: -20; } }
+  .ideas .edge-label { font-family: var(--font-sans); font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; fill: var(--accent); opacity: 0; transition: opacity var(--dur-2); paint-order: stroke; stroke: var(--paper); stroke-width: 4px; stroke-linejoin: round; pointer-events: none; }
+  .ideas .edge-label.is-on { opacity: 1; }
+  .ideas .node { cursor: pointer; outline: none; transition: opacity var(--dur-2); }
+  .ideas .node.is-dim { opacity: 0.3; }
+  .ideas .node .halo { fill: var(--accent); opacity: 0; transition: opacity var(--dur-3); }
+  .ideas .node .ring { fill: none; stroke: rgb(var(--ink-rgb) / 0.3); stroke-width: 1; transition: stroke var(--dur-2); }
+  .ideas .node .core { fill: var(--ink-2); transition: fill var(--dur-2); }
+  .ideas .node.is-spine .core { fill: var(--ink); }
+  .ideas .node .label { font-family: var(--font-sans); font-size: 12px; font-weight: 500; letter-spacing: 0.02em; fill: var(--ink-2); paint-order: stroke; stroke: var(--paper); stroke-width: 4px; stroke-linejoin: round; transition: fill var(--dur-2); }
+  .ideas .node.is-spine .label { font-size: 13px; fill: var(--ink); }
+  .ideas .node.is-hover .core, .ideas .node.is-selected .core { fill: var(--accent); }
+  .ideas .node.is-hover .ring, .ideas .node.is-selected .ring { stroke: var(--accent); }
+  .ideas .node.is-selected .halo { opacity: 0.12; }
+  .ideas .node.is-near .core { fill: var(--accent-2); }
+  .ideas .node.is-near .label, .ideas .node.is-hover .label { fill: var(--ink); }
+  .ideas .node:focus-visible .ring { stroke: var(--accent); stroke-width: 2; }
+  .ideas__panel { align-self: stretch; position: sticky; top: calc(var(--nav-h) + 1.5rem); border-left: 1px solid var(--line); padding-left: var(--s-l); max-height: calc(100vh - var(--nav-h) - 3rem); overflow: auto; }
+  .ideas__spine { margin-top: var(--s-s); border-top: 1px solid var(--line); }
+  .ideas__spine li { border-bottom: 1px solid var(--line); }
+  .ideas__spine a { display: flex; gap: var(--s-s); align-items: baseline; padding: 0.55rem 0; font-size: var(--step-1); transition: color var(--dur-1), padding-left var(--dur-2) var(--ease-out); }
+  .ideas__spine a .tnum { font-family: var(--font-sans); font-size: var(--step--2); letter-spacing: 0.1em; color: var(--ink-3); }
+  .ideas__spine a:hover { color: var(--accent); padding-left: 0.4rem; }
+  .ideas__chips { margin-top: 0.5rem; display: flex; flex-wrap: wrap; gap: 0.4rem; }
+  .ideas__concept-top { display: flex; justify-content: space-between; align-items: center; }
+  .ideas__close { width: 2rem; height: 2rem; border-radius: 50%; border: 1px solid var(--line); font-size: 1.1rem; display: grid; place-items: center; }
+  .ideas__close:hover { border-color: var(--ink); }
+  .ideas__concept .h3 { margin-top: var(--s-xs); }
+  .ideas__def { margin-top: var(--s-xs); font-style: italic; font-size: var(--step-1); line-height: 1.35; color: var(--ink-2); }
+  .ideas__body { margin-top: var(--s-m); color: var(--ink-2); }
+  .ideas__rels { margin-top: var(--s-m); }
+  .ideas__rels ul { margin-top: 0.5rem; display: flex; flex-direction: column; }
+  .ideas__rel { display: flex; flex-direction: column; gap: 0.2rem; width: 100%; text-align: left; padding: 0.6rem 0; border-top: 1px solid var(--line); transition: color var(--dur-1); }
+  .ideas__rel:hover .ideas__rel-line strong:last-child { color: var(--accent); }
+  .ideas__rel-line { font-family: var(--font-sans); font-size: var(--step--1); }
+  .ideas__rel-line strong { font-weight: 500; }
+  .ideas__rel-line em { color: var(--accent); font-style: italic; margin: 0 0.2em; }
+  .ideas__rel-note { font-family: var(--font-serif); font-size: var(--step--1); color: var(--ink-2); line-height: 1.45; }
+  .ideas__links { margin-top: var(--s-m); display: flex; flex-direction: column; gap: var(--s-s); }
+  .ideas__list { margin-top: 0.4rem; display: flex; flex-direction: column; gap: 0.3rem; font-size: var(--step--1); }
+  @media (max-width: 900px) {
+    .ideas__layout { grid-template-columns: 1fr; gap: var(--s-l); }
+    .ideas__panel { position: static; border-left: 0; padding-left: 0; border-top: 1px solid var(--line); padding-top: var(--s-m); max-height: none; overflow: visible; }
+  }
+</style>
+<script>
+  import '@/scripts/concept-graph';
+</script>

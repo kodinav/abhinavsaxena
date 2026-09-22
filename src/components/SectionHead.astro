@@ -1,0 +1,18 @@
+---
+interface Props { num?: string; eyebrow: string; title: string; lede?: string; id?: string; class?: string }
+const { num, eyebrow, title, lede, id, class: cls = '' } = Astro.props;
+---
+<header class={`section-head ${cls}`} data-reveal>
+  <span class="eyebrow">{num && <span class="num">{num}</span>}{eyebrow}</span>
+  <h2 class="h2" id={id}>{title}</h2>
+  {lede && <p class="lede">{lede}</p>}
+  <slot />
+</header>
+<style>
+  .section-head { max-width: 62ch; margin-bottom: var(--s-xl); }
+  .section-head .h2 { margin-top: var(--s-s); }
+  .section-head .lede { margin-top: var(--s-s); }
+  .section-head--row { max-width: none; display: grid; grid-template-columns: 1fr auto; align-items: end; gap: var(--s-m); }
+  .section-head--row .lede { grid-column: 1; }
+  @media (max-width: 760px) { .section-head--row { grid-template-columns: 1fr; } }
+</style>

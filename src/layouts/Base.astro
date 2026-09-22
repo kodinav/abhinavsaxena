@@ -1,0 +1,64 @@
+---
+import { Font } from 'astro:assets';
+import { ClientRouter } from 'astro:transitions';
+import Head from '@/components/Head.astro';
+import Nav from '@/components/Nav.astro';
+import Footer from '@/components/Footer.astro';
+import '@/styles/tokens.css';
+import '@/styles/base.css';
+import '@/styles/prose.css';
+import '@/styles/cursor.css';
+import '@/styles/print.css';
+
+interface Props {
+  title: string;
+  description?: string;
+  path?: string;
+  type?: 'website' | 'article' | 'profile';
+  image?: string;
+  imageAlt?: string;
+  published?: Date;
+  updated?: Date;
+  tags?: string[];
+  jsonLd?: Record<string, unknown>[];
+  noindex?: boolean;
+  isHome?: boolean;
+  bodyClass?: string;
+}
+const { bodyClass = '', ...head } = Astro.props;
+---
+<!doctype html>
+<html lang="en" class="no-js" id="top">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <script is:inline data-astro-rerun>
+      (function () {
+        try {
+          var t = localStorage.getItem('theme');
+          if (t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t);
+        } catch (e) {}
+        document.documentElement.classList.remove('no-js');
+      })();
+    </script>
+    {/* Upright cuts are preloaded (they carry the first paint); italics arrive via @font-face with metric-matched fallbacks. */}
+    <Font cssVariable="--font-serif" preload={[{ style: 'normal' }]} />
+    <Font cssVariable="--font-sans" preload={[{ style: 'normal' }]} />
+    <Head {...head} />
+    <ClientRouter />
+  </head>
+  <body class={bodyClass}>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <Nav />
+    <main id="main" class="site-main">
+      <slot />
+    </main>
+    <Footer />
+    <script>
+      import '@/scripts/main';
+    </script>
+  </body>
+</html>
+<style is:global>
+  .site-main { padding-top: var(--nav-h); min-height: 70dvh; }
+</style>

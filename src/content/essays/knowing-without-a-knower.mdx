@@ -1,0 +1,84 @@
+---
+title: Knowing Without a Knower
+subtitle: Machine epistemology after the Turing test
+description: Every classical theory of knowledge assumes a subject who believes and can be asked why. What happens to the concept when the outputs are true, the process is reliable, and there is no one to ask?
+date: 2026-06-14
+areas: [epistemology, philosophy-of-ai]
+tags: [knowledge, justification, language models, Gettier, reliabilism]
+featured: true
+references:
+  - text: "Turing, A. M. (1950). Computing Machinery and Intelligence. *Mind* 59(236), 433–460."
+    url: https://doi.org/10.1093/mind/LIX.236.433
+  - text: "Gettier, E. L. (1963). Is Justified True Belief Knowledge? *Analysis* 23(6), 121–123."
+    url: https://doi.org/10.1093/analys/23.6.121
+  - text: "Goldman, A. I. (1979). What Is Justified Belief? In G. S. Pappas (ed.), *Justification and Knowledge*. Dordrecht: Reidel."
+  - text: "Hardwig, J. (1985). Epistemic Dependence. *Journal of Philosophy* 82(7), 335–349."
+  - text: "Sosa, E. (2007). *A Virtue Epistemology: Apt Belief and Reflective Knowledge*, Vol. 1. Oxford: Oxford University Press."
+  - text: "Searle, J. R. (1980). Minds, Brains, and Programs. *Behavioral and Brain Sciences* 3(3), 417–424."
+  - text: "Bender, E. M., Gebru, T., McMillan-Major, A., & Shmitchell, S. (2021). On the Dangers of Stochastic Parrots: Can Language Models Be Too Big? *Proceedings of FAccT '21*."
+---
+
+Ask a language model when the Treaty of Westphalia was signed and it will tell you: 1648. The answer is true. It was produced by a process that, on this class of question, is very reliable. And it is not clear that anyone knows it.
+
+That last clause is the strange one. The user did not know the date before asking, and after asking has only the model's word. The developers know how the model was trained, but not why it produced *this* answer rather than another. The model itself — if "itself" is even the right word — has no access to reasons, no memory of having learned the fact, and no capacity to be asked. The answer is true, the process reliable, and the knowing, if there is any, is nowhere in particular.
+
+I want to take this situation seriously as a problem for epistemology rather than as a curiosity about technology. My claim is that each of the major theories of knowledge developed over the last sixty years was quietly relying on the presence of a knower, and that machine outputs make the reliance visible. That is not a reason to abandon the theories. It is a reason to ask what they were really about.
+
+## The tripartite analysis and its ghost
+
+The textbook account says that knowledge is justified true belief. Edmund Gettier showed in three pages that this is not sufficient: one can have a justified true belief by luck, as when you believe the time is 8:15 because the clock says so, and it is 8:15, but the clock stopped exactly twelve hours ago.[^1] The literature since has been a search for the fourth condition — the thing that rules luck out.
+
+Apply the analysis to the model. Is the output *true*? Often. Is it *believed*? Here the trouble begins. Belief is a state of a subject: to believe that Westphalia was 1648 is to be disposed to act on it, to be surprised if it turns out otherwise, to assert it sincerely. A model has dispositions of a sort — it will produce the same answer under many prompts — but it is far from obvious that this is belief rather than a statistical shadow of belief. The most careful sceptics about language models have argued that what they produce is not assertion at all, but the form of assertion without its commitments.[^2]
+
+Suppose we grant belief, or bracket it. Is the output *justified*? On the internalist picture, a belief is justified when the believer has access to good reasons for it. No one in our scenario has that access. The user has the answer and no reasons. The developer has the training procedure and no reasons for this answer. The model has weights. Internalism says, then, that no one is justified — which seems too strong, since the answer is exactly as good as one from an encyclopaedia.
+
+So we turn to externalism.
+
+## Reliabilism is generous and silent
+
+Alvin Goldman's reliabilism says that a belief is justified when it is produced by a process that reliably produces true beliefs.[^3] The process need not be understood by the believer; a good memory justifies its deliverances even in someone who has no theory of memory. This is the account that seems tailor-made for machines. The process is reliable; the outputs are justified; if they are also true and non-lucky, they are knowledge.
+
+I think reliabilism gets something right about the case and something important wrong. What it gets right is that the *epistemic value* of the output is not diminished by the absence of accessible reasons. If a model is right about seventeenth-century treaties ninety-nine times in a hundred, a person who relies on it is doing about as well, epistemically, as a person who relies on a reference book. The reliabilist can say this and no one else easily can.
+
+What it gets wrong is that it has nothing to say about *what is missing*. On the reliabilist picture, the model's output and the historian's assertion are on a par: both reliable, both true, both justified. But they are not on a par. The historian can be asked why. She can be asked how she knows, what the evidence is, whether the date is contested, what would change her mind. She can revise. She can be *wrong in a way she can own*. The model can be corrected but cannot be wrong in that way, because there is no one there to own it.
+
+Reliabilism does not deny this. It simply does not register it as epistemically relevant. And that, I think, is the tell: an account of knowledge on which the difference between a knower and a reliable process does not show up is an account that has been describing a reliable process all along and calling it a knower.
+
+## The virtue account is strict and explanatory
+
+Virtue epistemology, in Ernest Sosa's version, says that knowledge is belief that is true *because* of the exercise of an intellectual competence — apt belief, in his term, on the model of an archer's shot that hits the target because of skill rather than a lucky gust.[^4] The "because" is doing real work: it ties the truth of the belief to something creditable to the agent.
+
+Run the model through this account and it fails, though instructively. There is a competence of a kind — the trained system reliably produces true answers — but it is not clear that it is *the model's* competence in the sense the account requires. The competence was produced by a training process the model did not undergo as an agent; it is not exercised in response to the question in any sense that involves grasping the question; and the resulting output is not creditable to anyone in the way an archer's shot is creditable to the archer. The virtue account says the model does not know, and it says *why*: because knowledge is an achievement, and achievements need someone to achieve them.
+
+This is the explanatory power reliabilism lacked. But it comes with a cost. If knowledge is an achievement of an agent, then the user who receives the model's output does not know either — she has achieved nothing; she asked and was answered. And that seems too strict, for the same reason internalism seemed too strict. We do not usually think that people who consult reliable sources fail to know what those sources tell them.
+
+## The missing category is testimony
+
+The way out of the strictness is testimony. Most of what any of us knows we know because we were told, and the epistemology of testimony was developed precisely to explain how someone can know what they have not themselves worked out.[^5] On the standard view, the hearer's knowledge is *inherited*: if the speaker knew, and the hearer had no reason to distrust her, then the hearer knows too.
+
+The catch is in the antecedent. Testimonial knowledge is transmitted; it is not generated. If the speaker did not know, the hearer does not know either, whatever the hearer's trust. And we have just seen that on the most plausible accounts, the model does not know. So the user cannot inherit knowledge from it. What she has is at best a reliably-formed true belief — which, on the reliabilist view, is knowledge, and on the virtue view is not.
+
+We have gone in a circle, and I think the circle is the result. The theories disagree about the machine case because they disagree about what knowledge was for.
+
+## What knowledge was for
+
+Here is a suggestion. Our concept of knowledge does two jobs that human beings happen to do together. The first is *tracking*: knowledge marks the beliefs that are reliably connected to the truth, the ones it is safe to act on. The second is *answerability*: knowledge marks the beliefs a person can be asked to defend, can be held to, can be credited with. Reliabilism is a theory of the first job. Virtue epistemology is a theory of the second. Testimony, in the human case, transmits both at once, because the speaker who tells you the date is both reliable and answerable.
+
+The model separates the jobs. It is reliable and not answerable. That is why reliabilism says it knows, virtue epistemology says it does not, and both seem right. They are both right — about different things.
+
+If this is correct, the question "can a machine know?" has no single answer, and the interesting work lies in asking, of each context, which job the concept is doing there. When a user wants a date for a footnote, tracking is what matters, and the model's output serves as well as an encyclopaedia's. When a court wants to know whether a defendant could be expected to have known something, answerability is what matters, and the model's output serves not at all, because no one can be asked to defend it.
+
+## Two consequences
+
+The first consequence is for how we describe these systems. "The model knows" and "the model doesn't know" are both misleading, in the way "the calculator knows arithmetic" is misleading. What we should say is that the model *provides* — that it is a reliable provider of true outputs on a domain — and that provision is a genuine epistemic good which does not entail, and should not be described as, knowledge.
+
+The second consequence is for us. If a chain of provision from model to user delivers tracking without answerability, then answerability has to come from somewhere else — and that somewhere is the human beings who choose to rely on the output and act on it. This is the real epistemic significance of machine mediation: it does not diminish responsibility for belief, it concentrates it. The user who acts on a model's output owns the belief in a way she would not if a historian had told her, because there is no historian to share the owning with.
+
+Turing proposed replacing the question "can machines think?" with a test that anyone could run.[^6] Seventy-five years later the test is routinely passed, and the questions it was meant to replace have not gone away. Perhaps they never could. A test of behaviour measures what behaviour can measure — and answerability, whatever else it is, is not a behaviour.
+
+[^1]: Gettier (1963). The stopped-clock example is usually attributed to Bertrand Russell's *Human Knowledge* (1948), where it appears as an example of true belief that is not knowledge.
+[^2]: The strongest version of this position is in Bender et al. (2021); the classical antecedent is Searle (1980), whose Chinese Room argument concerns understanding rather than knowledge but makes a structurally similar point about form without commitment.
+[^3]: Goldman (1979).
+[^4]: Sosa (2007), especially the discussion of aptness in Lecture 2.
+[^5]: The classic statement of the dependence of most knowledge on testimony is Hardwig (1985).
+[^6]: Turing (1950).

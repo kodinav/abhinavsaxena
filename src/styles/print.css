@@ -1,0 +1,47 @@
+@media print {
+  :root {
+    --paper: #fff;
+    --ink: #000;
+    --ink-2: #222;
+    --ink-3: #555;
+    --line: #ccc;
+    --accent: #000;
+  }
+
+  html,
+  body {
+    background: #fff !important;
+    color: #000 !important;
+    font-size: 11pt;
+  }
+
+  .site-nav,
+  .site-footer,
+  .cursor,
+  .no-print,
+  [data-hero-canvas] {
+    display: none !important;
+  }
+
+  [data-reveal] {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+
+  a {
+    color: #000;
+    text-decoration: none;
+  }
+
+  main {
+    padding-top: 0 !important;
+  }
+
+  .cv .cv-section {
+    break-inside: avoid;
+  }
+
+  @page {
+    margin: 18mm 16mm;
+  }
+}

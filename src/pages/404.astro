@@ -1,0 +1,23 @@
+---
+import Base from '@/layouts/Base.astro';
+---
+<Base title="Page not found" description="This page does not exist." noindex>
+  <section class="section nf">
+    <div class="container">
+      <span class="eyebrow">404</span>
+      <h1 class="h1 nf__title">This page does not exist.</h1>
+      <p class="lede">Whether it ever did is a further question, and not one the server can settle. The address may have been mistyped, or the page may have moved.</p>
+      <div class="nf__links">
+        <a class="btn btn--solid" href="/">Return home</a>
+        <a class="arrow-link" href="/essays">Read the essays <span class="arr" aria-hidden="true"></span></a>
+        <a class="arrow-link" href="/lab">Enter the lab <span class="arr" aria-hidden="true"></span></a>
+      </div>
+    </div>
+  </section>
+</Base>
+<style>
+  .nf { min-height: 60dvh; display: grid; align-items: center; }
+  .nf__title { margin-top: var(--s-s); max-width: 16ch; }
+  .nf .lede { margin-top: var(--s-s); }
+  .nf__links { margin-top: var(--s-l); display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-m); }
+</style>

@@ -1,0 +1,93 @@
+---
+import Base from '@/layouts/Base.astro';
+import LabCard from '@/components/LabCard.astro';
+import { getEntry, render } from 'astro:content';
+import { getLab } from '@/lib/content';
+import { breadcrumbJsonLd } from '@/lib/seo';
+import '@/styles/lab.css';
+
+export async function getStaticPaths() {
+  const lab = await getLab();
+  return lab.map((exp) => ({ params: { slug: exp.id }, props: { exp } }));
+}
+const { exp } = Astro.props;
+const lab = await getLab();
+const { Content } = await render(exp);
+const d = exp.data;
+const idx = lab.findIndex((x) => x.id === exp.id);
+const areas = (await Promise.all(d.areas.map((a) => getEntry(a)))).filter(Boolean);
+const concepts = (await Promise.all(d.concepts.map((c) => getEntry(c)))).filter(Boolean);
+const others = lab.filter((x) => x.id !== exp.id).slice(0, 3);
+const path = `/lab/${exp.id}`;
+---
+<Base title={`${d.title} — Philosophy Lab`} description={`${d.question} ${d.summary}`} path={path} jsonLd={[breadcrumbJsonLd([{ name: 'Home', path: '/' }, { name: 'Philosophy Lab', path: '/lab' }, { name: d.title, path }])]}>
+  <article class="exp">
+    <header class="section exp__head">
+      <div class="container grid">
+        <div class="exp__head-side">
+          <span class="eyebrow" data-reveal><span class="num">Exp. {String(idx + 1).padStart(2, '0')}</span>Philosophy Lab</span>
+          <dl class="exp__facts" data-reveal>
+            <div><dt>Duration</dt><dd>{d.duration}</dd></div>
+            <div><dt>Areas</dt><dd>{areas.map((a) => a && <a class="link" href={`/research/${a.id}`}>{a.data.title}</a>)}</dd></div>
+            {concepts.length > 0 && <div><dt>Concepts</dt><dd>{concepts.map((c) => c && <a class="link" href={`/ideas#${c.id}`}>{c.data.title}</a>)}</dd></div>}
+          </dl>
+        </div>
+        <div class="exp__head-main">
+          <h1 class="h1" data-reveal>{d.title}</h1>
+          <p class="exp__q serif" data-reveal style="--reveal-delay: 80ms">{d.question}</p>
+          <p class="lede" data-reveal style="--reveal-delay: 160ms">{d.summary}</p>
+        </div>
+      </div>
+    </header>
+
+    <section class="section exp__stage-wrap" aria-labelledby="exp-stage-title">
+      <div class="container">
+        <h2 class="visually-hidden" id="exp-stage-title">The experiment</h2>
+        <div class="lab-stage" data-experiment={d.module} data-reveal>
+          <noscript><p class="lab-note serif">This experiment needs JavaScript to run.</p></noscript>
+        </div>
+      </div>
+    </section>
+
+    <section class="section exp__notes">
+      <div class="container grid">
+        <div class="exp__notes-side"><span class="eyebrow" data-reveal>Notes</span></div>
+        <div class="exp__notes-main prose" data-reveal><Content /></div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <h2 class="tag">Other instruments</h2>
+        <div class="exp__others" data-reveal-group="80">
+          {others.map((x) => <LabCard exp={x} index={lab.indexOf(x) + 1} />)}
+        </div>
+      </div>
+    </section>
+  </article>
+</Base>
+<style>
+  .exp__head { padding-bottom: var(--s-xl); }
+  .exp__head-side { grid-column: 1 / span 3; }
+  .exp__head-main { grid-column: 4 / span 8; }
+  .exp__facts { margin-top: var(--s-l); display: flex; flex-direction: column; gap: var(--s-xs); font-size: var(--step--1); }
+  .exp__facts div { display: grid; grid-template-columns: 5rem 1fr; gap: var(--s-xs); border-top: 1px solid var(--line); padding-top: var(--s-2xs); }
+  .exp__facts dt { font-family: var(--font-sans); font-size: var(--step--2); letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-3); }
+  .exp__facts dd { margin: 0; display: flex; flex-wrap: wrap; gap: 0.25rem 0.6rem; }
+  .exp__q { margin-top: var(--s-s); font-size: var(--step-3); font-style: italic; line-height: 1.15; color: var(--ink-2); max-width: 26ch; text-wrap: balance; }
+  .exp__head-main .lede { margin-top: var(--s-m); }
+  .exp__stage-wrap { padding-top: 0; border-top: 0; }
+  .exp__notes-side { grid-column: 1 / span 3; }
+  .exp__notes-main { grid-column: 4 / span 7; }
+  .exp__others { margin-top: var(--s-s); display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--s-m); }
+  @media (max-width: 900px) {
+    .exp__head-side, .exp__head-main, .exp__notes-side, .exp__notes-main { grid-column: 1 / -1; }
+    .exp__head-main, .exp__notes-main { margin-top: var(--s-m); }
+    .exp__facts { flex-direction: row; flex-wrap: wrap; gap: var(--s-m); }
+    .exp__facts div { grid-template-columns: 1fr; border-top: 0; }
+    .exp__others { grid-template-columns: 1fr; }
+  }
+</style>
+<script>
+  import '@/scripts/lab/mount';
+</script>

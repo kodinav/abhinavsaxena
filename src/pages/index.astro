@@ -1,0 +1,174 @@
+---
+import Base from '@/layouts/Base.astro';
+import Hero from '@/components/Hero.astro';
+import Questions from '@/components/Questions.astro';
+import Constellation from '@/components/Constellation.astro';
+import SectionHead from '@/components/SectionHead.astro';
+import EssayCard from '@/components/EssayCard.astro';
+import LabCard from '@/components/LabCard.astro';
+import PublicationEntry from '@/components/PublicationEntry.astro';
+import { site } from '@/data/site';
+import { websiteJsonLd } from '@/lib/seo';
+import { getEssays, getPublications, getLab, getResearch, getConcepts } from '@/lib/content';
+
+const [essays, pubs, lab, areas, concepts] = await Promise.all([getEssays(), getPublications(), getLab(), getResearch(), getConcepts()]);
+const featuredEssays = [...essays.filter((e) => e.data.featured), ...essays.filter((e) => !e.data.featured)].slice(0, 3);
+const featuredPubs = [...pubs.filter((p) => p.data.featured), ...pubs.filter((p) => !p.data.featured)].slice(0, 3);
+const areaTitles = Object.fromEntries(areas.map((a) => [a.id, a.data.title]));
+const spine = concepts.filter((c) => c.data.spine).sort((a, b) => a.data.order - b.data.order);
+const activeProfiles = site.profiles.filter((p) => p.url);
+---
+<Base title={site.title} isHome jsonLd={[websiteJsonLd()]} bodyClass="home">
+  <Hero />
+
+  <section class="section intro" id="intro" aria-labelledby="intro-title">
+    <div class="container grid">
+      <div class="intro__side">
+        <span class="eyebrow" data-reveal><span class="num">01</span>Introduction</span>
+      </div>
+      <div class="intro__main">
+        <h2 class="visually-hidden" id="intro-title">Introduction</h2>
+        <p class="intro__lead serif" data-reveal>
+          I am a philosopher working on what happens to our oldest concepts — knowledge, mind, agency, responsibility — when they meet machines that seem to know, think, act and answer.
+        </p>
+        <div class="intro__body" data-reveal style="--reveal-delay: 120ms">
+          <p>My research sits at the intersection of philosophy of AI, philosophy of mind, ethics and epistemology. I am less interested in predicting what artificial intelligence will become than in understanding what it already is: a family of systems whose behaviour puts genuine pressure on the concepts we use to describe minds, and whose deployment redistributes responsibility in ways our moral vocabulary was not built to track.</p>
+          <p>I work in the analytic tradition, but I draw freely on phenomenology, existentialism and classical Indian philosophy — traditions that developed sophisticated accounts of intentionality, selfhood and testimony long before there were machines to test them against. I write for philosophers, but also for the engineers, policymakers and readers who have to live with these questions before philosophy has finished with them.</p>
+        </div>
+        <div class="intro__links" data-reveal style="--reveal-delay: 220ms">
+          <a class="arrow-link" href="/about">About me <span class="arr" aria-hidden="true"></span></a>
+          <a class="arrow-link" href="/cv">Curriculum vitae <span class="arr" aria-hidden="true"></span></a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <Questions />
+
+  <section class="section" id="research" aria-labelledby="research-title">
+    <div class="container">
+      <SectionHead num="03" eyebrow="Research" title="A constellation, not a list" id="research-title" lede="Nine areas that share questions. The lines are where one area's problem becomes another's." />
+      <Constellation compact />
+      <div class="section-foot" data-reveal>
+        <a class="btn" href="/research" data-magnetic="0.2">All research areas</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="publications" aria-labelledby="pubs-title">
+    <div class="container">
+      <SectionHead num="04" eyebrow="Publications" title="From the archive" id="pubs-title" lede="Selected papers. The full archive can be searched and filtered by year, topic, venue and research area." />
+      <div class="pubs-preview">
+        {featuredPubs.map((p, i) => <PublicationEntry pub={p} index={pubs.length - pubs.indexOf(p)} areaTitles={areaTitles} compact />)}
+      </div>
+      <div class="section-foot" data-reveal>
+        <a class="btn" href="/publications" data-magnetic="0.2">Open the archive <span class="tnum muted">({pubs.length})</span></a>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="essays" aria-labelledby="essays-title">
+    <div class="container">
+      <SectionHead num="05" eyebrow="Essays" title="Long-form thinking" id="essays-title" lede="Essays written to be read slowly: arguments developed at length, with footnotes, for readers who want more than a position." />
+      <div class="essays-preview" data-reveal-group="90">
+        {featuredEssays[0] && <div class="essays-preview__lead"><EssayCard essay={featuredEssays[0]} size="l" /></div>}
+        <div class="essays-preview__rest">
+          {featuredEssays.slice(1).map((e) => <EssayCard essay={e} size="s" />)}
+        </div>
+      </div>
+      <div class="section-foot" data-reveal>
+        <a class="btn" href="/essays" data-magnetic="0.2">All essays <span class="tnum muted">({essays.length})</span></a>
+      </div>
+    </div>
+  </section>
+
+  <section class="section lab-preview" id="lab" aria-labelledby="lab-title">
+    <div class="container">
+      <SectionHead num="06" eyebrow="Philosophy Lab" title="Thought experiments you can run" id="lab-title" lede="Interactive instruments for classic and new problems. Set the parameters; see what the theories say; notice where your intuitions came from." />
+      <div class="lab-grid" data-reveal-group="80">
+        {lab.slice(0, 3).map((x, i) => <LabCard exp={x} index={i + 1} />)}
+      </div>
+      <div class="section-foot" data-reveal>
+        <a class="btn" href="/lab" data-magnetic="0.2">Enter the lab</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="section ideas-teaser" id="ideas" aria-labelledby="ideas-title">
+    <div class="container">
+      <SectionHead num="07" eyebrow="Ideas" title="The thread that runs through the work" id="ideas-title" lede="Seven concepts in sequence, each leaning on the one before. The map shows how they connect — and where the connections are under strain." />
+      <ol class="spine" role="list" data-reveal-group="70">
+        {spine.map((c, i) => (
+          <li class="spine__item" data-reveal>
+            <a class="spine__node" href={`/ideas#${c.id}`} data-cursor="Map">
+              <span class="spine__label serif">{c.data.title === 'Artificial Intelligence' ? 'AI' : c.data.title}</span>
+              <span class="spine__def">{c.data.definition}</span>
+            </a>
+            {i > 0 && <span class="spine__arrow" aria-hidden="true"></span>}
+          </li>
+        ))}
+      </ol>
+      <div class="section-foot" data-reveal>
+        <a class="btn" href="/ideas" data-magnetic="0.2">Explore the concept map</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="section closing" aria-labelledby="closing-title">
+    <div class="container grid">
+      <div class="closing__main">
+        <span class="eyebrow" data-reveal><span class="num">08</span>Correspondence</span>
+        <h2 class="h2 closing__title" id="closing-title" data-reveal>I read everything I am sent, and answer what I can.</h2>
+        <p class="lede" data-reveal>For collaboration, review, talks, supervision, or disagreement — the last is often the most useful.</p>
+        <div class="closing__links" data-reveal>
+          <a class="btn btn--solid" href={`mailto:${site.email}`} data-magnetic="0.2">{site.email}</a>
+          <a class="arrow-link" href="/contact">All ways to reach me <span class="arr" aria-hidden="true"></span></a>
+        </div>
+      </div>
+      <div class="closing__side" data-reveal>
+        <span class="tag">Profiles</span>
+        <ul role="list" class="closing__profiles">
+          {activeProfiles.length ? activeProfiles.map((p) => <li><a class="link" href={p.url} rel="me noopener" target="_blank">{p.label}</a></li>) : <li class="muted">Academic profiles are being added. See <a class="link" href="/contact">contact</a>.</li>}
+        </ul>
+      </div>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .intro__side { grid-column: 1 / span 3; }
+  .intro__main { grid-column: 4 / span 8; }
+  .intro__lead { font-size: var(--step-3); line-height: 1.22; letter-spacing: -0.012em; text-wrap: balance; max-width: 26ch; }
+  .intro__body { margin-top: var(--s-l); max-width: var(--measure); color: var(--ink-2); display: flex; flex-direction: column; gap: 1.1em; font-family: var(--font-serif); font-size: var(--step-1); line-height: 1.5; text-wrap: pretty; }
+  .intro__links { margin-top: var(--s-l); display: flex; flex-wrap: wrap; gap: var(--s-m); }
+  .section-foot { margin-top: var(--s-xl); display: flex; justify-content: flex-start; }
+  .pubs-preview { border-bottom: 1px solid var(--line); }
+  .essays-preview { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: var(--s-2xl); align-items: start; }
+  .essays-preview__rest { display: flex; flex-direction: column; }
+  .lab-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--s-m); }
+  .spine { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+  .spine__item { position: relative; }
+  .spine__node { display: flex; flex-direction: column; gap: 0.5rem; padding: var(--s-m) var(--s-s) var(--s-m) 0; min-height: 100%; transition: color var(--dur-2); }
+  .spine__item:not(:first-child) .spine__node { padding-left: 1.6rem; }
+  .spine__label { font-size: var(--step-2); line-height: 1.05; }
+  .spine__def { font-family: var(--font-sans); font-size: var(--step--2); line-height: 1.45; color: var(--ink-3); display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
+  .spine__node:hover { color: var(--accent); }
+  .spine__node:hover .spine__def { color: var(--ink-2); }
+  .spine__arrow { position: absolute; left: 0; top: calc(var(--s-m) + 0.55em); width: 1rem; height: 1px; background: var(--line-2); }
+  .spine__arrow::after { content: ''; position: absolute; right: 0; top: 50%; width: 0.35rem; height: 0.35rem; border-top: 1px solid var(--line-2); border-right: 1px solid var(--line-2); transform: translateY(-50%) rotate(45deg); }
+  .closing__main { grid-column: 1 / span 8; }
+  .closing__side { grid-column: 10 / span 3; padding-top: 0.5rem; }
+  .closing__title { margin-top: var(--s-s); max-width: 18ch; }
+  .closing .lede { margin-top: var(--s-s); }
+  .closing__links { margin-top: var(--s-l); display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-m); }
+  .closing__profiles { margin-top: var(--s-s); display: flex; flex-direction: column; gap: 0.4rem; }
+  @media (max-width: 1100px) { .spine { grid-template-columns: repeat(4, minmax(0, 1fr)); } .spine__item:nth-child(n+5) { border-top: 1px solid var(--line); } }
+  @media (max-width: 900px) {
+    .intro__side, .intro__main, .closing__main, .closing__side { grid-column: 1 / -1; }
+    .intro__main { margin-top: var(--s-m); }
+    .closing__side { margin-top: var(--s-l); }
+    .essays-preview { grid-template-columns: 1fr; gap: var(--s-l); }
+    .lab-grid { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 640px) { .spine { grid-template-columns: 1fr 1fr; } .spine__item:nth-child(n+3) { border-top: 1px solid var(--line); } .spine__item:not(:first-child) .spine__node { padding-left: 1.2rem; } }
+</style>

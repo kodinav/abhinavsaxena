@@ -1,0 +1,236 @@
+/* ------------------------------------------------------------------
+   Long-form prose (essays, research pages, lab framing)
+   ------------------------------------------------------------------ */
+.prose {
+  font-family: var(--font-serif);
+  font-size: calc(var(--step-1) * var(--reader-scale, 1));
+  line-height: 1.55;
+  color: var(--ink);
+  max-width: var(--reader-measure, var(--measure));
+  font-optical-sizing: auto;
+  text-wrap: pretty;
+  hanging-punctuation: first last;
+}
+
+.prose > * + * {
+  margin-top: 1.25em;
+}
+
+.prose p {
+  font-weight: 400;
+}
+
+.prose h2,
+.prose h3,
+.prose h4 {
+  font-family: var(--font-serif);
+  font-weight: 500;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+  scroll-margin-top: calc(var(--nav-h) + 1.5rem);
+}
+
+.prose h2 {
+  font-size: 1.55em;
+  margin-top: 2.2em;
+}
+
+.prose h3 {
+  font-size: 1.2em;
+  margin-top: 1.8em;
+}
+
+.prose h2 + p,
+.prose h3 + p {
+  margin-top: 0.75em;
+}
+
+.prose a {
+  color: var(--ink);
+  text-decoration: underline;
+  text-decoration-color: rgb(var(--accent-rgb) / 0.5);
+  text-underline-offset: 0.16em;
+  text-decoration-thickness: 1px;
+  transition: text-decoration-color var(--dur-1), color var(--dur-1);
+}
+
+.prose a:hover {
+  color: var(--accent);
+  text-decoration-color: var(--accent);
+}
+
+.prose em {
+  font-style: italic;
+}
+
+.prose strong {
+  font-weight: 600;
+}
+
+.prose blockquote {
+  margin: 2em 0;
+  padding-left: 1.25em;
+  border-left: 2px solid var(--accent);
+  font-size: 1.12em;
+  font-style: italic;
+  line-height: 1.4;
+  color: var(--ink-2);
+}
+
+.prose blockquote p + p {
+  margin-top: 0.75em;
+}
+
+.prose ul,
+.prose ol {
+  padding-left: 1.4em;
+}
+
+.prose li + li {
+  margin-top: 0.4em;
+}
+
+.prose hr {
+  margin: 2.5em auto;
+  width: 4rem;
+  border-top: 1px solid var(--line-2);
+}
+
+.prose code {
+  font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+  font-size: 0.82em;
+  background: var(--paper-2);
+  padding: 0.1em 0.35em;
+  border-radius: 3px;
+}
+
+.prose pre {
+  font-size: 0.8em;
+  line-height: 1.5;
+  padding: 1em 1.25em;
+  border-radius: var(--radius-l);
+  overflow-x: auto;
+  border: 1px solid var(--line);
+}
+
+.prose pre code {
+  background: none;
+  padding: 0;
+  font-size: inherit;
+}
+
+.prose img,
+.prose figure {
+  margin-block: 2em;
+}
+
+.prose figcaption {
+  font-family: var(--font-sans);
+  font-size: var(--step--1);
+  color: var(--ink-3);
+  margin-top: 0.75em;
+}
+
+/* drop cap on first paragraph in an essay */
+.prose--essay > p:first-of-type::first-letter {
+  float: left;
+  font-size: 3.6em;
+  line-height: 0.82;
+  padding: 0.08em 0.1em 0 0;
+  font-weight: 500;
+  color: var(--ink);
+}
+
+/* footnote references */
+.prose sup {
+  line-height: 0;
+  font-size: 0.7em;
+  vertical-align: super;
+}
+
+.prose a[data-footnote-ref] {
+  text-decoration: none;
+  color: var(--accent);
+  font-family: var(--font-sans);
+  font-weight: 500;
+  padding: 0 0.15em;
+  scroll-margin-top: calc(var(--nav-h) + 2rem);
+}
+
+.prose a[data-footnote-ref]::before {
+  content: '[';
+}
+
+.prose a[data-footnote-ref]::after {
+  content: ']';
+}
+
+.prose .footnotes {
+  margin-top: 3.5em;
+  padding-top: 1.5em;
+  border-top: 1px solid var(--line);
+  font-size: 0.82em;
+  line-height: 1.5;
+  color: var(--ink-2);
+}
+
+.prose .footnotes h2 {
+  font-family: var(--font-sans);
+  font-size: var(--step--2);
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  margin: 0 0 1em;
+}
+
+.prose .footnotes ol {
+  padding-left: 1.5em;
+}
+
+.prose .footnotes li {
+  scroll-margin-top: calc(var(--nav-h) + 2rem);
+}
+
+.prose .footnotes li:target {
+  color: var(--ink);
+}
+
+.prose .footnotes li:target::marker {
+  color: var(--accent);
+}
+
+.prose a[data-footnote-backref] {
+  text-decoration: none;
+  color: var(--accent);
+  font-family: var(--font-sans);
+}
+
+/* paragraph reveal in reader */
+.prose--animate > * {
+  transition: opacity 700ms var(--ease-out), transform 700ms var(--ease-out);
+}
+
+.prose--animate > .is-pending {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+.prose--animate > .is-in {
+  opacity: 1;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .prose--animate > * {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
+
+/* research pages: slightly smaller measure */
+.prose--compact {
+  font-size: var(--step-0);
+  line-height: 1.6;
+}

@@ -1,0 +1,109 @@
+/* ------------------------------------------------------------------
+   Design tokens
+   Light: warm paper + ink + red ochre accent.
+   Dark:  deep graphite + bone + ember accent.
+   ------------------------------------------------------------------ */
+:root {
+  color-scheme: light;
+
+  --paper: #f4f1ea;
+  --paper-2: #ece8e0;
+  --paper-3: #e3ded3;
+  --paper-rgb: 244 241 234;
+  --ink: #17161b;
+  --ink-2: #4a4853;
+  --ink-3: #6b6874;
+  --ink-rgb: 23 22 27;
+  --line: rgb(23 22 27 / 0.12);
+  --line-2: rgb(23 22 27 / 0.28);
+  --accent: #b4432a;
+  --accent-2: #8b3220;
+  --accent-rgb: 180 67 42;
+  --accent-soft: rgb(180 67 42 / 0.1);
+  --accent-glow: rgb(180 67 42 / 0.35);
+  --shadow: 0 1px 2px rgb(23 22 27 / 0.06), 0 12px 40px -12px rgb(23 22 27 / 0.18);
+
+  /* type scale — fluid, tuned for a 1.2/1.25 ratio between 360px and 1440px */
+  --step--2: clamp(0.72rem, 0.71rem + 0.06vw, 0.76rem);
+  --step--1: clamp(0.84rem, 0.82rem + 0.1vw, 0.9rem);
+  --step-0: clamp(1rem, 0.96rem + 0.2vw, 1.125rem);
+  --step-1: clamp(1.2rem, 1.12rem + 0.38vw, 1.42rem);
+  --step-2: clamp(1.44rem, 1.3rem + 0.66vw, 1.85rem);
+  --step-3: clamp(1.73rem, 1.5rem + 1.1vw, 2.45rem);
+  --step-4: clamp(2.07rem, 1.7rem + 1.8vw, 3.2rem);
+  --step-5: clamp(2.5rem, 1.9rem + 2.9vw, 4.3rem);
+  --step-6: clamp(3rem, 1.9rem + 5.6vw, 6.4rem);
+  --step-7: clamp(3.4rem, 1.6rem + 8.8vw, 8.6rem);
+
+  /* spacing */
+  --s-3xs: clamp(0.25rem, 0.23rem + 0.1vw, 0.31rem);
+  --s-2xs: clamp(0.5rem, 0.46rem + 0.2vw, 0.63rem);
+  --s-xs: clamp(0.75rem, 0.69rem + 0.3vw, 0.94rem);
+  --s-s: clamp(1rem, 0.92rem + 0.4vw, 1.25rem);
+  --s-m: clamp(1.5rem, 1.38rem + 0.6vw, 1.88rem);
+  --s-l: clamp(2rem, 1.84rem + 0.8vw, 2.5rem);
+  --s-xl: clamp(3rem, 2.76rem + 1.2vw, 3.75rem);
+  --s-2xl: clamp(4rem, 3.68rem + 1.6vw, 5rem);
+  --s-3xl: clamp(6rem, 5.5rem + 2.4vw, 7.5rem);
+  --s-4xl: clamp(8rem, 7rem + 5vw, 12rem);
+
+  --gutter: clamp(1rem, 4vw, 4rem);
+  --container: 84rem;
+  --measure: 66ch;
+  --measure-wide: 78ch;
+
+  --radius: 4px;
+  --radius-l: 12px;
+
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-spring: cubic-bezier(0.34, 1.2, 0.64, 1);
+  --dur-1: 160ms;
+  --dur-2: 320ms;
+  --dur-3: 640ms;
+  --dur-4: 1100ms;
+
+  --nav-h: 4.25rem;
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --paper: #0f0f12;
+  --paper-2: #16161b;
+  --paper-3: #1f1f26;
+  --paper-rgb: 15 15 18;
+  --ink: #ebe7df;
+  --ink-2: #b1adb7;
+  --ink-3: #9a97a3;
+  --ink-rgb: 235 231 223;
+  --line: rgb(235 231 223 / 0.12);
+  --line-2: rgb(235 231 223 / 0.26);
+  --accent: #e0653f;
+  --accent-2: #f0865f;
+  --accent-rgb: 224 101 63;
+  --accent-soft: rgb(224 101 63 / 0.12);
+  --accent-glow: rgb(224 101 63 / 0.4);
+  --shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 16px 48px -12px rgb(0 0 0 / 0.6);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    color-scheme: dark;
+    --paper: #0f0f12;
+    --paper-2: #16161b;
+    --paper-3: #1f1f26;
+    --paper-rgb: 15 15 18;
+    --ink: #ebe7df;
+    --ink-2: #b1adb7;
+    --ink-3: #9a97a3;
+    --ink-rgb: 235 231 223;
+    --line: rgb(235 231 223 / 0.12);
+    --line-2: rgb(235 231 223 / 0.26);
+    --accent: #e0653f;
+    --accent-2: #f0865f;
+    --accent-rgb: 224 101 63;
+    --accent-soft: rgb(224 101 63 / 0.12);
+    --accent-glow: rgb(224 101 63 / 0.4);
+    --shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 16px 48px -12px rgb(0 0 0 / 0.6);
+  }
+}

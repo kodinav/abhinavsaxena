@@ -1,0 +1,152 @@
+---
+import Base from '@/layouts/Base.astro';
+import PublicationEntry from '@/components/PublicationEntry.astro';
+import { site } from '@/data/site';
+import { cv } from '@/data/cv';
+import { getResearch, getPublications, getEssays, getQuestions } from '@/lib/content';
+import { breadcrumbJsonLd } from '@/lib/seo';
+
+const [areas, pubs, essays, questions] = await Promise.all([getResearch(), getPublications(), getEssays(), getQuestions()]);
+const areaTitles = Object.fromEntries(areas.map((a) => [a.id, a.data.title]));
+const featuredPubs = [...pubs.filter((p) => p.data.featured), ...pubs.filter((p) => !p.data.featured)].slice(0, 3);
+const education = cv.sections.find((s) => s.id === 'education')?.entries ?? [];
+const positions = cv.sections.find((s) => s.id === 'positions')?.entries ?? [];
+const active = site.profiles.filter((p) => p.url);
+const pending = site.profiles.filter((p) => !p.url);
+const profileLd = {
+  '@context': 'https://schema.org',
+  '@type': 'ProfilePage',
+  mainEntity: { '@id': `${site.url}/#person` },
+  url: `${site.url}/about`,
+  name: 'About Abhinav Saxena',
+};
+---
+<Base title="About" description="Abhinav Saxena is a philosopher and researcher working on philosophy of AI, philosophy of mind, ethics and epistemology. Academic background, research interests, current work and profiles." path="/about" type="profile" jsonLd={[profileLd, breadcrumbJsonLd([{ name: 'Home', path: '/' }, { name: 'About', path: '/about' }])]}>
+  <article class="about">
+    <header class="section about__head">
+      <div class="container grid">
+        <div class="about__side"><span class="eyebrow" data-reveal>About</span></div>
+        <div class="about__main">
+          <h1 class="h1" data-reveal>Abhinav Saxena</h1>
+          <p class="about__role" data-reveal>Philosopher · Researcher · Writer</p>
+          <p class="about__lead serif" data-reveal style="--reveal-delay: 100ms">
+            I work on what happens to our oldest concepts — knowledge, mind, agency, responsibility — when they meet machines that seem to know, think, act and answer.
+          </p>
+        </div>
+      </div>
+    </header>
+
+    <section class="section about__section" aria-labelledby="who">
+      <div class="container grid">
+        <div class="about__side"><h2 class="tag" id="who" data-reveal>Who I am</h2></div>
+        <div class="about__main prose" data-reveal>
+          <p>I am a philosopher whose research sits at the intersection of the philosophy of artificial intelligence, the philosophy of mind, ethics and epistemology. I am less interested in predicting what AI will become than in understanding what it already is: a family of systems whose behaviour puts genuine pressure on the concepts we use to describe minds, and whose deployment redistributes responsibility in ways our moral vocabulary was not built to track.</p>
+          <p>I work in the analytic tradition, but I draw freely on phenomenology, existentialism and classical Indian philosophy — traditions that developed detailed accounts of intentionality, selfhood and testimony long before there were machines to test them against. I write for philosophers, and also for the engineers, policymakers and readers who have to live with these questions before philosophy has finished with them.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section about__section" aria-labelledby="background">
+      <div class="container grid">
+        <div class="about__side"><h2 class="tag" id="background" data-reveal>Academic background</h2></div>
+        <div class="about__main">
+          <p class="about__placeholder-note" data-reveal>Entries below marked <span class="pub__sample">replace</span> are placeholders for the real record, which lives in <code>src/data/cv.ts</code>.</p>
+          <dl class="about__timeline" data-reveal-group="60">
+            {[...positions, ...education].map((e) => (
+              <div class="about__entry" data-reveal>
+                <dt>{e.period}</dt>
+                <dd>
+                  <span class="serif about__entry-title">{e.title}</span>
+                  {e.org && <span class="about__entry-org">{e.org}{e.place ? `, ${e.place}` : ''}</span>}
+                  {e.detail && <span class="about__entry-detail">{e.detail}</span>}
+                  {e.placeholder && <span class="pub__sample">replace</span>}
+                </dd>
+              </div>
+            ))}
+          </dl>
+          <a class="arrow-link" href="/cv" style="margin-top: var(--s-m); display: inline-flex">Full curriculum vitae <span class="arr" aria-hidden="true"></span></a>
+        </div>
+      </div>
+    </section>
+
+    <section class="section about__section" aria-labelledby="interests">
+      <div class="container grid">
+        <div class="about__side"><h2 class="tag" id="interests" data-reveal>Research interests</h2></div>
+        <div class="about__main">
+          <ul class="about__areas" role="list" data-reveal-group="50">
+            {areas.map((a) => <li data-reveal><a class="about__area" href={`/research/${a.id}`}><span class="serif">{a.data.title}</span><span class="about__area-short">{a.data.short}</span></a></li>)}
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="section about__section" aria-labelledby="current">
+      <div class="container grid">
+        <div class="about__side"><h2 class="tag" id="current" data-reveal>Current work</h2></div>
+        <div class="about__main">
+          <p class="lede" data-reveal>Three questions are organising my current writing:</p>
+          <ol class="about__qs" role="list" data-reveal-group="60">
+            {questions.slice(0, 3).map((q) => <li class="serif" data-reveal>{q.data.question}</li>)}
+          </ol>
+          <p data-reveal style="margin-top: var(--s-m)">The most recent essays — <a class="link" href={`/essays/${essays[0]?.id}`}>{essays[0]?.data.title}</a>{essays[1] && <> and <a class="link" href={`/essays/${essays[1].id}`}>{essays[1].data.title}</a></>} — give the current state of the argument.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section about__section" aria-labelledby="selected">
+      <div class="container grid">
+        <div class="about__side"><h2 class="tag" id="selected" data-reveal>Selected publications</h2></div>
+        <div class="about__main">
+          <div class="about__pubs">{featuredPubs.map((p) => <PublicationEntry pub={p} index={pubs.length - pubs.indexOf(p)} areaTitles={areaTitles} compact />)}</div>
+          <a class="arrow-link" href="/publications" style="margin-top: var(--s-m); display: inline-flex">All publications <span class="arr" aria-hidden="true"></span></a>
+        </div>
+      </div>
+    </section>
+
+    <section class="section about__section" aria-labelledby="profiles">
+      <div class="container grid">
+        <div class="about__side"><h2 class="tag" id="profiles" data-reveal>Profiles</h2></div>
+        <div class="about__main">
+          <ul class="about__profiles" role="list" data-reveal>
+            {active.map((p) => <li><a class="link" href={p.url} rel="me noopener" target="_blank">{p.label}</a></li>)}
+            {pending.map((p) => <li class="muted"><span>{p.label}</span> <small>link pending</small></li>)}
+          </ul>
+          <p data-reveal style="margin-top: var(--s-m)">Correspondence: <a class="link" href={`mailto:${site.email}`}>{site.email}</a></p>
+        </div>
+      </div>
+    </section>
+  </article>
+</Base>
+<style>
+  .about__side { grid-column: 1 / span 3; }
+  .about__main { grid-column: 4 / span 8; }
+  .about__role { margin-top: var(--s-xs); font-family: var(--font-sans); font-size: var(--step--1); letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-3); }
+  .about__lead { margin-top: var(--s-l); font-size: var(--step-3); line-height: 1.2; letter-spacing: -0.012em; max-width: 26ch; text-wrap: balance; }
+  .about__section { padding-block: var(--s-xl); }
+  .about__placeholder-note { font-size: var(--step--1); color: var(--ink-2); margin-bottom: var(--s-m); }
+  .about__placeholder-note code { font-family: ui-monospace, Menlo, monospace; font-size: 0.85em; }
+  .about__timeline { display: flex; flex-direction: column; border-top: 1px solid var(--line); }
+  .about__entry { display: grid; grid-template-columns: 9rem 1fr; gap: var(--s-m); padding: var(--s-s) 0; border-bottom: 1px solid var(--line); }
+  .about__entry dt { font-family: var(--font-sans); font-size: var(--step--1); color: var(--ink-3); }
+  .about__entry dd { margin: 0; display: flex; flex-direction: column; gap: 0.2rem; }
+  .about__entry-title { font-size: var(--step-1); }
+  .about__entry-org { font-family: var(--font-sans); font-size: var(--step--1); color: var(--ink-2); }
+  .about__entry-detail { font-family: var(--font-sans); font-size: var(--step--1); color: var(--ink-3); }
+  .about__areas { display: grid; grid-template-columns: 1fr 1fr; gap: 0; border-top: 1px solid var(--line); }
+  .about__area { display: flex; flex-direction: column; gap: 0.2rem; padding: var(--s-s) var(--s-s) var(--s-s) 0; border-bottom: 1px solid var(--line); font-size: var(--step-1); transition: color var(--dur-1); }
+  .about__area-short { font-family: var(--font-sans); font-size: var(--step--1); color: var(--ink-3); }
+  .about__area:hover { color: var(--accent); }
+  .about__qs { margin-top: var(--s-m); display: flex; flex-direction: column; gap: var(--s-s); font-size: var(--step-2); line-height: 1.2; counter-reset: q; }
+  .about__qs li { position: relative; padding-left: 2.5rem; text-wrap: balance; }
+  .about__qs li::before { counter-increment: q; content: counter(q, decimal-leading-zero); position: absolute; left: 0; top: 0.35em; font-family: var(--font-sans); font-size: var(--step--2); letter-spacing: 0.1em; color: var(--ink-3); }
+  .about__pubs { border-bottom: 1px solid var(--line); }
+  .about__profiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem 1rem; font-size: var(--step--1); }
+  .about__profiles small { font-size: var(--step--2); letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-3); }
+  @media (max-width: 900px) {
+    .about__side, .about__main { grid-column: 1 / -1; }
+    .about__main { margin-top: var(--s-s); }
+    .about__areas { grid-template-columns: 1fr; }
+    .about__profiles { grid-template-columns: 1fr 1fr; }
+    .about__entry { grid-template-columns: 1fr; gap: 0.25rem; }
+  }
+</style>
