@@ -33,7 +33,7 @@ const jsonLd = [
   breadcrumbJsonLd([{ name: 'Home', path: '/' }, { name: 'Essays', path: '/essays' }, { name: d.title, path }]),
 ];
 ---
-<Base title={d.title} description={d.description} path={path} type="article" published={d.date} updated={d.updated} tags={d.tags} jsonLd={jsonLd} bodyClass="reading">
+<Base title={d.title} description={d.description} path={path} type="article" published={d.date} updated={d.updated} tags={d.tags} jsonLd={jsonLd} bodyClass="reading" field="reading">
   <div class="reader" data-reader>
     <div class="reader__progress" aria-hidden="true"><span data-progress></span></div>
 
@@ -45,9 +45,9 @@ const jsonLd = [
         <span class="reader__dot" aria-hidden="true">·</span>
         <span>{readingLabel(readingTime)}</span>
       </div>
-      <h1 class="reader__title display" data-reveal>{d.title}</h1>
+      <h1 class="reader__title display" data-split="chars">{d.title}</h1>
       {d.subtitle && <p class="reader__subtitle serif" data-reveal style="--reveal-delay: 80ms">{d.subtitle}</p>}
-      <p class="reader__standfirst serif" data-reveal style="--reveal-delay: 160ms">{d.description}</p>
+      <p class="reader__standfirst serif" data-split="lines" data-split-delay="0.3">{d.description}</p>
       <div class="reader__byline" data-reveal style="--reveal-delay: 220ms">
         <span class="reader__rule" aria-hidden="true"></span>
         <span>By <a class="link" href="/about">Abhinav Saxena</a></span>

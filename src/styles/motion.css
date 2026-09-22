@@ -1,0 +1,141 @@
+/* ------------------------------------------------------------------
+   Motion layer: field canvas, grain, preloader, curtain, split masks,
+   the thread chapter, marquee, tilt.
+   ------------------------------------------------------------------ */
+
+/* Lenis */
+html.lenis, html.lenis body { height: auto; }
+.lenis.lenis-smooth { scroll-behavior: auto !important; }
+.lenis.lenis-smooth [data-lenis-prevent] { overscroll-behavior: contain; }
+.lenis.lenis-stopped { overflow: hidden; }
+
+/* the field */
+.field {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 1600ms var(--ease-out);
+  -webkit-mask-image: linear-gradient(180deg, rgb(0 0 0 / 0.3) 0, #000 7rem);
+  mask-image: linear-gradient(180deg, rgb(0 0 0 / 0.3) 0, #000 7rem);
+}
+html.is-ready .field, html.has-webgl .field { opacity: 1; }
+html.no-webgl .field { display: none; }
+html.no-webgl body::before {
+  content: ''; position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background: radial-gradient(60% 50% at 70% 30%, rgb(var(--ink-rgb) / 0.06), transparent 70%);
+}
+
+/* film grain: compositor-only shuffle of an oversized tile */
+.grain {
+  position: fixed;
+  inset: -100%;
+  z-index: 8000;
+  pointer-events: none;
+  background-repeat: repeat;
+  background-size: 160px 160px;
+  opacity: 0.055;
+  mix-blend-mode: screen;
+  animation: grain 0.7s steps(6) infinite;
+  will-change: transform;
+}
+:root[data-theme='light'] .grain { mix-blend-mode: multiply; opacity: 0.07; }
+@keyframes grain {
+  0% { transform: translate(0, 0); }
+  20% { transform: translate(-4%, 3%); }
+  40% { transform: translate(3%, -5%); }
+  60% { transform: translate(-6%, -2%); }
+  80% { transform: translate(5%, 6%); }
+  100% { transform: translate(-2%, 4%); }
+}
+@media (prefers-reduced-motion: reduce) { .grain { animation: none; } }
+
+/* preloader */
+.preloader {
+  position: fixed; inset: 0; z-index: 10000;
+  background: var(--paper);
+  visibility: hidden; opacity: 0;
+  display: grid; place-items: center;
+  clip-path: inset(0 0 0 0);
+}
+html.no-js .preloader { display: none; }
+.preloader__inner { position: relative; display: grid; place-items: center; width: min(90vw, 60rem); }
+.preloader__count { position: absolute; right: 0; bottom: -3.5rem; font-family: var(--font-sans); font-size: var(--step--1); letter-spacing: 0.14em; color: var(--ink-3); }
+.preloader__words { position: relative; height: 1.4em; font-size: var(--step-3); overflow: hidden; display: grid; place-items: center; width: 100%; }
+.preloader__word { position: absolute; font-style: italic; color: var(--ink-2); will-change: transform; }
+.preloader__name { position: absolute; display: flex; font-size: var(--step-6); letter-spacing: 0.04em; text-transform: uppercase; line-height: 1; overflow: hidden; padding: 0.1em 0; }
+.preloader__name > span { display: inline-block; will-change: transform; }
+.preloader__space { width: 0.28em; }
+.preloader__line { position: absolute; left: 0; right: 0; bottom: -1.6rem; height: 1px; background: var(--ink); transform: scaleX(0); transform-origin: left; }
+
+/* page curtain */
+.curtain {
+  position: fixed; inset: 0; z-index: 9500;
+  background: var(--paper-2);
+  visibility: hidden;
+  clip-path: inset(100% 0 0 0);
+  display: grid; place-items: center;
+  pointer-events: none;
+}
+.curtain__label { font-size: var(--step-5); font-style: italic; letter-spacing: -0.01em; color: var(--ink); will-change: transform; }
+
+/* view transitions: the curtain replaces the default crossfade */
+::view-transition-old(root), ::view-transition-new(root) { animation: none !important; mix-blend-mode: normal; }
+
+/* split masks */
+.split-line, .split-char { will-change: transform; }
+[data-split] { text-wrap: pretty; }
+html.js [data-split="lines"], html.js [data-split="chars"] { visibility: visible; }
+
+/* the thread chapter */
+.thread { position: relative; z-index: 1; }
+.thread__pin { position: relative; height: 100svh; display: grid; grid-template-rows: auto 1fr auto; overflow: hidden; }
+.thread__head { display: flex; justify-content: space-between; align-items: center; padding-top: calc(var(--nav-h) + var(--s-s)); }
+.thread__counter { font-family: var(--font-sans); font-size: var(--step--2); letter-spacing: 0.14em; color: var(--ink-3); font-variant-numeric: tabular-nums; }
+.thread__steps { position: relative; }
+.thread__step { position: absolute; inset: 0; display: grid; align-content: center; pointer-events: none; }
+.thread__step.is-current, .thread__step.is-static { pointer-events: auto; }
+.thread__step.is-static { position: relative; padding-block: var(--s-l); }
+.thread__num { font-family: var(--font-sans); font-size: var(--step--2); letter-spacing: 0.14em; color: var(--accent); }
+.thread__mask { display: block; overflow: hidden; padding-block: 0.06em; }
+.thread__word { display: block; font-family: var(--font-serif); font-size: var(--step-8); line-height: 0.92; letter-spacing: -0.02em; will-change: transform; }
+.thread__def { margin-top: var(--s-m); font-family: var(--font-serif); font-size: var(--step-2); line-height: 1.3; color: var(--ink-2); max-width: 30ch; font-style: italic; text-wrap: pretty; }
+.thread__rel { margin-top: var(--s-s); font-family: var(--font-sans); font-size: var(--step--1); color: var(--ink-3); max-width: 52ch; line-height: 1.55; }
+.thread__rel strong { color: var(--ink); font-weight: 500; }
+.thread__rel em { color: var(--accent); font-style: italic; }
+.thread__bar { height: 1px; background: var(--line); margin-bottom: var(--s-m); }
+.thread__bar span { display: block; height: 100%; background: var(--accent); transform: scaleX(0); transform-origin: left; }
+.thread:not(.is-init) .thread__step:not(.is-static) .thread__mask,
+.thread:not(.is-init) .thread__step:not(.is-static) [data-thread-line] { visibility: hidden; }
+@media (max-width: 760px) { .thread__word { font-size: var(--step-6); } .thread__def { font-size: var(--step-1); } }
+
+/* marquee */
+.marquee { position: relative; overflow: hidden; padding-block: var(--s-l); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.marquee__track { display: flex; width: max-content; gap: 0; animation: marquee 38s linear infinite; will-change: transform; }
+.marquee--reverse .marquee__track { animation-direction: reverse; }
+.marquee:hover .marquee__track { animation-play-state: paused; }
+.marquee__item { display: inline-flex; align-items: baseline; gap: 0.5em; padding-right: 0.5em; font-family: var(--font-serif); font-size: var(--step-6); line-height: 1; letter-spacing: -0.01em; white-space: nowrap; color: transparent; -webkit-text-stroke: 1px rgb(var(--ink-rgb) / 0.55); }
+.marquee__item strong { font-weight: 400; color: var(--ink); -webkit-text-stroke: 0; }
+.marquee__item .x { color: var(--accent); -webkit-text-stroke: 0; font-size: 0.5em; transform: translateY(-0.5em); }
+@keyframes marquee { to { transform: translateX(-50%); } }
+@media (prefers-reduced-motion: reduce) { .marquee__track { animation: none; } }
+
+/* tilt */
+[data-tilt] { position: relative; transform-style: preserve-3d; }
+.tilt-glare { --gx: 50; --gy: 50; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; opacity: 0; transition: opacity var(--dur-2); background: radial-gradient(60% 60% at calc(var(--gx) * 1%) calc(var(--gy) * 1%), rgb(var(--ink-rgb) / 0.12), transparent 70%); }
+[data-tilt]:hover .tilt-glare { opacity: 1; }
+
+/* constellation entrance */
+.constellation .node__inner { transform-box: fill-box; transform-origin: center; }
+.constellation:not(.is-visible) .node__inner { opacity: 0; }
+.constellation.is-visible .node__inner { animation: node-in 900ms var(--ease-out) both; animation-delay: calc(var(--i, 0) * 70ms); }
+.constellation:not(.is-visible) .edge { stroke-dasharray: 1000; stroke-dashoffset: 1000; }
+.constellation.is-visible .edge { animation: edge-in 1600ms var(--ease-out) 400ms both; }
+@keyframes node-in { from { opacity: 0; transform: scale(0.4); } to { opacity: 1; transform: none; } }
+@keyframes edge-in { from { stroke-dasharray: 1000; stroke-dashoffset: 1000; } to { stroke-dasharray: 1000; stroke-dashoffset: 0; } }
+@media (prefers-reduced-motion: reduce) {
+  .constellation .node__inner, .constellation .edge { animation: none !important; opacity: 1 !important; stroke-dashoffset: 0 !important; }
+}

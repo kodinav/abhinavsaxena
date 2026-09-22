@@ -2,10 +2,10 @@
 interface Props { num?: string; eyebrow: string; title: string; lede?: string; id?: string; class?: string }
 const { num, eyebrow, title, lede, id, class: cls = '' } = Astro.props;
 ---
-<header class={`section-head ${cls}`} data-reveal>
+<header class={`section-head ${cls}`}>
   <span class="eyebrow">{num && <span class="num">{num}</span>}{eyebrow}</span>
-  <h2 class="h2" id={id}>{title}</h2>
-  {lede && <p class="lede">{lede}</p>}
+  <h2 class="h2" id={id} data-split="lines">{title}</h2>
+  {lede && <p class="lede" data-split="lines" data-split-delay="0.15">{lede}</p>}
   <slot />
 </header>
 <style>

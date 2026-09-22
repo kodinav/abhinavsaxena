@@ -10,8 +10,8 @@ const pending = site.profiles.filter((p) => !p.url);
     <div class="container grid">
       <div class="contact__side"><span class="eyebrow" data-reveal>Contact</span></div>
       <div class="contact__main">
-        <h1 class="h1" data-reveal>Correspondence</h1>
-        <p class="lede" data-reveal>I read everything I am sent, and answer what I can. Collaboration, review requests, invitations to speak, questions from students, and disagreement are all welcome — the last is often the most useful.</p>
+        <h1 class="h1" data-split="chars">Correspondence</h1>
+        <p class="lede" data-split="lines" data-split-delay="0.15">I read everything I am sent, and answer what I can. Collaboration, review requests, invitations to speak, questions from students, and disagreement are all welcome — the last is often the most useful.</p>
         <div class="contact__email" data-reveal>
           <span class="tag">Email</span>
           <a class="contact__addr serif" href={`mailto:${site.email}`}>{site.email}</a>

@@ -33,9 +33,9 @@ const path = `/lab/${exp.id}`;
           </dl>
         </div>
         <div class="exp__head-main">
-          <h1 class="h1" data-reveal>{d.title}</h1>
-          <p class="exp__q serif" data-reveal style="--reveal-delay: 80ms">{d.question}</p>
-          <p class="lede" data-reveal style="--reveal-delay: 160ms">{d.summary}</p>
+          <h1 class="h1" data-split="chars">{d.title}</h1>
+          <p class="exp__q serif" data-split="lines" data-split-delay="0.2">{d.question}</p>
+          <p class="lede" data-split="lines" data-split-delay="0.25">{d.summary}</p>
         </div>
       </div>
     </header>

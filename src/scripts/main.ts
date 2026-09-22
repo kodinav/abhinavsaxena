@@ -3,6 +3,7 @@
  * itself with `onPage` and re-initialises after client-side navigations.
  */
 import './theme';
+import './motion';
 import './nav';
 import './reveal';
 import './magnetic';

@@ -6,8 +6,7 @@ import { chromium } from 'playwright';
 import { mkdir, copyFile } from 'node:fs/promises';
 import { serveDist } from './serve.mjs';
 
-const PORT = 4398;
-const server = await serveDist(PORT);
+const server = await serveDist(0); const PORT = server.port;
 const browser = await chromium.launch();
 const page = await browser.newPage({ colorScheme: 'light' });
 await page.goto(`http://localhost:${PORT}/cv`, { waitUntil: 'networkidle' });

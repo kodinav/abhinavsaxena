@@ -10,7 +10,6 @@
 html {
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
-  scroll-behavior: smooth;
   scroll-padding-top: calc(var(--nav-h) + 1rem);
   background: var(--paper);
 }
@@ -459,30 +458,6 @@ hr {
   background: var(--line);
 }
 
-/* view transitions */
-@media (prefers-reduced-motion: no-preference) {
-  ::view-transition-old(root) {
-    animation: vt-out 260ms var(--ease-in-out) both;
-  }
-
-  ::view-transition-new(root) {
-    animation: vt-in 420ms var(--ease-out) both;
-  }
-}
-
-@keyframes vt-out {
-  to {
-    opacity: 0;
-    transform: translateY(-6px);
-  }
-}
-
-@keyframes vt-in {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-}
 
 @media (prefers-reduced-motion: reduce) {
   html {

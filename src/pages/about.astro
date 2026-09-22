@@ -27,9 +27,9 @@ const profileLd = {
       <div class="container grid">
         <div class="about__side"><span class="eyebrow" data-reveal>About</span></div>
         <div class="about__main">
-          <h1 class="h1" data-reveal>Abhinav Saxena</h1>
+          <h1 class="h1" data-split="chars">Abhinav Saxena</h1>
           <p class="about__role" data-reveal>Philosopher · Researcher · Writer</p>
-          <p class="about__lead serif" data-reveal style="--reveal-delay: 100ms">
+          <p class="about__lead serif" data-split="lines" data-split-delay="0.2">
             I work on what happens to our oldest concepts — knowledge, mind, agency, responsibility — when they meet machines that seem to know, think, act and answer.
           </p>
         </div>
@@ -84,7 +84,7 @@ const profileLd = {
       <div class="container grid">
         <div class="about__side"><h2 class="tag" id="current" data-reveal>Current work</h2></div>
         <div class="about__main">
-          <p class="lede" data-reveal>Three questions are organising my current writing:</p>
+          <p class="lede" data-split="lines" data-split-delay="0.15">Three questions are organising my current writing:</p>
           <ol class="about__qs" role="list" data-reveal-group="60">
             {questions.slice(0, 3).map((q) => <li class="serif" data-reveal>{q.data.question}</li>)}
           </ol>

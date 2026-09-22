@@ -5,7 +5,7 @@ const { exp, index, headingLevel = 'h3' } = Astro.props;
 const H = headingLevel;
 const d = exp.data;
 ---
-<a class="lab-card" href={`/lab/${exp.id}`} data-reveal data-cursor="Run">
+<a class="lab-card" href={`/lab/${exp.id}`} data-reveal data-cursor="Run" data-tilt="5">
   <div class="lab-card__top">
     <span class="lab-card__num tnum">Exp. {String(index).padStart(2, '0')}</span>
     <span class="lab-card__dur">{d.duration}</span>

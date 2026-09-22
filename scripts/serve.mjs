@@ -6,7 +6,7 @@ import { gzipSync } from 'node:zlib';
 
 const types = { '.html': 'text/html; charset=utf-8', '.css': 'text/css', '.js': 'text/javascript', '.mjs': 'text/javascript', '.json': 'application/json', '.svg': 'image/svg+xml', '.png': 'image/png', '.ico': 'image/x-icon', '.woff2': 'font/woff2', '.xml': 'application/xml', '.txt': 'text/plain', '.pdf': 'application/pdf', '.webmanifest': 'application/manifest+json' };
 
-export function serveDist(port = 4321, root = 'dist') {
+export function serveDist(port = 0, root = 'dist') {
   const server = createServer(async (req, res) => {
     try {
       let p = decodeURIComponent(new URL(req.url, 'http://x').pathname);
@@ -26,7 +26,7 @@ export function serveDist(port = 4321, root = 'dist') {
       } else res.end(data);
     } catch { res.statusCode = 500; res.end('error'); }
   });
-  return new Promise((resolve) => server.listen(port, () => resolve(server)));
+  return new Promise((resolve, reject) => { server.on('error', reject); server.listen(port, () => { server.port = server.address().port; resolve(server); }); });
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {

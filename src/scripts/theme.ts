@@ -4,8 +4,7 @@ export type Theme = 'light' | 'dark';
 
 export function currentTheme(): Theme {
   const attr = document.documentElement.getAttribute('data-theme');
-  if (attr === 'light' || attr === 'dark') return attr;
-  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  return attr === 'light' ? 'light' : 'dark';
 }
 
 export function setTheme(t: Theme) {

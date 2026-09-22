@@ -1,4 +1,5 @@
 import { onPage, prefersReducedMotion } from '@/lib/page';
+import { lockScroll } from '@/scripts/motion/core';
 
 onPage<HTMLElement>('.site-nav', (nav) => {
   const toggle = nav.querySelector<HTMLButtonElement>('[data-menu-toggle]');
@@ -54,7 +55,7 @@ onPage<HTMLElement>('.site-nav', (nav) => {
       nav.classList.toggle('menu-open', v);
     });
     toggle.setAttribute('aria-expanded', String(v));
-    document.body.classList.toggle('no-scroll', v);
+    lockScroll(v);
     if (v) {
       lastFocus = document.activeElement as HTMLElement;
       nav.classList.remove('is-hidden');
@@ -96,6 +97,6 @@ onPage<HTMLElement>('.site-nav', (nav) => {
     closeBtn?.removeEventListener('click', onClose);
     overlay?.removeEventListener('click', onOverlayClick);
     document.removeEventListener('keydown', onKey);
-    document.body.classList.remove('no-scroll');
+    lockScroll(false);
   };
 });

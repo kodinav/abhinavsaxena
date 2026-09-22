@@ -16,9 +16,18 @@ const featuredEssays = [...essays.filter((e) => e.data.featured), ...essays.filt
 const featuredPubs = [...pubs.filter((p) => p.data.featured), ...pubs.filter((p) => !p.data.featured)].slice(0, 3);
 const areaTitles = Object.fromEntries(areas.map((a) => [a.id, a.data.title]));
 const spine = concepts.filter((c) => c.data.spine).sort((a, b) => a.data.order - b.data.order);
+const label = (c: (typeof concepts)[number]) => (c.data.title === 'Artificial Intelligence' ? 'AI' : c.data.title);
+const relationTo = (a: (typeof concepts)[number], b: (typeof concepts)[number]) => {
+  const out = a.data.relations.find((r) => r.to.id === b.id);
+  if (out) return { from: label(a), type: out.type, to: label(b), note: out.note };
+  const inn = b.data.relations.find((r) => r.to.id === a.id);
+  if (inn) return { from: label(b), type: inn.type, to: label(a), note: inn.note };
+  return null;
+};
 const activeProfiles = site.profiles.filter((p) => p.url);
+const marquee = [...areas.map((a) => a.data.title)];
 ---
-<Base title={site.title} isHome jsonLd={[websiteJsonLd()]} bodyClass="home">
+<Base title={site.title} isHome jsonLd={[websiteJsonLd()]} bodyClass="home" field="hero">
   <Hero />
 
   <section class="section intro" id="intro" aria-labelledby="intro-title">
@@ -28,14 +37,14 @@ const activeProfiles = site.profiles.filter((p) => p.url);
       </div>
       <div class="intro__main">
         <h2 class="visually-hidden" id="intro-title">Introduction</h2>
-        <p class="intro__lead serif" data-reveal>
+        <p class="intro__lead serif" data-split="words">
           I am a philosopher working on what happens to our oldest concepts — knowledge, mind, agency, responsibility — when they meet machines that seem to know, think, act and answer.
         </p>
-        <div class="intro__body" data-reveal style="--reveal-delay: 120ms">
-          <p>My research sits at the intersection of philosophy of AI, philosophy of mind, ethics and epistemology. I am less interested in predicting what artificial intelligence will become than in understanding what it already is: a family of systems whose behaviour puts genuine pressure on the concepts we use to describe minds, and whose deployment redistributes responsibility in ways our moral vocabulary was not built to track.</p>
-          <p>I work in the analytic tradition, but I draw freely on phenomenology, existentialism and classical Indian philosophy — traditions that developed sophisticated accounts of intentionality, selfhood and testimony long before there were machines to test them against. I write for philosophers, but also for the engineers, policymakers and readers who have to live with these questions before philosophy has finished with them.</p>
+        <div class="intro__body">
+          <p data-split="lines">My research sits at the intersection of philosophy of AI, philosophy of mind, ethics and epistemology. I am less interested in predicting what artificial intelligence will become than in understanding what it already is: a family of systems whose behaviour puts genuine pressure on the concepts we use to describe minds, and whose deployment redistributes responsibility in ways our moral vocabulary was not built to track.</p>
+          <p data-split="lines">I work in the analytic tradition, but I draw freely on phenomenology, existentialism and classical Indian philosophy — traditions that developed sophisticated accounts of intentionality, selfhood and testimony long before there were machines to test them against. I write for philosophers, but also for the engineers, policymakers and readers who have to live with these questions before philosophy has finished with them.</p>
         </div>
-        <div class="intro__links" data-reveal style="--reveal-delay: 220ms">
+        <div class="intro__links" data-reveal>
           <a class="arrow-link" href="/about">About me <span class="arr" aria-hidden="true"></span></a>
           <a class="arrow-link" href="/cv">Curriculum vitae <span class="arr" aria-hidden="true"></span></a>
         </div>
@@ -43,11 +52,45 @@ const activeProfiles = site.profiles.filter((p) => p.url);
     </div>
   </section>
 
-  <Questions />
+  <section class="thread" data-thread aria-labelledby="thread-title">
+    <div class="thread__pin">
+      <div class="thread__head container">
+        <span class="eyebrow"><span class="num">02</span>The thread</span>
+        <h2 class="visually-hidden" id="thread-title">The thread that runs through the work</h2>
+        <span class="thread__counter"><span data-thread-index>01</span> / {String(spine.length).padStart(2, '0')}</span>
+      </div>
+      <div class="thread__steps">
+        {spine.map((c, i) => {
+          const next = spine[i + 1];
+          const rel = next ? relationTo(c, next) : null;
+          return (
+            <article class="thread__step" data-thread-step data-preset={c.id} aria-label={`${i + 1} of ${spine.length}: ${c.data.title}`}>
+              <div class="container">
+                <span class="thread__num" data-thread-line>{String(i + 1).padStart(2, '0')} — {i === 0 ? 'where it starts' : i === spine.length - 1 ? 'where it lands' : 'then'}</span>
+                <h3 class="thread__mask"><span class="thread__word" data-thread-word>{label(c)}</span></h3>
+                <p class="thread__def" data-thread-line>{c.data.definition}</p>
+                {rel && <p class="thread__rel" data-thread-line><strong>{rel.from}</strong> <em>{rel.type}</em> <strong>{rel.to}</strong> — {rel.note}</p>}
+                {!rel && <p class="thread__rel" data-thread-line><a class="arrow-link" href="/ideas">Explore the whole map <span class="arr" aria-hidden="true"></span></a></p>}
+              </div>
+            </article>
+          );
+        })}
+      </div>
+      <div class="thread__bar container"><span data-thread-progress></span></div>
+    </div>
+  </section>
+
+  <Questions num="03" />
+
+  <div class="marquee" aria-hidden="true">
+    <div class="marquee__track">
+      {[0, 1].map(() => marquee.map((m) => <span class="marquee__item">{m} <span class="x">×</span></span>))}
+    </div>
+  </div>
 
   <section class="section" id="research" aria-labelledby="research-title">
     <div class="container">
-      <SectionHead num="03" eyebrow="Research" title="A constellation, not a list" id="research-title" lede="Nine areas that share questions. The lines are where one area's problem becomes another's." />
+      <SectionHead num="04" eyebrow="Research" title="A constellation, not a list" id="research-title" lede="Nine areas that share questions. The lines are where one area's problem becomes another's." />
       <Constellation compact />
       <div class="section-foot" data-reveal>
         <a class="btn" href="/research" data-magnetic="0.2">All research areas</a>
@@ -57,9 +100,9 @@ const activeProfiles = site.profiles.filter((p) => p.url);
 
   <section class="section" id="publications" aria-labelledby="pubs-title">
     <div class="container">
-      <SectionHead num="04" eyebrow="Publications" title="From the archive" id="pubs-title" lede="Selected papers. The full archive can be searched and filtered by year, topic, venue and research area." />
+      <SectionHead num="05" eyebrow="Publications" title="From the archive" id="pubs-title" lede="Selected papers. The full archive can be searched and filtered by year, topic, venue and research area." />
       <div class="pubs-preview">
-        {featuredPubs.map((p, i) => <PublicationEntry pub={p} index={pubs.length - pubs.indexOf(p)} areaTitles={areaTitles} compact />)}
+        {featuredPubs.map((p) => <PublicationEntry pub={p} index={pubs.length - pubs.indexOf(p)} areaTitles={areaTitles} compact />)}
       </div>
       <div class="section-foot" data-reveal>
         <a class="btn" href="/publications" data-magnetic="0.2">Open the archive <span class="tnum muted">({pubs.length})</span></a>
@@ -69,7 +112,7 @@ const activeProfiles = site.profiles.filter((p) => p.url);
 
   <section class="section" id="essays" aria-labelledby="essays-title">
     <div class="container">
-      <SectionHead num="05" eyebrow="Essays" title="Long-form thinking" id="essays-title" lede="Essays written to be read slowly: arguments developed at length, with footnotes, for readers who want more than a position." />
+      <SectionHead num="06" eyebrow="Essays" title="Long-form thinking" id="essays-title" lede="Essays written to be read slowly: arguments developed at length, with footnotes, for readers who want more than a position." />
       <div class="essays-preview" data-reveal-group="90">
         {featuredEssays[0] && <div class="essays-preview__lead"><EssayCard essay={featuredEssays[0]} size="l" /></div>}
         <div class="essays-preview__rest">
@@ -84,7 +127,7 @@ const activeProfiles = site.profiles.filter((p) => p.url);
 
   <section class="section lab-preview" id="lab" aria-labelledby="lab-title">
     <div class="container">
-      <SectionHead num="06" eyebrow="Philosophy Lab" title="Thought experiments you can run" id="lab-title" lede="Interactive instruments for classic and new problems. Set the parameters; see what the theories say; notice where your intuitions came from." />
+      <SectionHead num="07" eyebrow="Philosophy Lab" title="Thought experiments you can run" id="lab-title" lede="Interactive instruments for classic and new problems. Set the parameters; see what the theories say; notice where your intuitions came from." />
       <div class="lab-grid" data-reveal-group="80">
         {lab.slice(0, 3).map((x, i) => <LabCard exp={x} index={i + 1} />)}
       </div>
@@ -95,21 +138,15 @@ const activeProfiles = site.profiles.filter((p) => p.url);
   </section>
 
   <section class="section ideas-teaser" id="ideas" aria-labelledby="ideas-title">
-    <div class="container">
-      <SectionHead num="07" eyebrow="Ideas" title="The thread that runs through the work" id="ideas-title" lede="Seven concepts in sequence, each leaning on the one before. The map shows how they connect — and where the connections are under strain." />
-      <ol class="spine" role="list" data-reveal-group="70">
-        {spine.map((c, i) => (
-          <li class="spine__item" data-reveal>
-            <a class="spine__node" href={`/ideas#${c.id}`} data-cursor="Map">
-              <span class="spine__label serif">{c.data.title === 'Artificial Intelligence' ? 'AI' : c.data.title}</span>
-              <span class="spine__def">{c.data.definition}</span>
-            </a>
-            {i > 0 && <span class="spine__arrow" aria-hidden="true"></span>}
-          </li>
-        ))}
-      </ol>
-      <div class="section-foot" data-reveal>
-        <a class="btn" href="/ideas" data-magnetic="0.2">Explore the concept map</a>
+    <div class="container grid">
+      <div class="ideas-teaser__main">
+        <SectionHead num="08" eyebrow="Ideas" title="A map of the concepts" id="ideas-title" lede="Seventeen concepts and the relations between them: what grounds what, what requires what, and where the connections are under strain." />
+        <div class="section-foot" data-reveal>
+          <a class="btn" href="/ideas" data-magnetic="0.2">Explore the concept map</a>
+        </div>
+      </div>
+      <div class="ideas-teaser__cloud" data-reveal-group="40">
+        {concepts.map((c) => <a class={`chip ${c.data.spine ? 'is-active' : ''}`} href={`/ideas#${c.id}`} data-reveal>{c.data.title}</a>)}
       </div>
     </div>
   </section>
@@ -117,9 +154,9 @@ const activeProfiles = site.profiles.filter((p) => p.url);
   <section class="section closing" aria-labelledby="closing-title">
     <div class="container grid">
       <div class="closing__main">
-        <span class="eyebrow" data-reveal><span class="num">08</span>Correspondence</span>
-        <h2 class="h2 closing__title" id="closing-title" data-reveal>I read everything I am sent, and answer what I can.</h2>
-        <p class="lede" data-reveal>For collaboration, review, talks, supervision, or disagreement — the last is often the most useful.</p>
+        <span class="eyebrow" data-reveal><span class="num">09</span>Correspondence</span>
+        <h2 class="h2 closing__title" id="closing-title" data-split="lines">I read everything I am sent, and answer what I can.</h2>
+        <p class="lede" data-split="lines" data-split-delay="0.2">For collaboration, review, talks, supervision, or disagreement — the last is often the most useful.</p>
         <div class="closing__links" data-reveal>
           <a class="btn btn--solid" href={`mailto:${site.email}`} data-magnetic="0.2">{site.email}</a>
           <a class="arrow-link" href="/contact">All ways to reach me <span class="arr" aria-hidden="true"></span></a>
@@ -135,40 +172,35 @@ const activeProfiles = site.profiles.filter((p) => p.url);
   </section>
 </Base>
 
+<script>
+  import '@/scripts/home';
+</script>
+
 <style>
   .intro__side { grid-column: 1 / span 3; }
   .intro__main { grid-column: 4 / span 8; }
-  .intro__lead { font-size: var(--step-3); line-height: 1.22; letter-spacing: -0.012em; text-wrap: balance; max-width: 26ch; }
-  .intro__body { margin-top: var(--s-l); max-width: var(--measure); color: var(--ink-2); display: flex; flex-direction: column; gap: 1.1em; font-family: var(--font-serif); font-size: var(--step-1); line-height: 1.5; text-wrap: pretty; }
+  .intro__lead { font-size: var(--step-4); line-height: 1.15; letter-spacing: -0.015em; text-wrap: balance; max-width: 24ch; }
+  .intro__body { margin-top: var(--s-xl); max-width: var(--measure); color: var(--ink-2); display: flex; flex-direction: column; gap: 1.1em; font-family: var(--font-serif); font-size: var(--step-1); line-height: 1.5; text-wrap: pretty; }
   .intro__links { margin-top: var(--s-l); display: flex; flex-wrap: wrap; gap: var(--s-m); }
   .section-foot { margin-top: var(--s-xl); display: flex; justify-content: flex-start; }
   .pubs-preview { border-bottom: 1px solid var(--line); }
   .essays-preview { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: var(--s-2xl); align-items: start; }
   .essays-preview__rest { display: flex; flex-direction: column; }
   .lab-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--s-m); }
-  .spine { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
-  .spine__item { position: relative; }
-  .spine__node { display: flex; flex-direction: column; gap: 0.5rem; padding: var(--s-m) var(--s-s) var(--s-m) 0; min-height: 100%; transition: color var(--dur-2); }
-  .spine__item:not(:first-child) .spine__node { padding-left: 1.6rem; }
-  .spine__label { font-size: var(--step-2); line-height: 1.05; }
-  .spine__def { font-family: var(--font-sans); font-size: var(--step--2); line-height: 1.45; color: var(--ink-3); display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
-  .spine__node:hover { color: var(--accent); }
-  .spine__node:hover .spine__def { color: var(--ink-2); }
-  .spine__arrow { position: absolute; left: 0; top: calc(var(--s-m) + 0.55em); width: 1rem; height: 1px; background: var(--line-2); }
-  .spine__arrow::after { content: ''; position: absolute; right: 0; top: 50%; width: 0.35rem; height: 0.35rem; border-top: 1px solid var(--line-2); border-right: 1px solid var(--line-2); transform: translateY(-50%) rotate(45deg); }
+  .ideas-teaser__main { grid-column: 1 / span 6; }
+  .ideas-teaser__cloud { grid-column: 7 / span 6; display: flex; flex-wrap: wrap; gap: 0.5rem; align-content: center; padding-top: var(--s-m); }
+  .ideas-teaser__cloud .chip { font-size: var(--step--1); padding: 0.45em 1em; min-height: 2.4rem; }
   .closing__main { grid-column: 1 / span 8; }
   .closing__side { grid-column: 10 / span 3; padding-top: 0.5rem; }
   .closing__title { margin-top: var(--s-s); max-width: 18ch; }
   .closing .lede { margin-top: var(--s-s); }
   .closing__links { margin-top: var(--s-l); display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-m); }
   .closing__profiles { margin-top: var(--s-s); display: flex; flex-direction: column; gap: 0.4rem; }
-  @media (max-width: 1100px) { .spine { grid-template-columns: repeat(4, minmax(0, 1fr)); } .spine__item:nth-child(n+5) { border-top: 1px solid var(--line); } }
   @media (max-width: 900px) {
-    .intro__side, .intro__main, .closing__main, .closing__side { grid-column: 1 / -1; }
-    .intro__main { margin-top: var(--s-m); }
+    .intro__side, .intro__main, .closing__main, .closing__side, .ideas-teaser__main, .ideas-teaser__cloud { grid-column: 1 / -1; }
+    .intro__main, .ideas-teaser__cloud { margin-top: var(--s-m); }
     .closing__side { margin-top: var(--s-l); }
     .essays-preview { grid-template-columns: 1fr; gap: var(--s-l); }
     .lab-grid { grid-template-columns: 1fr; }
   }
-  @media (max-width: 640px) { .spine { grid-template-columns: 1fr 1fr; } .spine__item:nth-child(n+3) { border-top: 1px solid var(--line); } .spine__item:not(:first-child) .spine__node { padding-left: 1.2rem; } }
 </style>

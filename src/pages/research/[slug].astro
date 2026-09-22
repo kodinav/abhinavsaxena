@@ -32,8 +32,8 @@ const path = `/research/${area.id}`;
           <span class="eyebrow" data-reveal><span class="num">{String(idx + 1).padStart(2, '0')}</span>Research area</span>
         </div>
         <div class="area__head-main">
-          <h1 class="h1" data-reveal>{d.title}</h1>
-          <p class="lede" data-reveal style="--reveal-delay: 80ms">{d.short}</p>
+          <h1 class="h1" data-split="chars">{d.title}</h1>
+          <p class="lede" data-split="lines" data-split-delay="0.15">{d.short}</p>
         </div>
       </div>
     </header>

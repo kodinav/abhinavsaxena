@@ -10,8 +10,8 @@ const lab = await getLab();
     <div class="container">
       <header class="page-head">
         <span class="eyebrow" data-reveal>Philosophy Lab</span>
-        <h1 class="h1" data-reveal>Thought experiments you can run</h1>
-        <p class="lede" data-reveal>A thought experiment is an instrument: you set its parameters and read off your intuitions. These are built to be operated rather than read. Each takes a few minutes, and each is designed to show you where your answer came from.</p>
+        <h1 class="h1" data-split="chars">Thought experiments you can run</h1>
+        <p class="lede" data-split="lines" data-split-delay="0.15">A thought experiment is an instrument: you set its parameters and read off your intuitions. These are built to be operated rather than read. Each takes a few minutes, and each is designed to show you where your answer came from.</p>
       </header>
       <ol class="lab-index" role="list" data-reveal-group="80">
         {lab.map((x, i) => <li><LabCard exp={x} index={i + 1} headingLevel="h2" /></li>)}

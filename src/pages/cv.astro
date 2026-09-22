@@ -24,9 +24,9 @@ const today = new Date();
           </nav>
         </div>
         <div class="cv__main">
-          <h1 class="h1" data-reveal>Abhinav Saxena</h1>
+          <h1 class="h1" data-split="chars">Abhinav Saxena</h1>
           <p class="cv__role" data-reveal>Philosopher · Researcher · Writer</p>
-          <p class="lede" data-reveal>{cv.summary}</p>
+          <p class="lede" data-split="lines" data-split-delay="0.15">{cv.summary}</p>
           <dl class="cv__contact" data-reveal>
             <div><dt>Email</dt><dd><a class="link" href={`mailto:${site.email}`}>{site.email}</a></dd></div>
             <div><dt>Web</dt><dd><a class="link" href={site.url}>abhinavsaxena.in</a></dd></div>

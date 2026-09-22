@@ -60,12 +60,15 @@ onPage<HTMLElement>('[data-constellation]', (root) => {
     }
     for (const n of nodes) {
       const g = svgEl('g', { class: 'node', transform: `translate(${n.x},${n.y})`, role: 'button', tabindex: 0, 'aria-label': `${n.label}: ${n.short}`, 'data-id': n.id });
+      const inner = svgEl('g', { class: 'node__inner' });
       const halo = svgEl('circle', { r: n.r + 14, class: 'halo' });
       const ring = svgEl('circle', { r: n.r + 5, class: 'ring' });
       const core = svgEl('circle', { r: n.r, class: 'core' });
       const label = svgEl('text', { y: n.r + 20, 'text-anchor': 'middle', class: 'label' });
       label.textContent = n.label;
-      g.append(halo, ring, core, label);
+      inner.append(halo, ring, core, label);
+      g.append(inner);
+      (inner as SVGGElement).style.setProperty('--i', String(nodeEls.size));
       gNodes.appendChild(g);
       nodeEls.set(n.id, g as SVGGElement);
     }
@@ -122,8 +125,14 @@ onPage<HTMLElement>('[data-constellation]', (root) => {
     }
     raf = requestAnimationFrame(tick);
   }
-  const start = () => { if (running || reduced) return; running = true; raf = requestAnimationFrame(tick); };
+  let inView = false, hovering = false;
+  const start = () => { if (running || reduced || !inView || hovering) return; running = true; raf = requestAnimationFrame(tick); };
   const stop = () => { running = false; cancelAnimationFrame(raf); };
+  // the constellation holds still while the pointer is over it, so nodes are easy to catch
+  const onEnterSvg = () => { hovering = true; stop(); };
+  const onLeaveSvg = () => { hovering = false; start(); };
+  svg.addEventListener('pointerenter', onEnterSvg);
+  svg.addEventListener('pointerleave', onLeaveSvg);
 
   /* events (delegated) */
   const idOf = (e: Event) => (e.target as Element).closest<SVGGElement>('.node')?.dataset.id ?? null;
@@ -150,11 +159,17 @@ onPage<HTMLElement>('[data-constellation]', (root) => {
   svg.addEventListener('focusout', onFocusOut);
   root.addEventListener('click', onPanelClick);
 
-  const io = new IntersectionObserver((en) => (en[0].isIntersecting ? start() : stop()), { threshold: 0.05 });
+  const io = new IntersectionObserver((en) => { inView = en[0].isIntersecting; inView ? start() : stop(); }, { threshold: 0.05 });
   io.observe(root);
   const ro = new ResizeObserver(debounce(() => build(), 120));
   ro.observe(stage);
   build();
+  // entrance: play once the constellation scrolls into view
+  if (reduced) root.classList.add('is-visible');
+  else {
+    const vis = new IntersectionObserver((en) => { if (en[0].isIntersecting) { root.classList.add('is-visible'); vis.disconnect(); } }, { threshold: 0.2 });
+    vis.observe(root);
+  }
   // deep link: /research#area
   const hash = location.hash.replace('#', '');
   if (hash && nodeEls.has(hash)) select(hash);
@@ -167,6 +182,8 @@ onPage<HTMLElement>('[data-constellation]', (root) => {
     svg.removeEventListener('keydown', onKey);
     svg.removeEventListener('focusin', onFocusIn);
     svg.removeEventListener('focusout', onFocusOut);
+    svg.removeEventListener('pointerenter', onEnterSvg);
+    svg.removeEventListener('pointerleave', onLeaveSvg);
     root.removeEventListener('click', onPanelClick);
   };
 });

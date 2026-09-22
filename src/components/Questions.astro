@@ -2,6 +2,8 @@
 import { getQuestions } from '@/lib/content';
 import { getEntry, render } from 'astro:content';
 
+interface Props { num?: string }
+const { num = '02' } = Astro.props;
 const questions = await getQuestions();
 const items = await Promise.all(
   questions.map(async (q) => {
@@ -20,9 +22,9 @@ const items = await Promise.all(
 ---
 <section class="questions section" id="questions" aria-labelledby="questions-title">
   <div class="container">
-    <header class="section-head" data-reveal>
-      <span class="eyebrow"><span class="num">02</span>Current questions</span>
-      <h2 class="h2" id="questions-title">Questions I am working on</h2>
+    <header class="section-head">
+      <span class="eyebrow"><span class="num">{num}</span>Current questions</span>
+      <h2 class="h2" id="questions-title" data-split="lines">Questions I am working on</h2>
       <p class="lede">Not settled positions — open problems. Each one is a door into a research area, an essay, or an experiment in the lab.</p>
     </header>
     <ol class="questions__list" role="list" data-questions data-reveal-group="60">
