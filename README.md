@@ -20,7 +20,15 @@ Built with [Astro 7](https://astro.build): static output, no framework runtime, 
 | `node scripts/qa-experience.mjs` | Capture the intro, hero hover, thread chapter and a page transition with WebGL enabled (run after `build`) |
 | `node scripts/og-image.mjs` | Regenerate the Open Graph image and icons |
 
-Deploy `dist/` to any static host (Netlify, Vercel, Cloudflare Pages, GitHub Pages). No server is required.
+## Deploying
+
+The repository deploys itself. Every push to `main` runs `.github/workflows/deploy.yml`, which type-checks, builds and publishes `dist/` to **GitHub Pages**. One-time setup on GitHub:
+
+1. Repository → Settings → Pages → *Build and deployment* → Source: **GitHub Actions**.
+2. Under *Custom domain* enter `abhinavsaxena.in` (the `public/CNAME` file already carries it) and tick *Enforce HTTPS* once the certificate is issued.
+3. At your DNS provider, point the apex to GitHub Pages (`A` records `185.199.108.153`, `185.199.109.153`, `185.199.110.153`, `185.199.111.153`) and add `CNAME www → kodinav.github.io`.
+
+Netlify (`netlify.toml`), Vercel (`vercel.json`) and Cloudflare Pages (`public/_headers`) are also configured; any of them can build the repo directly with `npm run build` and publish `dist/`. No server is required.
 
 ## Where things live
 

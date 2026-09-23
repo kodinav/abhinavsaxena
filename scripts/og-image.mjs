@@ -6,7 +6,7 @@
 import sharp from 'sharp';
 import { mkdir, writeFile } from 'node:fs/promises';
 
-const paper = '#f4f1ea', ink = '#17161b', accent = '#b4432a', muted = '#85828e';
+const paper = '#0d0d10', ink = '#ece8e0', accent = '#e0653f', muted = '#9a97a3';
 
 const og = `
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
@@ -14,8 +14,9 @@ const og = `
   ${Array.from({ length: 26 }, (_, i) => {
     const y = 40 + i * 22;
     const x1 = 640 + Math.sin(i * 0.7) * 40, x2 = 1160 + Math.cos(i * 0.5) * 20;
-    return `<path d="M ${x1} ${y} Q ${(x1 + x2) / 2} ${y + Math.sin(i) * 26} ${x2} ${y + 8}" stroke="${ink}" stroke-opacity="0.12" fill="none" stroke-width="1"/>`;
+    return `<path d="M ${x1} ${y} Q ${(x1 + x2) / 2} ${y + Math.sin(i) * 26} ${x2} ${y + 8}" stroke="${ink}" stroke-opacity="0.16" fill="none" stroke-width="1"/>`;
   }).join('')}
+  ${Array.from({ length: 420 }, (_, i) => { const x = 620 + ((i * 7919) % 560), y = 30 + ((i * 104729) % 570); const r = 0.6 + ((i * 31) % 10) / 9; return `<circle cx="${x}" cy="${y}" r="${r.toFixed(2)}" fill="${ink}" fill-opacity="${(0.25 + ((i * 17) % 10) / 14).toFixed(2)}"/>`; }).join('')}
   <circle cx="930" cy="250" r="6" fill="${accent}"/>
   <circle cx="930" cy="250" r="18" fill="none" stroke="${accent}" stroke-opacity="0.5"/>
   <circle cx="1060" cy="380" r="4" fill="${ink}" fill-opacity="0.6"/>

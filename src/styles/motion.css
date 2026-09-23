@@ -110,6 +110,9 @@ html.js [data-split="lines"], html.js [data-split="chars"] { visibility: visible
 .thread__bar span { display: block; height: 100%; background: var(--accent); transform: scaleX(0); transform-origin: left; }
 .thread:not(.is-init) .thread__step:not(.is-static) .thread__mask,
 .thread:not(.is-init) .thread__step:not(.is-static) [data-thread-line] { visibility: hidden; }
+html.no-js .thread__pin { height: auto; }
+html.no-js .thread__step { position: relative; padding-block: var(--s-l); }
+html.no-js .thread__mask, html.no-js [data-thread-line] { visibility: visible; }
 @media (max-width: 760px) { .thread__word { font-size: var(--step-6); } .thread__def { font-size: var(--step-1); } }
 
 /* marquee */

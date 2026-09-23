@@ -18,7 +18,7 @@ export interface Preset {
 }
 export const PRESETS: Record<string, Preset> = {
   hero:           { scale: 0.0016, speed: 1.0, structure: 0.0, converge: 0.04, swirl: 0.35, driveX: 0.0, driveY: 0.0, tint: 0.18, fog: 1.0, size: 1.6, alpha: 1.0, density: 1.0, textMask: 1.0 },
-  ambient:        { scale: 0.0013, speed: 0.55, structure: 0.0, converge: 0.0, swirl: 0.15, driveX: 0.0, driveY: 0.0, tint: 0.1, fog: 0.55, size: 1.4, alpha: 0.55, density: 0.45, textMask: 0.0 },
+  ambient:        { scale: 0.0013, speed: 0.5, structure: 0.0, converge: 0.0, swirl: 0.15, driveX: 0.0, driveY: 0.0, tint: 0.1, fog: 0.45, size: 1.4, alpha: 0.45, density: 0.4, textMask: 0.0 },
   reading:        { scale: 0.0012, speed: 0.35, structure: 0.0, converge: 0.0, swirl: 0.1, driveX: 0.0, driveY: 0.0, tint: 0.05, fog: 0.3, size: 1.3, alpha: 0.22, density: 0.25, textMask: 0.0 },
   off:            { scale: 0.0012, speed: 0.3, structure: 0.0, converge: 0.0, swirl: 0.0, driveX: 0.0, driveY: 0.0, tint: 0.0, fog: 0.0, size: 1.2, alpha: 0.0, density: 0.2, textMask: 0.0 },
   // the thread: one character per concept
@@ -150,7 +150,6 @@ class FieldEngine {
 
   private bindEvents() {
     const onMove = (e: PointerEvent) => {
-      if (e.pointerType === 'touch') return;
       const now = performance.now();
       const dt = Math.max(8, now - this.pointer.lastT) / 1000;
       const x = e.clientX, y = e.clientY;

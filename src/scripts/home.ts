@@ -95,6 +95,9 @@ onPage<HTMLElement>('[data-hero]', (hero) => {
     st = ScrollTrigger.create({
       trigger: hero, start: 'top top', end: 'bottom top', scrub: 0.4,
       onUpdate: (self) => { field.setScroll(self.progress); if (inner) gsap.set(inner, { y: -self.progress * 90, opacity: 1 - self.progress * 1.15 }); },
+      // once the hero has gone, the field settles so the writing can be read
+      onLeave: () => field.setPreset('ambient'),
+      onEnterBack: () => field.setPreset('hero'),
     });
   }
 
@@ -140,7 +143,7 @@ onPage<HTMLElement>('[data-thread]', (section) => {
   });
   const dur = tl.duration();
   const st = ScrollTrigger.create({
-    trigger: section, start: 'top top', end: () => `+=${n * 100}%`, pin: true, anticipatePin: 1,
+    trigger: section, start: 'top top', end: () => `+=${n * (window.innerWidth < 760 ? 72 : 100)}%`, pin: true, anticipatePin: 1,
     onUpdate: (self) => {
       const p = self.progress;
       tl.time(p * (n - 1 + 0.7)); // step i lives at time i; the last step holds at the end
