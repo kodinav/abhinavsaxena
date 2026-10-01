@@ -1,0 +1,70 @@
+/* ------------------------------------------------------------------
+   Stories: the caption and controls shared by the hero's story and the
+   section stories, the section story card, and the floating labels.
+   ------------------------------------------------------------------ */
+
+.story { font-family: var(--font-sans); color: var(--ink-2); isolation: isolate; }
+.story__head { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; font-size: var(--step--2); letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-3); }
+.story__caption { margin: 0.7rem 0 0; transition: opacity 0.38s var(--ease-out), transform 0.38s var(--ease-out); }
+.story.is-swapping .story__caption { opacity: 0; transform: translateY(6px); }
+.story__act { font-size: var(--step--1); font-weight: 500; letter-spacing: 0.03em; color: var(--ink); }
+.story__quote { margin: 0.35rem 0 0; font-family: var(--font-serif); font-style: italic; font-size: var(--step-0); line-height: 1.45; color: var(--ink); text-wrap: pretty; min-height: 4.35em; }
+/* narration in the site's own words is set upright, so it never passes for a quotation */
+.story[data-kind='telling'] .story__quote { font-style: normal; }
+.story[data-verse='true'] .story__quote { white-space: pre-line; font-size: var(--step--1); line-height: 1.42; }
+.story__src { margin-top: 0.45rem; font-size: var(--step--2); letter-spacing: 0.02em; color: var(--ink-3); }
+.story__src a { color: inherit; }
+.story__src a:hover { color: var(--accent); }
+.story__controls { margin-top: 0.85rem; display: flex; align-items: center; gap: 0.9rem; }
+.story__toggle, .story__close { flex: none; width: 2rem; height: 2rem; border-radius: 50%; border: 1px solid var(--line-2); display: grid; place-items: center; color: var(--ink); transition: border-color var(--dur-2), color var(--dur-2); }
+.story__toggle:hover, .story__close:hover { border-color: var(--ink); color: var(--accent); }
+.story__icon { fill: currentColor; grid-area: 1 / 1; }
+.story__icon--play, .story.is-paused .story__icon--pause { display: none; }
+.story.is-paused .story__icon--play { display: block; }
+.story.is-reduced .story__toggle { display: none; }
+.story__acts { flex: 1; display: flex; gap: 0.3rem; min-width: 0; }
+.story__acts li { flex: 1; display: flex; min-width: 0; }
+.story__dot { flex: 1; padding: 0.7rem 0; cursor: pointer; }
+.story__tick { display: block; position: relative; height: 2px; overflow: hidden; background: var(--line-2); border-radius: 2px; transition: background-color var(--dur-2); }
+.story__dot:hover .story__tick { background: var(--ink-3); }
+.story__fill { position: absolute; inset: 0; background: var(--ink); transform: scaleX(0); transform-origin: left; }
+.story__dot.is-current .story__fill { background: var(--accent); }
+
+/* the hero's caption sits bottom-right, beside the stage */
+.story--hero { position: absolute; z-index: 2; right: var(--gutter); bottom: calc(var(--s-l) + 2.4rem); width: min(33rem, 37vw); }
+.story--hero::before { content: ''; position: absolute; inset: -1.6rem -2.4rem -1rem; z-index: -1; pointer-events: none; background: radial-gradient(closest-side, rgb(var(--paper-rgb) / 0.82), rgb(var(--paper-rgb) / 0.55) 60%, transparent); }
+@media (max-width: 900px) {
+  .story--hero { position: relative; right: auto; bottom: auto; width: auto; order: 3; margin: 0 var(--gutter) var(--s-l); }
+  /* the backdrop must not reach past the screen's edge, or the whole page grows sideways */
+  .story--hero::before { inset: -1rem 0 -0.75rem; }
+}
+
+/* labels pinned to a stage (A–D in the cave, the speakers on the bridge …) */
+.story-labels { position: fixed; inset: 0; z-index: 31; pointer-events: none; }
+.story-labels.is-small span { font-size: 0.6rem; letter-spacing: 0.08em; }
+.story-labels span { position: absolute; left: 0; top: 0; opacity: 0; transition: opacity 0.45s var(--ease-out); font-family: var(--font-sans); font-size: var(--step--2); font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-2); white-space: nowrap; }
+
+/* ---------------------------------------------------------------- section stories */
+.sstory { position: fixed; z-index: 30; left: 0; top: 0; width: min(30rem, 34vw); opacity: 0; visibility: hidden; transform: translateY(10px); transition: opacity 0.6s var(--ease-out), transform 0.6s var(--ease-out), visibility 0s 0.6s; pointer-events: none; }
+.sstory.is-open { opacity: 1; visibility: visible; transform: none; transition: opacity 0.6s var(--ease-out), transform 0.6s var(--ease-out), visibility 0s; pointer-events: auto; }
+.sstory__frame { display: none; position: relative; overflow: hidden; border-radius: 6px; background: var(--paper); }
+.sstory__frame canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+/* inline: the story plays in empty space on the page, the caption floats over a soft backdrop */
+.sstory.is-inline .story { position: relative; }
+.sstory.is-inline .story__quote, .sstory.is-measuring .story__quote { font-size: var(--step--1); min-height: 0; }
+.sstory.is-inline .story::before { content: ''; position: absolute; inset: -1.4rem -2rem -0.9rem; z-index: -1; pointer-events: none; background: radial-gradient(closest-side, rgb(var(--paper-rgb) / 0.86), rgb(var(--paper-rgb) / 0.6) 62%, transparent); }
+/* a caption parked in a corner over the page gets the card's panel, without the picture */
+.sstory.is-inline.is-boxed { padding: 0.9rem 1rem 0.5rem; border: 1px solid var(--line); border-radius: 10px; background: rgb(var(--paper-rgb) / 0.94); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); box-shadow: 0 18px 50px -20px rgb(0 0 0 / 0.45); }
+.sstory.is-inline.is-boxed .story::before { display: none; }
+/* card: no room on the page, so the story comes in its own panel */
+.sstory.is-card { left: auto; top: auto; right: 1rem; bottom: 1rem; width: min(25rem, calc(100vw - 2rem)); padding: 0.75rem 0.75rem 0.4rem; border: 1px solid var(--line); border-radius: 10px; background: rgb(var(--paper-rgb) / 0.94); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); box-shadow: 0 18px 50px -20px rgb(0 0 0 / 0.45); }
+.sstory.is-card .sstory__frame { display: block; }
+.sstory.is-card.is-wide { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 1rem; align-items: start; padding: 0.75rem 1rem 0.6rem 0.75rem; }
+.sstory.is-card.is-wide .story { margin-top: 0.1rem; padding: 0; }
+.sstory.is-card .story { margin-top: 0.75rem; padding: 0 0.25rem; }
+.sstory.is-card .story__quote { font-size: var(--step--1); min-height: 0; }
+.sstory .story__head { gap: 0.75rem; }
+@media (max-width: 900px) {
+  .sstory.is-card { right: 0.625rem; left: 0.625rem; bottom: 0.625rem; width: auto; }
+}
+html.no-webgl .sstory { display: none; }

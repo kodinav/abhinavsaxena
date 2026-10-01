@@ -19,4 +19,4 @@ relations:
 areas: [ethics-of-ai, ethics-and-technology]
 ---
 
-I work on ethics as it appears inside real systems: in the design of a model, in the decision to deploy it, in the reasons people give when it fails. That means treating ethical concepts — harm, fairness, responsibility — as things that have to survive contact with engineering, not as verdicts delivered from outside it.
+In my work ethics appears inside real systems: in what an institution owes the people its algorithmic systems govern, and in whether consent can bear the weight that data protection places on it. That means treating ethical concepts as things that have to survive contact with engineering and administration, not as verdicts delivered from outside them.

@@ -15,4 +15,4 @@ relations:
 areas: [social-epistemology, ethics-of-ai]
 ---
 
-Miranda Fricker's concept has become one of the most useful tools in social epistemology. I am interested in what happens to testimonial injustice when the hearer is not a person but a pipeline — and when the speaker cannot tell who, or what, discounted them.
+Miranda Fricker's concept has become one of the most useful tools in social epistemology. An open question is what happens to testimonial injustice when the hearer is not a person but a pipeline, and the speaker cannot tell who, or what, discounted them.

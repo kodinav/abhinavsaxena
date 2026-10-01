@@ -12,7 +12,7 @@ relations:
   - to: ai
     type: challenges
     note: Is a model's answer testimony, evidence, or something new? The answer decides what we are entitled to believe on its say-so.
-areas: [social-epistemology, indian-philosophy]
+areas: [epistemology, social-epistemology, indian-philosophy]
 ---
 
-The Nyāya school of Indian philosophy treated testimony (śabda) as a full source of knowledge, on a par with perception, provided the speaker is reliable (āpta). I find this a more useful frame for machine outputs than most Western reductionist accounts — it foregrounds the question of the speaker's standing rather than the hearer's inference.
+Testimony transmits knowledge only if the truth of what is asserted, or the evidence for it, figures in why the source asserts it, and does so through the source's own operation rather than through a proxy. I call this the Tracking Minimum and argue that the leading accounts of testimony all entail it. The Nyāya school, which counted testimony (śabda) as a full means of knowledge provided the speaker is reliable (āpta), likewise puts the question on the speaker's side rather than the hearer's.

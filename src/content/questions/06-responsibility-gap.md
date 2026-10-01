@@ -1,6 +1,6 @@
 ---
 question: When a learning system causes harm, does responsibility thin out or simply move?
-order: 5
+order: 6
 emphasis: ["responsibility", "thin out", "move"]
 areas: [ethics-of-ai, ethics-and-technology]
 essay: the-responsibility-gap-is-a-map

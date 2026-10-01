@@ -22,7 +22,7 @@ await step('client nav to research', async () => { await page.mouse.move(10, 500
 await step('constellation select', async () => { await page.waitForSelector('.constellation.is-visible', { timeout: 10000 }); await page.waitForTimeout(1200); await page.click('.constellation .node[data-id="philosophy-of-ai"]', { timeout: 10000, force: true }); await page.waitForTimeout(600); const hidden = await page.$eval('[data-area-panel="philosophy-of-ai"]', (el) => el.hidden); if (hidden) throw new Error('panel not shown'); await shot('constellation-selected'); });
 await step('ideas thread', async () => { await page.goto(base + '/ideas', { waitUntil: 'load' }); await ready(); await page.click('[data-thread]'); await page.waitForTimeout(2600); const t = await page.textContent('[data-thread-out]'); if (!t.includes('Mind')) throw new Error('thread text: ' + t); await shot('ideas-thread'); await page.click('[data-thread]'); await page.click('.ideas .node[data-id="knowledge"]'); await page.waitForTimeout(500); const h = await page.$eval('[data-concept-panel="knowledge"]', (el) => el.hidden); if (h) throw new Error('concept panel hidden'); await shot('ideas-selected'); });
 await step('ideas hash deep link', async () => { await page.goto(base + '/ideas#trust', { waitUntil: 'load' }); await ready(); await page.waitForTimeout(600); const h = await page.$eval('[data-concept-panel="trust"]', (el) => el.hidden); if (h) throw new Error('hash not applied'); });
-await step('publications filter', async () => { await page.goto(base + '/publications', { waitUntil: 'load' }); await ready(); await page.fill('[data-search]', 'nyaya'); await page.waitForTimeout(400); let c = await page.textContent('[data-count]'); if (!c.startsWith('1 of')) throw new Error('search count ' + c); await page.fill('[data-search]', ''); await page.click('[data-filter-group="status"] [data-filter-value="published"]'); await page.waitForTimeout(300); c = await page.textContent('[data-count]'); if (!c.startsWith('2 of')) throw new Error('status count ' + c); if (!page.url().includes('status=published')) throw new Error('url not synced'); await page.click('.pub:not(.is-filtered-out) .pub__toggle >> nth=0'); await page.waitForTimeout(700); await shot('publications-filtered'); await page.click('[data-clear]'); });
+await step('publications filter', async () => { await page.goto(base + '/publications', { waitUntil: 'load' }); await ready(); await page.fill('[data-search]', 'aadhaar'); await page.waitForTimeout(400); let c = await page.textContent('[data-count]'); if (!c.startsWith('1 of')) throw new Error('search count ' + c); await page.fill('[data-search]', ''); await page.click('[data-filter-group="status"] [data-filter-value="under-review"]'); await page.waitForTimeout(300); c = await page.textContent('[data-count]'); if (!c.startsWith('2 of')) throw new Error('status count ' + c); if (!page.url().includes('status=under-review')) throw new Error('url not synced'); await page.click('[data-filter-group="status"] [data-filter-value="under-review"]'); await page.click('[data-filter-group="status"] [data-filter-value="published"]'); await page.waitForTimeout(300); c = await page.textContent('[data-count]'); if (!c.startsWith('1 of')) throw new Error('published count ' + c); if (!page.url().includes('status=published')) throw new Error('url not synced'); await page.click('.pub:not(.is-filtered-out) .pub__toggle >> nth=0'); await page.waitForTimeout(700); await shot('publications-filtered'); await page.click('[data-clear]'); });
 await step('essay reader', async () => { await page.goto(base + '/essays/knowing-without-a-knower', { waitUntil: 'load' }); await ready(); await page.click('[data-type-larger]'); const sc = await page.$eval('[data-reader]', (el) => el.style.getPropertyValue('--reader-scale')); if (sc !== '1.12') throw new Error('scale ' + sc); await page.click('[data-type-smaller]'); await page.evaluate(() => { document.documentElement.style.scrollBehavior = 'auto'; window.scrollTo(0, 2200); }); await page.waitForTimeout(900); const active = await page.$('.toc__nav a.is-active'); if (!active) throw new Error('no active toc'); const prog = await page.$eval('[data-progress]', (el) => el.style.transform); if (!prog.includes('scaleX')) throw new Error('no progress'); await shot('essay-mid'); });
 await step('essays tag filter', async () => { await page.goto(base + '/essays', { waitUntil: 'load' }); await ready(); await page.click('[data-tag="Nyāya"]'); await page.waitForTimeout(300); const n = await page.$$eval('[data-essay]:not(.is-hidden)', (a) => a.length); if (n !== 1) throw new Error('visible ' + n); });
 for (const [slug, act] of [
@@ -35,6 +35,32 @@ for (const [slug, act] of [
 ]) {
   await step('lab ' + slug, async () => { await page.goto(base + '/lab/' + slug, { waitUntil: 'load' }); await ready(); await page.waitForSelector('.lab-stage.is-ready', { timeout: 5000 }); await act(); await page.$eval('.lab-stage', (el) => el.scrollIntoView()); await page.waitForTimeout(300); await shot('lab-' + slug); });
 }
+await step('story controls', async () => {
+  await page.goto(base + '/', { waitUntil: 'load' }); await ready();
+  await page.waitForFunction(() => !!window.__story, null, { timeout: 15000 });
+  await page.click('[data-story-go="4"]'); await page.waitForTimeout(500);
+  const title = await page.textContent('[data-story-act]'); if (title !== 'The sun') throw new Error('scene jump: ' + title);
+  await page.click('[data-story-toggle]'); await page.waitForTimeout(200);
+  if ((await page.getAttribute('[data-story-toggle]', 'aria-pressed')) !== 'true') throw new Error('not paused');
+  const p1 = await page.$eval('.story__dot.is-current .story__fill', (el) => el.style.transform); await page.waitForTimeout(1200);
+  const p2 = await page.$eval('.story__dot.is-current .story__fill', (el) => el.style.transform); if (p1 !== p2) throw new Error('advanced while paused');
+  await page.click('[data-story-toggle]');
+  if ((await page.getAttribute('[data-story-toggle]', 'aria-pressed')) !== 'false') throw new Error('not resumed');
+  await shot('story-sun');
+});
+await step('section story on dwell', async () => {
+  await page.goto(base + '/', { waitUntil: 'load' }); await ready();
+  await page.waitForFunction(() => !!window.__sectionStory, null, { timeout: 15000 });
+  await page.evaluate(() => { const el = document.querySelector('#publications'); const y = el.getBoundingClientRect().top + scrollY + 10; window.lenis ? window.lenis.scrollTo(y, { immediate: true }) : scrollTo(0, y); });
+  await page.waitForTimeout(2500);
+  if (await page.evaluate(() => window.__sectionStory.active)) throw new Error('opened before the dwell');
+  await page.waitForTimeout(4200);
+  const a = await page.evaluate(() => window.__sectionStory.active);
+  if (!a || a.id !== 'writing') throw new Error('no story after dwelling: ' + JSON.stringify(a));
+  await shot('section-story');
+  await page.click('[data-sstory] [data-story-close]'); await page.waitForTimeout(500);
+  if (await page.evaluate(() => window.__sectionStory.active)) throw new Error('close did not close');
+});
 await step('client nav home → hero alive', async () => { await page.goto(base + '/about', { waitUntil: 'load' }); await ready(); await page.click('a.brand'); await page.waitForURL(base + '/'); await page.waitForTimeout(2200); const ok = await page.$eval('canvas[data-field]', (c) => c.width > 0); if (!ok) throw new Error('canvas not sized'); });
 await step('mobile hero tap', async () => { const m = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true }); const mp = await m.newPage(); mp.on('pageerror', (e) => errors.push('MOBILE ' + e.message)); await mp.goto(base + '/', { waitUntil: 'load' }); await ready(mp); await mp.tap('[data-concept="mind"]'); await mp.waitForTimeout(700); if (!mp.url().endsWith('/')) throw new Error('navigated on first tap'); const t = await mp.textContent('[data-bridge]'); if (!t.includes('Mind')) throw new Error('bridge: ' + t); await mp.screenshot({ path: 'qa/ix-mobile-hero-tap.png' }); await mp.tap('[data-menu-toggle]'); await mp.waitForTimeout(800); await mp.screenshot({ path: 'qa/ix-mobile-menu.png' }); await m.close(); });
 console.log('errors:', errors.length ? errors : 'none');

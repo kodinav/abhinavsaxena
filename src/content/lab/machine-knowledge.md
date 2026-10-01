@@ -14,4 +14,4 @@ Since Gettier's 1963 paper, epistemologists have known that justified true belie
 
 This experiment lets you construct a case by setting its features, then runs it through four accounts of knowledge. Some cases every account passes. Some every account fails. The instructive ones are those where the accounts disagree.
 
-**What to notice.** Reliabilism is the most generous to machines and the least able to explain what the machine is missing. Virtue epistemology is the least generous and the most explanatory. That trade-off is, I think, the real shape of the machine-knowledge debate.
+**What to notice.** Reliabilism looks the most generous to machines and virtue epistemology the least. But a broken thermometer in a room held at constant temperature is reliable too, and no one learns the temperature from it. In "Assertion Without a Speaker" I argue that what the accounts share is a demand that the truth of an output figure, through the source's own operation, in why the output was produced — and that a working barometer meets that demand while current language models do not.

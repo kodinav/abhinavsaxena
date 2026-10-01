@@ -1,9 +1,6 @@
 /**
- * Curriculum vitae data.
- *
- * Every entry marked `placeholder: true` is sample structure, rendered with a
- * visible "replace" marker. Delete or overwrite entries as you fill in the
- * real CV; the page and PDF rebuild from this file.
+ * Curriculum vitae data. The web CV, the About page timeline and the PDF all
+ * rebuild from this file and from the publications collection.
  */
 export interface CvEntry {
   title: string;
@@ -11,72 +8,79 @@ export interface CvEntry {
   place?: string;
   period?: string;
   detail?: string;
-  placeholder?: boolean;
+  /** Optional link for the entry (e.g. a referee's email as mailto:). */
+  href?: string;
 }
 export interface CvSection {
   id: string;
   title: string;
   entries: CvEntry[];
-  /** When true, publications are pulled from the content collection instead. */
-  fromPublications?: boolean;
+  /** Pull entries from the publications collection instead of `entries`. */
+  fromPublications?: 'published' | 'under-review';
 }
 
 export const cv: { summary: string; sections: CvSection[] } = {
   summary:
-    'Philosopher and researcher working at the intersection of philosophy of AI, philosophy of mind, ethics and epistemology, with further interests in social epistemology, Indian philosophy, phenomenology and existentialism.',
+    'Philosopher working in epistemology, with a focus on testimony and the social epistemology of artificial intelligence. Areas of competence: philosophy of technology, political philosophy, ethics and environmental ethics.',
   sections: [
+    {
+      id: 'aos',
+      title: 'Areas of specialisation',
+      entries: [{ title: 'Epistemology, with a focus on testimony and the social epistemology of artificial intelligence' }],
+    },
+    {
+      id: 'aoc',
+      title: 'Areas of competence',
+      entries: [{ title: 'Philosophy of technology · Political philosophy · Ethics · Environmental ethics' }],
+    },
     {
       id: 'education',
       title: 'Education',
       entries: [
-        { title: 'Doctoral degree in Philosophy', org: 'Institution — replace', place: 'City, Country', period: 'Years — replace', detail: 'Dissertation title and supervisors — replace.', placeholder: true },
-        { title: "Master's degree in Philosophy", org: 'Institution — replace', place: 'City, Country', period: 'Years — replace', placeholder: true },
-        { title: "Bachelor's degree", org: 'Institution — replace', place: 'City, Country', period: 'Years — replace', placeholder: true },
+        {
+          title: 'M.A. Philosophy',
+          org: 'University of Delhi',
+          period: '2023–2025',
+          detail:
+            'Degree to be conferred December 2026. Dissertation: Psychocentrism: A Cognitive Reorientation of Environmental Ethics. Supervised by Dr Narmada Pujari.',
+        },
+        { title: 'B.A. Philosophy', org: 'Mahatma Jyotiba Phule Rohilkhand University', period: '2023' },
       ],
     },
-    {
-      id: 'positions',
-      title: 'Academic positions',
-      entries: [
-        { title: 'Position title — replace', org: 'Institution — replace', period: 'Years — replace', detail: 'One line on responsibilities — replace.', placeholder: true },
-      ],
-    },
-    {
-      id: 'research',
-      title: 'Research areas',
-      entries: [
-        { title: 'Philosophy of AI · Ethics of AI · Philosophy of Mind' },
-        { title: 'Epistemology · Social Epistemology · Ethics & Technology' },
-        { title: 'Indian Philosophy · Phenomenology · Existentialism' },
-      ],
-    },
-    { id: 'publications', title: 'Publications', entries: [], fromPublications: true },
+    { id: 'publications', title: 'Publications', entries: [], fromPublications: 'published' },
+    { id: 'under-review', title: 'Under review', entries: [], fromPublications: 'under-review' },
     {
       id: 'talks',
-      title: 'Presentations',
+      title: 'Conference presentations',
       entries: [
-        { title: 'Talk title — replace', org: 'Conference or seminar — replace', place: 'City', period: 'Year', placeholder: true },
+        {
+          title: 'Beyond Consent: Algorithmic Welfare, Constitutive Dependence, and the Limits of Liberal AI Ethics',
+          org: 'Interdisciplinary Speaker Series on the Ethics of AI, Indian Institute of Technology Delhi',
+          period: 'April 2026',
+        },
+        {
+          title: 'Assertion Without a Speaker: Testimony, Tracking, and Large Language Models',
+          org: 'AI and Knowledge, University of Delhi',
+          period: 'February 2026',
+        },
       ],
     },
     {
-      id: 'teaching',
-      title: 'Teaching',
+      id: 'referees',
+      title: 'Referees',
       entries: [
-        { title: 'Course title — replace', org: 'Institution — replace', period: 'Term, year', placeholder: true },
-      ],
-    },
-    {
-      id: 'service',
-      title: 'Service & reviewing',
-      entries: [
-        { title: 'Reviewer / committee / editorial role — replace', org: 'Journal or organisation — replace', period: 'Years', placeholder: true },
-      ],
-    },
-    {
-      id: 'languages',
-      title: 'Languages',
-      entries: [
-        { title: 'Language — proficiency — replace', placeholder: true },
+        {
+          title: 'Dr R. M. Singh',
+          org: 'Professor and Head, Department of Philosophy, University of Delhi',
+          detail: 'rmsingh@philosophy.du.ac.in',
+          href: 'mailto:rmsingh@philosophy.du.ac.in',
+        },
+        {
+          title: 'Dr Narmada Pujari',
+          org: 'Assistant Professor, Department of Philosophy, University of Delhi',
+          detail: 'npoojari@philosophy.du.ac.in',
+          href: 'mailto:npoojari@philosophy.du.ac.in',
+        },
       ],
     },
   ],

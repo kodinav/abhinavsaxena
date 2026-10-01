@@ -1,5 +1,7 @@
 ---
 import { getCollection } from 'astro:content';
+import { stories } from '@/data/stories';
+import '@/styles/story.css';
 
 /**
  * Hero concepts: four primary (inline in the axis line) and five floating in
@@ -35,6 +37,9 @@ for (const id of ids) {
 const graph = JSON.stringify({ nodes, links });
 const nameWords = 'ABHINAV SAXENA'.split(' ');
 const defaultBridge = 'Move through the field. Each concept is a live question â€” hover one to see what it touches, open it to follow the thread.';
+const story = stories.cave;
+const acts = story.scenes;
+const first = acts[0];
 ---
 <section class="hero" data-hero data-graph={graph} aria-labelledby="hero-name">
   <div class="hero__labels" data-field-labels>
@@ -72,6 +77,30 @@ const defaultBridge = 'Move through the field. Each concept is a live question â
       <a class="arrow-link" href="/essays">Read the essays <span class="arr" aria-hidden="true"></span></a>
     </div>
   </div>
+
+  <div class="hero__stage" data-story-stage aria-hidden="true"></div>
+  <aside class="story story--hero" data-story aria-label={`The story playing in the background: ${story.title}`} data-hero-in>
+    <div class="story__head">
+      <span class="story__title" data-story-title>{story.title}</span>
+      <span class="story__count tnum" aria-hidden="true"><span data-story-num>{first.numeral}</span> / <span data-story-total>{acts[acts.length - 1].numeral}</span></span>
+    </div>
+    <figure class="story__caption">
+      <figcaption class="story__act" data-story-act>{first.title}</figcaption>
+      <blockquote class="story__quote" data-story-quote>{first.quote}</blockquote>
+      <p class="story__src" data-story-src>{first.source}</p>
+    </figure>
+    <div class="story__controls">
+      <button type="button" class="story__toggle" data-story-toggle aria-pressed="false" aria-label="Pause the story">
+        <svg class="story__icon story__icon--pause" viewBox="0 0 12 12" width="12" height="12" aria-hidden="true"><rect x="2.5" y="2" width="2.2" height="8" rx="0.6" /><rect x="7.3" y="2" width="2.2" height="8" rx="0.6" /></svg>
+        <svg class="story__icon story__icon--play" viewBox="0 0 12 12" width="12" height="12" aria-hidden="true"><path d="M3.5 2.2v7.6a.5.5 0 0 0 .76.43l6.1-3.8a.5.5 0 0 0 0-.86l-6.1-3.8a.5.5 0 0 0-.76.43z" /></svg>
+      </button>
+      <ol class="story__acts" role="list" data-story-dots>
+        {acts.map((a, i) => (
+          <li><button type="button" class="story__dot" data-story-go={i} aria-label={`Scene ${a.numeral}: ${a.title}`} aria-current={i === 0 ? 'step' : 'false'}><span class="story__tick"><span class="story__fill"></span></span></button></li>
+        ))}
+      </ol>
+    </div>
+  </aside>
 
   <a class="hero__scroll" href="#intro" aria-label="Scroll to introduction" data-hero-in>
     <span class="hero__scroll-line" aria-hidden="true"></span>
@@ -144,9 +173,20 @@ const defaultBridge = 'Move through the field. Each concept is a live question â
   .hero__scroll-line::after { content: ''; position: absolute; inset: 0; background: var(--ink); transform-origin: left; animation: scroll-hint 2.2s var(--ease-in-out) infinite; }
   @keyframes scroll-hint { 0% { transform: scaleX(0); transform-origin: left } 50% { transform: scaleX(1); transform-origin: left } 51% { transform-origin: right } 100% { transform: scaleX(0); transform-origin: right } }
 
+  .hero__stage { display: none; }
+  /* without WebGL there are no pictures for the captions to describe */
+  :global(html.no-webgl) .story--hero, :global(html.no-webgl) .hero__stage { display: none; }
+  /* while the story plays, the floating concepts give it the stage and surface only as relations */
+  @media (min-width: 901px) {
+    /* !important: the entrance animation leaves an inline opacity on these */
+    .hero.has-story .hero__float { opacity: 0 !important; pointer-events: none; transition: opacity var(--dur-3) var(--ease-out), color var(--dur-2); }
+    .hero.has-story.has-active .hero__float.is-active, .hero.has-story.has-active .hero__float.is-related { opacity: 1 !important; }
+  }
+
   @media (max-width: 900px) {
-    .hero__labels { position: static; display: flex; flex-wrap: wrap; gap: 0.25rem 0.5rem; order: 3; padding: 0 var(--gutter) var(--s-l); z-index: 2; }
-    .hero { grid-template-rows: 1fr auto; }
+    .hero__stage { display: block; order: 2; aspect-ratio: 5 / 4; margin: 0 0 var(--s-l); }
+    .hero__labels { position: static; display: flex; flex-wrap: wrap; gap: 0.25rem 0.5rem; order: 4; padding: 0 var(--gutter) var(--s-l); z-index: 2; }
+    .hero { grid-template-rows: 1fr auto auto auto; }
     .hero__float { position: static; transform: none; padding: 0.4em 0.6em 0.4em 0; }
     .hero__scroll { display: none; }
     .hero__inner { padding-bottom: var(--s-m); }

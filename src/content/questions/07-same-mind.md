@@ -1,6 +1,6 @@
 ---
 question: If a mind can be copied, paused and resumed, what is it for it to be the same mind?
-order: 6
+order: 7
 emphasis: ["copied", "same mind"]
 areas: [philosophy-of-mind, existentialism]
 experiment: ship-of-theseus-digital

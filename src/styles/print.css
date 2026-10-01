@@ -19,13 +19,23 @@
   .site-footer,
   .cursor,
   .no-print,
-  [data-hero-canvas] {
+  [data-hero-canvas],
+  [data-preloader],
+  [data-curtain],
+  canvas[data-field] {
     display: none !important;
   }
 
-  [data-reveal] {
+  /* Motion leaves elements mid-reveal (masked lines, risen chars); print the settled state. */
+  [data-reveal],
+  [data-split],
+  [data-motion],
+  .split-line,
+  .split-char,
+  .split-word {
     opacity: 1 !important;
     transform: none !important;
+    clip-path: none !important;
   }
 
   a {
@@ -37,7 +47,7 @@
     padding-top: 0 !important;
   }
 
-  .cv .cv-section {
+  .cv .cv__entry {
     break-inside: avoid;
   }
 

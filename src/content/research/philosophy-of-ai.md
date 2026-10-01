@@ -1,19 +1,19 @@
 ---
 title: Philosophy of AI
-short: What kind of thing is an artificial mind, and what would it take to know?
-order: 1
+short: What current AI systems are, described without inflation or dismissal.
+order: 3
 angle: 0
 radius: 0.55
 keyQuestions:
-  - Can a system without a body, a history, or a stake in the world have states that are about anything?
-  - What is the difference between producing an explanation and having one?
-  - Is "understanding" one capacity or several — and which of them do current systems lack?
-related: [philosophy-of-mind, ethics-of-ai, epistemology]
+  - What governs the production of a language model's assertion-shaped outputs — likelihood, preference, or something that tracks the truth?
+  - What would interpretability research have to show for a model to count as a source of knowledge?
+  - What would make a foundation model legitimate?
+related: [epistemology, ethics-of-ai, philosophy-of-mind, political-philosophy]
 concepts: [ai, understanding, intentionality, agency]
 ---
 
-Philosophy of AI, as I practise it, is not futurology and not policy. It is conceptual work on the systems we already have: what their outputs are (assertions? predictions? artefacts?), what their internal states are (representations? statistics that mimic representations?), and what we are doing when we describe them in the vocabulary of mind.
+Philosophy of AI, as I practise it, is conceptual work on the systems we already have. The question is not whether machines could one day think, but what the systems now deployed are doing when they produce sentences that look like assertions, and what we are entitled to make of them.
 
-I am particularly interested in the **asymmetry** between how easy it is to build systems that behave intelligently and how hard it remains to say what intelligence is. The behaviourist bet that the second question would dissolve once the first was answered has not paid off. If anything, working systems have made the conceptual questions sharper.
+That question has to be answered without inflation or dismissal. Probing studies find internal structure in language models that correlates with the truth of what they represent, and interventions along that structure can make outputs more truthful. That is genuine evidence that something relevant exists. What it does not yet show is that the structure *governs* production when no one is intervening — a lever that moves the output when pulled is not thereby what steers it when left alone. My claim is not that no machine could be a source of testimonial knowledge, but that these machines, as they are now built and as we now understand them, are not; and the argument states precisely what would have to be shown for the verdict to change.
 
-My current work in this area concerns the notion of *machine understanding*: I argue that understanding is a cluster of capacities — semantic competence, explanatory grasp, practical know-how, and something like the experience of insight — that come together in humans but can be pulled apart in artificial systems, and that most disputes about whether models "really understand" are disputes about which member of the cluster is essential.
+A second strand, in a paper under review at *Philosophy & Technology*, concerns the legitimacy of foundation models.

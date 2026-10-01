@@ -1,6 +1,6 @@
 ---
 question: Can a system exhibit agency without consciousness?
-order: 2
+order: 5
 emphasis: ["agency", "consciousness"]
 areas: [philosophy-of-mind, philosophy-of-ai]
 essay: agency-before-consciousness

@@ -19,4 +19,4 @@ relations:
 areas: [ethics-of-ai, ethics-and-technology]
 ---
 
-The so-called responsibility gap is often described as a hole into which accountability disappears. I think it is better described as a map: a picture of how contribution, knowledge and control are actually distributed across designers, deployers, users and systems. The philosophical task is to read the map, not to lament the hole.
+The so-called responsibility gap is often described as a hole into which accountability disappears. It can also be read as a map of how contribution, knowledge and control are distributed across designers, deployers, users and systems. Where an institution produces the standing of the people its systems govern, responsibility takes a sharper form: obligations borne by the institution itself, which persist whatever any individual has or has not authorised.

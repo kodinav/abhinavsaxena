@@ -15,4 +15,4 @@ relations:
 areas: [philosophy-of-mind, existentialism]
 ---
 
-Parfit argued that identity is not what matters in survival. I think he was right, and I think the argument has consequences for how we should think about systems that can be copied, forked, rolled back and merged — a family of operations no philosophical tradition anticipated.
+Parfit argued that identity is not what matters in survival. If he was right, the argument bears on systems that can be copied, forked, rolled back and merged — a family of operations no philosophical tradition anticipated.

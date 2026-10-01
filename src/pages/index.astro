@@ -10,6 +10,7 @@ import PublicationEntry from '@/components/PublicationEntry.astro';
 import { site } from '@/data/site';
 import { websiteJsonLd } from '@/lib/seo';
 import { getEssays, getPublications, getLab, getResearch, getConcepts } from '@/lib/content';
+import { countWord } from '@/lib/format';
 
 const [essays, pubs, lab, areas, concepts] = await Promise.all([getEssays(), getPublications(), getLab(), getResearch(), getConcepts()]);
 const featuredEssays = [...essays.filter((e) => e.data.featured), ...essays.filter((e) => !e.data.featured)].slice(0, 3);
@@ -24,13 +25,12 @@ const relationTo = (a: (typeof concepts)[number], b: (typeof concepts)[number]) 
   if (inn) return { from: label(b), type: inn.type, to: label(a), note: inn.note };
   return null;
 };
-const activeProfiles = site.profiles.filter((p) => p.url);
 const marquee = [...areas.map((a) => a.data.title)];
 ---
 <Base title={site.title} isHome jsonLd={[websiteJsonLd()]} bodyClass="home" field="hero">
   <Hero />
 
-  <section class="section intro" id="intro" aria-labelledby="intro-title">
+  <section class="section intro" id="intro" aria-labelledby="intro-title" data-section-story="delphi">
     <div class="container grid">
       <div class="intro__side">
         <span class="eyebrow" data-reveal><span class="num">01</span>Introduction</span>
@@ -38,11 +38,11 @@ const marquee = [...areas.map((a) => a.data.title)];
       <div class="intro__main">
         <h2 class="visually-hidden" id="intro-title">Introduction</h2>
         <p class="intro__lead serif" data-split="words">
-          I am a philosopher working on what happens to our oldest concepts — knowledge, mind, agency, responsibility — when they meet machines that seem to know, think, act and answer.
+          I am a philosopher working on what happens to our oldest concepts — knowledge, testimony, consent, responsibility — when they meet machines that seem to know, answer and decide.
         </p>
         <div class="intro__body">
-          <p data-split="lines">My research sits at the intersection of philosophy of AI, philosophy of mind, ethics and epistemology. I am less interested in predicting what artificial intelligence will become than in understanding what it already is: a family of systems whose behaviour puts genuine pressure on the concepts we use to describe minds, and whose deployment redistributes responsibility in ways our moral vocabulary was not built to track.</p>
-          <p data-split="lines">I work in the analytic tradition, but I draw freely on phenomenology, existentialism and classical Indian philosophy — traditions that developed sophisticated accounts of intentionality, selfhood and testimony long before there were machines to test them against. I write for philosophers, but also for the engineers, policymakers and readers who have to live with these questions before philosophy has finished with them.</p>
+          <p data-split="lines">My area of specialisation is epistemology, with a focus on testimony and the social epistemology of artificial intelligence. I argue that large language models, however reliable, do not on the best current evidence transmit testimonial knowledge: what they lack is not a mind but a connection, running through their own operation, between the truth of what they say and why they say it. Their users stand to them as readers of an instrument, not as hearers of a speaker.</p>
+          <p data-split="lines">I also work on the ethics and politics of algorithmic systems. Taking India's Aadhaar as the paradigm case, I argue that where an algorithmic system produces the standing of the people it governs, their consent cannot legitimate it; its legitimacy rests instead on obligations of legibility, non-abandonment and remediation that no one can waive. I am an independent researcher in New Delhi, and studied philosophy at the University of Delhi.</p>
         </div>
         <div class="intro__links" data-reveal>
           <a class="arrow-link" href="/about">About me <span class="arr" aria-hidden="true"></span></a>
@@ -52,7 +52,7 @@ const marquee = [...areas.map((a) => a.data.title)];
     </div>
   </section>
 
-  <section class="thread" data-thread aria-labelledby="thread-title">
+  <section class="thread" data-thread aria-labelledby="thread-title" data-section-story="prometheus">
     <div class="thread__pin">
       <div class="thread__head container">
         <span class="eyebrow"><span class="num">02</span>The thread</span>
@@ -88,9 +88,9 @@ const marquee = [...areas.map((a) => a.data.title)];
     </div>
   </div>
 
-  <section class="section" id="research" aria-labelledby="research-title">
+  <section class="section" id="research" aria-labelledby="research-title" data-section-story="elephant">
     <div class="container">
-      <SectionHead num="04" eyebrow="Research" title="A constellation, not a list" id="research-title" lede="Nine areas that share questions. The lines are where one area's problem becomes another's." />
+      <SectionHead num="04" eyebrow="Research" title="A constellation, not a list" id="research-title" lede={`${countWord(areas.length)} areas that share questions. The lines are where one area's problem becomes another's.`} />
       <Constellation compact />
       <div class="section-foot" data-reveal>
         <a class="btn" href="/research" data-magnetic="0.2">All research areas</a>
@@ -98,7 +98,7 @@ const marquee = [...areas.map((a) => a.data.title)];
     </div>
   </section>
 
-  <section class="section" id="publications" aria-labelledby="pubs-title">
+  <section class="section" id="publications" aria-labelledby="pubs-title" data-section-story="writing">
     <div class="container">
       <SectionHead num="05" eyebrow="Publications" title="From the archive" id="pubs-title" lede="Selected papers. The full archive can be searched and filtered by year, topic, venue and research area." />
       <div class="pubs-preview">
@@ -110,7 +110,7 @@ const marquee = [...areas.map((a) => a.data.title)];
     </div>
   </section>
 
-  <section class="section" id="essays" aria-labelledby="essays-title">
+  <section class="section" id="essays" aria-labelledby="essays-title" data-section-story="wax">
     <div class="container">
       <SectionHead num="06" eyebrow="Essays" title="Long-form thinking" id="essays-title" lede="Essays written to be read slowly: arguments developed at length, with footnotes, for readers who want more than a position." />
       <div class="essays-preview" data-reveal-group="90">
@@ -125,7 +125,7 @@ const marquee = [...areas.map((a) => a.data.title)];
     </div>
   </section>
 
-  <section class="section lab-preview" id="lab" aria-labelledby="lab-title">
+  <section class="section lab-preview" id="lab" aria-labelledby="lab-title" data-section-story="theseus">
     <div class="container">
       <SectionHead num="07" eyebrow="Philosophy Lab" title="Thought experiments you can run" id="lab-title" lede="Interactive instruments for classic and new problems. Set the parameters; see what the theories say; notice where your intuitions came from." />
       <div class="lab-grid" data-reveal-group="80">
@@ -137,10 +137,10 @@ const marquee = [...areas.map((a) => a.data.title)];
     </div>
   </section>
 
-  <section class="section ideas-teaser" id="ideas" aria-labelledby="ideas-title">
+  <section class="section ideas-teaser" id="ideas" aria-labelledby="ideas-title" data-section-story="indra">
     <div class="container grid">
       <div class="ideas-teaser__main">
-        <SectionHead num="08" eyebrow="Ideas" title="A map of the concepts" id="ideas-title" lede="Seventeen concepts and the relations between them: what grounds what, what requires what, and where the connections are under strain." />
+        <SectionHead num="08" eyebrow="Ideas" title="A map of the concepts" id="ideas-title" lede={`${countWord(concepts.length)} concepts and the relations between them: what grounds what, what requires what, and where the connections are under strain.`} />
         <div class="section-foot" data-reveal>
           <a class="btn" href="/ideas" data-magnetic="0.2">Explore the concept map</a>
         </div>
@@ -151,12 +151,12 @@ const marquee = [...areas.map((a) => a.data.title)];
     </div>
   </section>
 
-  <section class="section closing" aria-labelledby="closing-title">
+  <section class="section closing" aria-labelledby="closing-title" data-section-story="fish">
     <div class="container grid">
       <div class="closing__main">
         <span class="eyebrow" data-reveal><span class="num">09</span>Correspondence</span>
         <h2 class="h2 closing__title" id="closing-title" data-split="lines">I read everything I am sent, and answer what I can.</h2>
-        <p class="lede" data-split="lines" data-split-delay="0.2">For collaboration, review, talks, supervision, or disagreement — the last is often the most useful.</p>
+        <p class="lede" data-split="lines" data-split-delay="0.2">For collaboration, review, talks, or disagreement — the last is often the most useful.</p>
         <div class="closing__links" data-reveal>
           <a class="btn btn--solid" href={`mailto:${site.email}`} data-magnetic="0.2">{site.email}</a>
           <a class="arrow-link" href="/contact">All ways to reach me <span class="arr" aria-hidden="true"></span></a>
@@ -165,11 +165,35 @@ const marquee = [...areas.map((a) => a.data.title)];
       <div class="closing__side" data-reveal>
         <span class="tag">Profiles</span>
         <ul role="list" class="closing__profiles">
-          {activeProfiles.length ? activeProfiles.map((p) => <li><a class="link" href={p.url} rel="me noopener" target="_blank">{p.label}</a></li>) : <li class="muted">Academic profiles are being added. See <a class="link" href="/contact">contact</a>.</li>}
+          {site.profiles.map((p) => <li><a class="link" href={p.url} rel="me noopener" target="_blank">{p.label}</a></li>)}
         </ul>
       </div>
     </div>
   </section>
+  <aside class="sstory" data-sstory aria-label="A story for this section">
+    <div class="sstory__frame" data-sstory-frame aria-hidden="true"><canvas data-sstory-mirror></canvas></div>
+    <div class="story story--section" data-story-ui>
+      <div class="story__head">
+        <span class="story__title" data-story-title></span>
+        <span class="story__count tnum" aria-hidden="true"><span data-story-num></span> / <span data-story-total></span></span>
+      </div>
+      <figure class="story__caption">
+        <figcaption class="story__act" data-story-act></figcaption>
+        <blockquote class="story__quote" data-story-quote></blockquote>
+        <p class="story__src" data-story-src></p>
+      </figure>
+      <div class="story__controls">
+        <button type="button" class="story__toggle" data-story-toggle aria-pressed="false" aria-label="Pause the story">
+          <svg class="story__icon story__icon--pause" viewBox="0 0 12 12" width="12" height="12" aria-hidden="true"><rect x="2.5" y="2" width="2.2" height="8" rx="0.6" /><rect x="7.3" y="2" width="2.2" height="8" rx="0.6" /></svg>
+          <svg class="story__icon story__icon--play" viewBox="0 0 12 12" width="12" height="12" aria-hidden="true"><path d="M3.5 2.2v7.6a.5.5 0 0 0 .76.43l6.1-3.8a.5.5 0 0 0 0-.86l-6.1-3.8a.5.5 0 0 0-.76.43z" /></svg>
+        </button>
+        <ol class="story__acts" role="list" data-story-dots></ol>
+        <button type="button" class="story__close" data-story-close aria-label="Close the story">
+          <svg class="story__icon" viewBox="0 0 12 12" width="12" height="12" aria-hidden="true"><path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" fill="none" /></svg>
+        </button>
+      </div>
+    </div>
+  </aside>
 </Base>
 
 <script>

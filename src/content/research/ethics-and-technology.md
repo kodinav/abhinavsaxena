@@ -1,17 +1,19 @@
 ---
 title: Ethics & Technology
-short: Technologies embed values before anyone deliberates about them.
+short: Technologies judged by their architecture, not their technique.
 order: 6
 angle: 80
 radius: 0.7
 keyQuestions:
-  - When a technology has made a choice easier, has it also made it less ours?
-  - What does it mean to design for autonomy rather than merely for consent?
-  - Where should ethics enter the life of a technology — at review, at design, or earlier?
-related: [ethics-of-ai, social-epistemology, phenomenology]
+  - Should the ethics of a system be scoped by how it is built to decide rather than by the technique it uses?
+  - What is owed when a technology removes the person who could have seen that a rule was failing?
+  - What would it take for provenance in AI-assisted art and archives to be answerable?
+related: [ethics-of-ai, political-philosophy, social-epistemology, phenomenology, environmental-ethics]
 concepts: [technology, ethics, autonomy, trust]
 ---
 
-The ethics of technology is often practised as ethics *applied to* technology: a finished artefact is presented, and the philosopher evaluates it. I think that model gets the order wrong. Technologies embed values at the moment they are designed — in what they make easy, what they make invisible and what they make impossible — and ethics that arrives after deployment arrives too late.
+Philosophy of technology is one of my areas of competence, and I approach it through architecture rather than technique. "Beyond Consent" fixes its object by three jointly operative features — automated decisioning, enforcement of a criterion without discretion at the point of application, and integration across databases — and is deliberately agnostic about whether a system learns. Aadhaar's authentication layer is biometric matching and database linkage rather than machine learning in the contemporary sense, but it has all three features, and the argument governs any system that does.
 
-My interest is in the earlier stages: in the way design decisions become moral decisions without anyone noticing, and in what it would take to notice. I draw here on phenomenology, which is unusually good at describing how a technology changes what shows up as an option in the first place.
+What the architecture removes matters more than how fast it runs. A clerk who knows the widow who has collected her pension for a decade can honour her claim though her papers are lost; a biometrically gated system cannot, because "manifest entitlement" is not among the things it can read. What disappears is the standpoint, inside the act of recognition, from which a person's evident standing could correct the system's verdict — and the obligation to rebuild that standpoint elsewhere, in accessible form, follows from its loss.
+
+A further paper, under review at *AI & Society*, develops answerable provenance as a framework for responsible AI in art creation and archival practice.

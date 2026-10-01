@@ -39,10 +39,18 @@ export function formatAuthors(authors: string[]) {
   return `${authors.slice(0, -1).join(', ')} & ${authors[authors.length - 1]}`;
 }
 
+/** The date slot of a citation: the year once published, the status before that. */
+export function citationDate(p: CollectionEntry<'publications'>['data']) {
+  if (p.status === 'forthcoming') return 'forthcoming';
+  if (p.status === 'under-review') return 'under review';
+  if (p.status === 'in-progress') return 'in progress';
+  return String(p.year);
+}
+
 /** Plain-text citation for copy-to-clipboard and meta tags */
 export function formatCitation(p: CollectionEntry<'publications'>['data']) {
   const bits: string[] = [];
-  bits.push(`${formatAuthors(p.authors)} (${p.year}).`);
+  bits.push(`${formatAuthors(p.authors)} (${citationDate(p)}).`);
   bits.push(`${p.title}.`);
   if (p.venueType === 'chapter') bits.push(`In ${p.venue}.`);
   else bits.push(`${p.venue}${p.volume ? ` ${p.volume}` : ''}${p.issue ? `(${p.issue})` : ''}${p.pages ? `, ${p.pages}` : ''}.`);
@@ -54,6 +62,13 @@ export function formatCitation(p: CollectionEntry<'publications'>['data']) {
 export function doiUrl(doi?: string) {
   if (!doi) return undefined;
   return doi.startsWith('http') ? doi : `https://doi.org/${doi}`;
+}
+
+const numberWords = ['Zero', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen', 'Twenty'];
+
+/** "Eleven" for 11, so headings that state a count stay true as content changes. */
+export function countWord(n: number) {
+  return numberWords[n] ?? String(n);
 }
 
 export function slugify(s: string) {

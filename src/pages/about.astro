@@ -3,16 +3,16 @@ import Base from '@/layouts/Base.astro';
 import PublicationEntry from '@/components/PublicationEntry.astro';
 import { site } from '@/data/site';
 import { cv } from '@/data/cv';
-import { getResearch, getPublications, getEssays, getQuestions } from '@/lib/content';
+import { getResearch, getPublications, getQuestions } from '@/lib/content';
 import { breadcrumbJsonLd } from '@/lib/seo';
 
-const [areas, pubs, essays, questions] = await Promise.all([getResearch(), getPublications(), getEssays(), getQuestions()]);
+const [areas, pubs, questions] = await Promise.all([getResearch(), getPublications(), getQuestions()]);
 const areaTitles = Object.fromEntries(areas.map((a) => [a.id, a.data.title]));
 const featuredPubs = [...pubs.filter((p) => p.data.featured), ...pubs.filter((p) => !p.data.featured)].slice(0, 3);
 const education = cv.sections.find((s) => s.id === 'education')?.entries ?? [];
-const positions = cv.sections.find((s) => s.id === 'positions')?.entries ?? [];
-const active = site.profiles.filter((p) => p.url);
-const pending = site.profiles.filter((p) => !p.url);
+const talks = cv.sections.find((s) => s.id === 'talks')?.entries ?? [];
+const forthcoming = pubs.filter((p) => p.data.status === 'forthcoming');
+const inReview = pubs.filter((p) => p.data.status === 'under-review');
 const profileLd = {
   '@context': 'https://schema.org',
   '@type': 'ProfilePage',
@@ -21,7 +21,7 @@ const profileLd = {
   name: 'About Abhinav Saxena',
 };
 ---
-<Base title="About" description="Abhinav Saxena is a philosopher and researcher working on philosophy of AI, philosophy of mind, ethics and epistemology. Academic background, research interests, current work and profiles." path="/about" type="profile" jsonLd={[profileLd, breadcrumbJsonLd([{ name: 'Home', path: '/' }, { name: 'About', path: '/about' }])]}>
+<Base title="About" description="Abhinav Saxena is a philosopher working in epistemology — testimony and the social epistemology of AI — and on the ethics and politics of algorithmic systems. Background, research, current work and profiles." path="/about" type="profile" jsonLd={[profileLd, breadcrumbJsonLd([{ name: 'Home', path: '/' }, { name: 'About', path: '/about' }])]}>
   <article class="about">
     <header class="section about__head">
       <div class="container grid">
@@ -30,7 +30,7 @@ const profileLd = {
           <h1 class="h1" data-split="chars">Abhinav Saxena</h1>
           <p class="about__role" data-reveal>Philosopher · Researcher · Writer</p>
           <p class="about__lead serif" data-split="lines" data-split-delay="0.2">
-            I work on what happens to our oldest concepts — knowledge, mind, agency, responsibility — when they meet machines that seem to know, think, act and answer.
+            I work on what happens to our oldest concepts — knowledge, testimony, consent, responsibility — when they meet machines that seem to know, answer and decide.
           </p>
         </div>
       </div>
@@ -40,8 +40,9 @@ const profileLd = {
       <div class="container grid">
         <div class="about__side"><h2 class="tag" id="who" data-reveal>Who I am</h2></div>
         <div class="about__main prose" data-reveal>
-          <p>I am a philosopher whose research sits at the intersection of the philosophy of artificial intelligence, the philosophy of mind, ethics and epistemology. I am less interested in predicting what AI will become than in understanding what it already is: a family of systems whose behaviour puts genuine pressure on the concepts we use to describe minds, and whose deployment redistributes responsibility in ways our moral vocabulary was not built to track.</p>
-          <p>I work in the analytic tradition, but I draw freely on phenomenology, existentialism and classical Indian philosophy — traditions that developed detailed accounts of intentionality, selfhood and testimony long before there were machines to test them against. I write for philosophers, and also for the engineers, policymakers and readers who have to live with these questions before philosophy has finished with them.</p>
+          <p>I am a philosopher and independent researcher based in New Delhi. My area of specialisation is epistemology, with a focus on testimony and the social epistemology of artificial intelligence; my areas of competence are philosophy of technology, political philosophy, ethics and environmental ethics. I studied philosophy at Mahatma Jyotiba Phule Rohilkhand University and the University of Delhi.</p>
+          <p>Two lines of work run through what I write. The first asks what it takes for a source to transmit knowledge, and argues that large language models, on the best current evidence, do not: the truth of what they say does not figure, through their own operation, in why they say it. The second asks what institutions owe the people their algorithmic systems govern, and argues that where a system produces a person's standing rather than merely acting on it, consent cannot be what legitimates it.</p>
+          <p>I work in the analytic tradition, with wider interests in philosophy of mind and in classical Indian philosophy, phenomenology and existentialism. I write for philosophers, and also for the engineers, policymakers and readers who have to live with these questions before philosophy has finished with them.</p>
         </div>
       </div>
     </section>
@@ -50,16 +51,14 @@ const profileLd = {
       <div class="container grid">
         <div class="about__side"><h2 class="tag" id="background" data-reveal>Academic background</h2></div>
         <div class="about__main">
-          <p class="about__placeholder-note" data-reveal>Entries below marked <span class="pub__sample">replace</span> are placeholders for the real record, which lives in <code>src/data/cv.ts</code>.</p>
           <dl class="about__timeline" data-reveal-group="60">
-            {[...positions, ...education].map((e) => (
+            {education.map((e) => (
               <div class="about__entry" data-reveal>
                 <dt>{e.period}</dt>
                 <dd>
                   <span class="serif about__entry-title">{e.title}</span>
                   {e.org && <span class="about__entry-org">{e.org}{e.place ? `, ${e.place}` : ''}</span>}
                   {e.detail && <span class="about__entry-detail">{e.detail}</span>}
-                  {e.placeholder && <span class="pub__sample">replace</span>}
                 </dd>
               </div>
             ))}
@@ -84,11 +83,14 @@ const profileLd = {
       <div class="container grid">
         <div class="about__side"><h2 class="tag" id="current" data-reveal>Current work</h2></div>
         <div class="about__main">
-          <p class="lede" data-split="lines" data-split-delay="0.15">Three questions are organising my current writing:</p>
+          <p class="lede" data-split="lines" data-split-delay="0.15">Two questions organise my current writing:</p>
           <ol class="about__qs" role="list" data-reveal-group="60">
-            {questions.slice(0, 3).map((q) => <li class="serif" data-reveal>{q.data.question}</li>)}
+            {questions.slice(0, 2).map((q) => <li class="serif" data-reveal>{q.data.question}</li>)}
           </ol>
-          <p data-reveal style="margin-top: var(--s-m)">The most recent essays — <a class="link" href={`/essays/${essays[0]?.id}`}>{essays[0]?.data.title}</a>{essays[1] && <> and <a class="link" href={`/essays/${essays[1].id}`}>{essays[1].data.title}</a></>} — give the current state of the argument.</p>
+          <div class="about__now prose" data-reveal>
+            <p>{forthcoming.map((p) => <><a class="link" href={`/publications#${p.id}`}>{p.data.title.split(':')[0]}</a> is forthcoming in <em>{p.data.venue}</em>. </>)}{inReview.length > 0 && <>Under review: {inReview.map((p, i) => <>{i > 0 && (i === inReview.length - 1 ? ' and ' : ', ')}<a class="link" href={`/publications#${p.id}`}>{p.data.title.split(':')[0]}</a> (<em>{p.data.venue}</em>{p.data.note && `, ${p.data.note.toLowerCase()}`})</>)}.</>}</p>
+            <p>Recent talks: {talks.map((t, i) => <>{i > 0 && '; '}<em>{t.title.split(':')[0]}</em> ({t.org}, {t.period})</>)}.</p>
+          </div>
         </div>
       </div>
     </section>
@@ -108,8 +110,7 @@ const profileLd = {
         <div class="about__side"><h2 class="tag" id="profiles" data-reveal>Profiles</h2></div>
         <div class="about__main">
           <ul class="about__profiles" role="list" data-reveal>
-            {active.map((p) => <li><a class="link" href={p.url} rel="me noopener" target="_blank">{p.label}</a></li>)}
-            {pending.map((p) => <li class="muted"><span>{p.label}</span> <small>link pending</small></li>)}
+            {site.profiles.map((p) => <li><a class="link" href={p.url} rel="me noopener" target="_blank">{p.label}</a>{p.handle && <span class="muted"> {p.handle}</span>}</li>)}
           </ul>
           <p data-reveal style="margin-top: var(--s-m)">Correspondence: <a class="link" href={`mailto:${site.email}`}>{site.email}</a></p>
         </div>
@@ -123,8 +124,6 @@ const profileLd = {
   .about__role { margin-top: var(--s-xs); font-family: var(--font-sans); font-size: var(--step--1); letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-3); }
   .about__lead { margin-top: var(--s-l); font-size: var(--step-3); line-height: 1.2; letter-spacing: -0.012em; max-width: 26ch; text-wrap: balance; }
   .about__section { padding-block: var(--s-xl); }
-  .about__placeholder-note { font-size: var(--step--1); color: var(--ink-2); margin-bottom: var(--s-m); }
-  .about__placeholder-note code { font-family: ui-monospace, Menlo, monospace; font-size: 0.85em; }
   .about__timeline { display: flex; flex-direction: column; border-top: 1px solid var(--line); }
   .about__entry { display: grid; grid-template-columns: 9rem 1fr; gap: var(--s-m); padding: var(--s-s) 0; border-bottom: 1px solid var(--line); }
   .about__entry dt { font-family: var(--font-sans); font-size: var(--step--1); color: var(--ink-3); }
@@ -141,7 +140,7 @@ const profileLd = {
   .about__qs li::before { counter-increment: q; content: counter(q, decimal-leading-zero); position: absolute; left: 0; top: 0.35em; font-family: var(--font-sans); font-size: var(--step--2); letter-spacing: 0.1em; color: var(--ink-3); }
   .about__pubs { border-bottom: 1px solid var(--line); }
   .about__profiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem 1rem; font-size: var(--step--1); }
-  .about__profiles small { font-size: var(--step--2); letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-3); }
+  .about__now { margin-top: var(--s-m); color: var(--ink-2); }
   @media (max-width: 900px) {
     .about__side, .about__main { grid-column: 1 / -1; }
     .about__main { margin-top: var(--s-s); }

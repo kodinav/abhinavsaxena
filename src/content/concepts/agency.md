@@ -19,4 +19,4 @@ relations:
 areas: [philosophy-of-mind, philosophy-of-ai]
 ---
 
-Agency comes in grades. A thermostat responds; a dog acts; a person acts and can ask whether she should have. Artificial systems now occupy an unfamiliar rung of this ladder, and I think the most productive philosophical move is to stop asking "does it have agency?" and start asking "which of the things we bundled under agency does it have?"
+Agency comes in grades. A thermostat responds; a dog acts; a person acts and can ask whether she should have. Artificial systems now occupy an unfamiliar rung of this ladder, and a more productive question than "does it have agency?" may be "which of the things we bundled under agency does it have?"

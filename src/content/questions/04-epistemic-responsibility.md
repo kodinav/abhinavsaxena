@@ -1,6 +1,6 @@
 ---
 question: What happens to epistemic responsibility when knowledge is mediated by machines?
-order: 3
+order: 4
 emphasis: ["epistemic responsibility", "mediated"]
 areas: [social-epistemology, ethics-of-ai]
 experiment: epistemic-chain

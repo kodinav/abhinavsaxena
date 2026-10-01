@@ -15,4 +15,4 @@ relations:
 areas: [ethics-of-ai, epistemology]
 ---
 
-There is a difference between an explanation that is causally accurate and one that would satisfy the person affected. Much of the debate about explainability conflates the two. I think the second is what the moral demand for explanation is about.
+There is a difference between an explanation that is causally accurate and one that would satisfy the person affected, and much of the debate about explainability runs the two together. Language models add a further gap: an explanation produced on request is a further output of the same generative process, not a record of the process that produced the answer.

@@ -15,4 +15,4 @@ relations:
 areas: [philosophy-of-mind, phenomenology]
 ---
 
-Phenomenology made intentionality its central theme a century before language models existed. I think that tradition — Husserl's analyses of how meaning is constituted in acts — has more to say about machine "meaning" than most contemporary discussion admits.
+Phenomenology made intentionality its central theme a century before language models existed. Husserl's analyses of how meaning is constituted in acts are a natural resource for questions about machine "meaning" that contemporary discussion seldom draws on.

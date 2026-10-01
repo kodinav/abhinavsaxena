@@ -3,7 +3,7 @@ import Base from '@/layouts/Base.astro';
 import { site } from '@/data/site';
 import { cv } from '@/data/cv';
 import { getPublications } from '@/lib/content';
-import { formatAuthors, statusLabel } from '@/lib/format';
+import { doiUrl } from '@/lib/format';
 import { breadcrumbJsonLd } from '@/lib/seo';
 import { existsSync } from 'node:fs';
 
@@ -11,9 +11,12 @@ const pubs = await getPublications();
 const pdfPath = '/cv/abhinav-saxena-cv.pdf';
 const pdfExists = existsSync(new URL('../../public' + pdfPath, import.meta.url));
 const sections = cv.sections;
+const orcid = site.profiles.find((p) => p.id === 'orcid');
+const pubsFor = (kind: 'published' | 'under-review') =>
+  pubs.filter((p) => (kind === 'under-review' ? p.data.status === 'under-review' : p.data.status !== 'under-review'));
 const today = new Date();
 ---
-<Base title="Curriculum Vitae" description="Curriculum vitae of Abhinav Saxena — education, positions, research areas, publications, presentations, teaching and service." path="/cv" jsonLd={[breadcrumbJsonLd([{ name: 'Home', path: '/' }, { name: 'CV', path: '/cv' }])]} bodyClass="cv-page">
+<Base title="Curriculum Vitae" description="Curriculum vitae of Abhinav Saxena — areas of specialisation and competence, education, publications, work under review, presentations and referees." path="/cv" jsonLd={[breadcrumbJsonLd([{ name: 'Home', path: '/' }, { name: 'CV', path: '/cv' }])]} bodyClass="cv-page">
   <div class="cv">
     <header class="section cv__head">
       <div class="container grid">
@@ -32,6 +35,7 @@ const today = new Date();
             <div><dt>Web</dt><dd><a class="link" href={site.url}>abhinavsaxena.in</a></dd></div>
             {site.affiliation && <div><dt>Affiliation</dt><dd>{site.affiliation}</dd></div>}
             {site.location && <div><dt>Location</dt><dd>{site.location}</dd></div>}
+            {orcid && <div><dt>ORCID</dt><dd><a class="link" href={orcid.url} rel="me noopener" target="_blank">{orcid.handle}</a></dd></div>}
           </dl>
           <div class="cv__actions no-print" data-reveal>
             {pdfExists ? <a class="btn btn--solid" href={pdfPath} download data-magnetic="0.2">Download PDF</a> : <button type="button" class="btn btn--solid" data-print data-magnetic="0.2">Download PDF</button>}
@@ -49,16 +53,25 @@ const today = new Date();
           <div class="cv__main">
             {s.fromPublications ? (
               <ol class="cv__list" role="list">
-                {pubs.map((p) => (
-                  <li class="cv__entry">
-                    <span class="cv__period tnum">{p.data.year}</span>
-                    <span class="cv__body">
-                      <span class="serif cv__title">{p.data.title}</span>
-                      <span class="cv__org">{formatAuthors(p.data.authors)}. <em>{p.data.venue}</em>. {statusLabel[p.data.status]}.</span>
-                      {p.data.placeholder && <span class="pub__sample">replace</span>}
-                    </span>
-                  </li>
-                ))}
+                {pubsFor(s.fromPublications).map((p) => {
+                  const d = p.data;
+                  const doi = doiUrl(d.doi);
+                  return (
+                    <li class="cv__entry">
+                      <span class="cv__period tnum">{d.status === 'published' ? d.year : d.status === 'forthcoming' ? 'Forthcoming' : ''}</span>
+                      <span class="cv__body">
+                        <a class="serif cv__title cv__title--link" href={`/publications#${p.id}`}>{d.title}</a>
+                        <span class="cv__org">
+                          <em>{d.venue}</em>
+                          {d.status === 'published'
+                            ? <>{d.volume && ` ${d.volume}`} ({d.year}){d.pages && `: ${d.pages}`}.</>
+                            : d.status === 'forthcoming' ? '. Forthcoming.' : `. ${d.note ?? 'Under review'}.`}
+                        </span>
+                        {doi && <a class="cv__detail link" href={doi} target="_blank" rel="noopener">{doi}</a>}
+                      </span>
+                    </li>
+                  );
+                })}
               </ol>
             ) : (
               <ol class="cv__list" role="list">
@@ -68,8 +81,7 @@ const today = new Date();
                     <span class="cv__body">
                       <span class="serif cv__title">{e.title}</span>
                       {e.org && <span class="cv__org">{e.org}{e.place ? `, ${e.place}` : ''}</span>}
-                      {e.detail && <span class="cv__detail">{e.detail}</span>}
-                      {e.placeholder && <span class="pub__sample">replace</span>}
+                      {e.detail && (e.href ? <a class="cv__detail link" href={e.href}>{e.detail}</a> : <span class="cv__detail">{e.detail}</span>)}
                     </span>
                   </li>
                 ))}
@@ -102,6 +114,9 @@ const today = new Date();
   .cv__period { font-family: var(--font-sans); font-size: var(--step--1); color: var(--ink-3); }
   .cv__body { display: flex; flex-direction: column; gap: 0.2rem; }
   .cv__title { font-size: var(--step-1); line-height: 1.25; }
+  .cv__title--link { transition: color var(--dur-1); }
+  .cv__title--link:hover { color: var(--accent); }
+  .cv__detail.link { width: fit-content; overflow-wrap: anywhere; }
   .cv__org { font-family: var(--font-sans); font-size: var(--step--1); color: var(--ink-2); }
   .cv__detail { font-family: var(--font-sans); font-size: var(--step--1); color: var(--ink-3); }
   @media (max-width: 900px) {
@@ -112,10 +127,15 @@ const today = new Date();
   }
   @media print {
     .cv__side { grid-column: 1 / span 3; }
-    .cv__main { grid-column: 4 / span 8; }
-    .cv-section { padding-block: 1.2rem; border-top: 0; }
-    .cv__head { padding-top: 0; }
-    .cv__entry { grid-template-columns: 7rem 1fr; }
+    .cv__main { grid-column: 4 / span 9; }
+    .cv__head { padding-block: 0 0.5rem; }
+    .cv__head .h1 { font-size: 26pt; }
+    .cv__role { margin-top: 0.2rem; }
+    .cv__head .lede { margin-top: 0.6rem; font-size: 11.5pt; }
+    .cv__contact { margin-top: 0.8rem; }
+    .cv-section { padding-block: 0.45rem; border-top: 0; }
+    .cv__entry { grid-template-columns: 6.5rem 1fr; padding: 0.35rem 0; }
+    .cv__title { font-size: 12pt; }
   }
 </style>
 <script>

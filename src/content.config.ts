@@ -54,8 +54,8 @@ const publications = defineCollection({
     areas: z.array(reference('research')).default([]),
     topics: z.array(z.string()).default([]),
     featured: z.boolean().default(false),
-    /** Marked placeholder entries render a visible "sample entry" label. */
-    placeholder: z.boolean().default(false),
+    /** Short editorial status shown beside the status stamp, e.g. "Minor revisions requested". */
+    note: z.string().optional(),
   }),
 });
 
@@ -114,6 +114,8 @@ const questions = defineCollection({
     emphasis: z.array(z.string()).default([]),
     areas: z.array(reference('research')).default([]),
     essay: reference('essays').optional(),
+    /** The paper in which the question is worked out. */
+    publication: reference('publications').optional(),
     experiment: reference('lab').optional(),
     concepts: z.array(reference('concepts')).default([]),
   }),

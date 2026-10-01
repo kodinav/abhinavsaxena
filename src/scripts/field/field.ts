@@ -1,5 +1,5 @@
 import { program, buffer, target, destroyTarget, Uniforms, QUAD_VS, type Target } from './gl';
-import { UPDATE_VS, UPDATE_FS, POINT_VS, POINT_FS, FOG_FS, TRAIL_FS, BLIT_FS, LINE_VS, LINE_FS, GLOW_VS, GLOW_FS } from './shaders';
+import { UPDATE_VS, UPDATE_FS, POINT_VS, POINT_FS, FOG_FS, TRAIL_FS, BLIT_FS, LINE_VS, LINE_FS, GLOW_VS, GLOW_FS, WALL_FS } from './shaders';
 import { readThemeColors } from '@/lib/theme-colors';
 import { deviceBudget, prefersReducedMotion, clamp, lerp } from '@/lib/page';
 
@@ -11,6 +11,8 @@ import { deviceBudget, prefersReducedMotion, clamp, lerp } from '@/lib/page';
  *  · A domain-warped fbm fog rendered at reduced resolution.
  *  · Threads and glows between an active concept and its relations.
  *  · Named presets so sections can morph the field's character.
+ *  · A story layer (see src/scripts/story): particles can be given places in
+ *    a figure, and a lit wall can carry shadows drawn from a 2D mask.
  */
 export interface Preset {
   scale: number; speed: number; structure: number; converge: number; swirl: number;
@@ -33,6 +35,29 @@ export const PRESETS: Record<string, Preset> = {
 
 export interface Anchor { x: number; y: number; strength: number; related?: number[] }
 
+/** Everything the story director drives each frame. Zeroed, the field behaves exactly as without it. */
+export interface StoryState {
+  stage: [number, number, number, number]; // css px: x, y, w, h
+  form: number; formTint: number;
+  groups: Float32Array; // 8 × (offset x, offset y in stage units, strength, tint)
+  maskOn: number; stageDim: number; veil: number;
+  wall: [number, number, number, number]; // light pool: cx, cy, rx, ry (stage units)
+  wallLight: number; wallColor: [number, number, number]; flick: number;
+  light: [number, number, number, number]; // x, y, radius (css px), intensity
+  lightColor: [number, number, number];
+  embers: number;
+  burst: [number, number, number]; // x, y (css px), strength
+}
+export function emptyStory(): StoryState {
+  const groups = new Float32Array(32);
+  for (let g = 0; g < 8; g++) groups[g * 4 + 2] = 1;
+  return {
+    stage: [0, 0, 0, 0], form: 0, formTint: 0, groups, maskOn: 0, stageDim: 0, veil: 0,
+    wall: [0.5, 0.5, 0.6, 0.6], wallLight: 0, wallColor: [1, 1, 1], flick: 1,
+    light: [0, 0, 1, 0], lightColor: [1, 1, 1], embers: 0, burst: [0, 0, 0],
+  };
+}
+
 class FieldEngine {
   canvas!: HTMLCanvasElement;
   gl!: WebGL2RenderingContext;
@@ -49,8 +74,10 @@ class FieldEngine {
   private pBlit!: WebGLProgram; private uBlit!: Uniforms;
   private pLine!: WebGLProgram; private uLine!: Uniforms;
   private pGlow!: WebGLProgram; private uGlow!: Uniforms;
+  private pWall!: WebGLProgram; private uWall!: Uniforms;
   // particle buffers (ping-pong)
   private bufPos: WebGLBuffer[] = []; private bufVel: WebGLBuffer[] = []; private bufLife: WebGLBuffer[] = []; private bufSeed!: WebGLBuffer;
+  private bufTarget!: WebGLBuffer;
   private vaoUpdate: WebGLVertexArrayObject[] = []; private vaoRender: WebGLVertexArrayObject[] = [];
   private tf: WebGLTransformFeedback[] = [];
   private cur = 0;
@@ -72,7 +99,15 @@ class FieldEngine {
   private scroll = 0; private scrollTarget = 0;
   private intensity = 1; private intensityTarget = 1;
   private visible = true;
-  private tickers = 0;
+  // story layer
+  story: StoryState = emptyStory();
+  private formation: Float32Array | null = null;
+  private maskTex!: WebGLTexture; private maskOk = false;
+  private markGlows: Float32Array = new Float32Array(0); private markLines: Float32Array[] = [];
+  private bufMarkPos!: WebGLBuffer; private bufMarkSize!: WebGLBuffer; private bufMarkK!: WebGLBuffer; private vaoMark!: WebGLVertexArrayObject;
+  private frameFns = new Set<(dt: number, time: number) => void>();
+  private drawFns = new Set<() => void>();
+  private dark = 1;
 
   /* ------------------------------------------------------------ setup */
   init(canvas: HTMLCanvasElement) {
@@ -83,12 +118,15 @@ class FieldEngine {
     this.gl = gl;
     this.reduced = prefersReducedMotion();
     this.budget = deviceBudget();
+    const qb = Number(new URLSearchParams(location.search).get('fieldBudget'));
+    const forced = qb > 0 && qb <= 1;
     // software renderers (CI, virtual machines): keep the field light so the page stays responsive
     try {
       const dbg = gl.getExtension('WEBGL_debug_renderer_info');
       const renderer = dbg ? String(gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL)) : '';
       if (/swiftshader|llvmpipe|software|mesa offscreen/i.test(renderer)) this.budget = 0.12;
     } catch {}
+    if (forced) this.budget = qb;
     this.fogScale = this.budget > 0.7 ? 0.5 : 0.35;
     // Shaders compile one per frame so no single task blocks the main thread.
     this.compileSteps = [
@@ -99,6 +137,7 @@ class FieldEngine {
       () => { this.pFog = program(gl, QUAD_VS, FOG_FS); this.uFog = new Uniforms(gl, this.pFog); },
       () => { this.pLine = program(gl, LINE_VS, LINE_FS); this.uLine = new Uniforms(gl, this.pLine); },
       () => { this.pGlow = program(gl, GLOW_VS, GLOW_FS); this.uGlow = new Uniforms(gl, this.pGlow); },
+      () => { this.pWall = program(gl, QUAD_VS, WALL_FS); this.uWall = new Uniforms(gl, this.pWall); },
     ];
     this.canvas.style.opacity = '0';
     this.stepCompile();
@@ -137,6 +176,20 @@ class FieldEngine {
     gl.bindBuffer(gl.ARRAY_BUFFER, this.bufGlowSize); gl.enableVertexAttribArray(1); gl.vertexAttribPointer(1, 1, gl.FLOAT, false, 0, 0);
     gl.bindBuffer(gl.ARRAY_BUFFER, this.bufGlowK); gl.enableVertexAttribArray(2); gl.vertexAttribPointer(2, 1, gl.FLOAT, false, 0, 0);
     gl.bindVertexArray(null);
+    // story: an empty mask (one black texel) and buffers for glowing marks
+    this.maskTex = gl.createTexture()!;
+    gl.bindTexture(gl.TEXTURE_2D, this.maskTex);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA8, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([0, 0, 0, 255]));
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.bindTexture(gl.TEXTURE_2D, null);
+    this.bufMarkPos = buffer(gl, 48 * 2 * 4, gl.DYNAMIC_DRAW); this.bufMarkSize = buffer(gl, 48 * 4, gl.DYNAMIC_DRAW); this.bufMarkK = buffer(gl, 48 * 4, gl.DYNAMIC_DRAW);
+    this.vaoMark = gl.createVertexArray()!;
+    gl.bindVertexArray(this.vaoMark);
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.bufMarkPos); gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.bufMarkSize); gl.enableVertexAttribArray(1); gl.vertexAttribPointer(1, 1, gl.FLOAT, false, 0, 0);
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.bufMarkK); gl.enableVertexAttribArray(2); gl.vertexAttribPointer(2, 1, gl.FLOAT, false, 0, 0);
+    gl.bindVertexArray(null);
 
     this.ok = true;
     this.setTheme();
@@ -169,7 +222,11 @@ class FieldEngine {
   setTheme() {
     const c = readThemeColors();
     this.colors = { ink: c.ink, accent: c.accent, paper: c.paper };
+    const [r, g, b] = c.paper;
+    this.dark = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255 < 0.5 ? 1 : 0;
   }
+  /** Colours the story uses, read from the theme. */
+  get palette() { return { ...this.colors, dark: this.dark }; }
 
   resize() {
     if (!this.ok) return;
@@ -191,11 +248,13 @@ class FieldEngine {
     for (const v of [...this.vaoUpdate, ...this.vaoRender]) gl.deleteVertexArray(v);
     for (const t of this.tf) gl.deleteTransformFeedback(t);
     if (this.bufSeed) gl.deleteBuffer(this.bufSeed);
+    if (this.bufTarget) gl.deleteBuffer(this.bufTarget);
     this.bufPos = []; this.bufVel = []; this.bufLife = []; this.vaoUpdate = []; this.vaoRender = []; this.tf = [];
     this.N = n;
     const pos = new Float32Array(n * 2), vel = new Float32Array(n * 2), life = new Float32Array(n), seed = new Float32Array(n);
     for (let i = 0; i < n; i++) { pos[i * 2] = Math.random() * this.W; pos[i * 2 + 1] = Math.random() * this.H; life[i] = Math.random() * 9; seed[i] = Math.random() * 1000 + 1; }
     this.bufSeed = buffer(gl, seed);
+    this.bufTarget = buffer(gl, this.targetData(), gl.DYNAMIC_DRAW);
     for (let i = 0; i < 2; i++) {
       this.bufPos.push(buffer(gl, pos, gl.DYNAMIC_COPY)); this.bufVel.push(buffer(gl, vel, gl.DYNAMIC_COPY)); this.bufLife.push(buffer(gl, life, gl.DYNAMIC_COPY));
     }
@@ -206,6 +265,8 @@ class FieldEngine {
       gl.bindBuffer(gl.ARRAY_BUFFER, this.bufVel[set]); gl.enableVertexAttribArray(lv); gl.vertexAttribPointer(lv, 2, gl.FLOAT, false, 0, 0);
       gl.bindBuffer(gl.ARRAY_BUFFER, this.bufLife[set]); gl.enableVertexAttribArray(ll); gl.vertexAttribPointer(ll, 1, gl.FLOAT, false, 0, 0);
       gl.bindBuffer(gl.ARRAY_BUFFER, this.bufSeed); gl.enableVertexAttribArray(ls); gl.vertexAttribPointer(ls, 1, gl.FLOAT, false, 0, 0);
+      const lt = gl.getAttribLocation(prog, 'a_target');
+      if (lt >= 0) { gl.bindBuffer(gl.ARRAY_BUFFER, this.bufTarget); gl.enableVertexAttribArray(lt); gl.vertexAttribPointer(lt, 4, gl.FLOAT, false, 0, 0); }
       gl.bindVertexArray(null);
     };
     for (let i = 0; i < 2; i++) {
@@ -238,6 +299,51 @@ class FieldEngine {
   setScroll(v: number) { this.scrollTarget = clamp(v, 0, 1); }
   setIntensity(v: number) { this.intensityTarget = clamp(v, 0, 1); }
   get isRunning() { return this.running; }
+  get particleCount() { return this.N; }
+
+  /* ------------------------------------------------------------ story API */
+  /** Give particles places in a figure: (x, y, group, weight) per point, x/y in stage units. Null releases them. */
+  setFormation(points: Float32Array | null) {
+    this.formation = points;
+    if (!this.ok || !this.bufTarget) return;
+    const gl = this.gl;
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.bufTarget);
+    gl.bufferSubData(gl.ARRAY_BUFFER, 0, this.targetData());
+    gl.bindBuffer(gl.ARRAY_BUFFER, null);
+  }
+  private targetData() {
+    const n = this.N, out = new Float32Array(n * 4), f = this.formation;
+    if (f) out.set(f.subarray(0, Math.min(f.length, n * 4)));
+    return out;
+  }
+  /** Upload the shadow mask (white = shadow), drawn by the director on a 2D canvas. */
+  setMask(src: HTMLCanvasElement) {
+    if (!this.ok) return;
+    const gl = this.gl;
+    gl.bindTexture(gl.TEXTURE_2D, this.maskTex);
+    gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA8, gl.RGBA, gl.UNSIGNED_BYTE, src);
+    gl.bindTexture(gl.TEXTURE_2D, null);
+    this.maskOk = true;
+  }
+  /** Glowing points (x, y, size, k per mark, css px) and polylines (x, y pairs) drawn over the field. */
+  setMarks(glows: Float32Array | null, lines: Float32Array[] = []) {
+    this.markGlows = glows ?? new Float32Array(0);
+    this.markLines = lines;
+  }
+  onFrame(fn: (dt: number, time: number) => void) { this.frameFns.add(fn); return () => { this.frameFns.delete(fn); }; }
+  /** Runs right after each frame is drawn, while the drawing buffer can still be copied. */
+  onDraw(fn: () => void) { this.drawFns.add(fn); return () => { this.drawFns.delete(fn); }; }
+  get canvasEl() { return this.canvas; }
+  get pixelRatio() { return this.dpr; }
+  resetStory() { this.story = emptyStory(); this.setFormation(null); this.setMarks(null); }
+  /** Reduced motion: advance the simulation without the loop and paint one frame. */
+  still(steps = 90) {
+    if (!this.ok) return;
+    for (let i = 0; i < steps; i++) { this.frameFns.forEach((fn) => fn(1 / 60, this.time)); this.step(1 / 60); }
+    this.draw();
+    this.drawFns.forEach((fn) => fn());
+  }
 
   start() {
     this.wantRun = true;
@@ -250,7 +356,9 @@ class FieldEngine {
       if (!this.visible) return;
       const dt = this.last ? Math.min(0.05, (now - this.last) / 1000) : 1 / 60;
       this.last = now;
+      this.frameFns.forEach((fn) => fn(dt, this.time));
       this.step(dt); this.draw();
+      this.drawFns.forEach((fn) => fn());
     };
     this.raf = requestAnimationFrame(loop);
   }
@@ -314,6 +422,10 @@ class FieldEngine {
     u.f('u_converge', c.converge); u.f('u_swirl', c.swirl); u.f('u_scroll', this.scroll);
     u.f('u_pointerOn', this.pointer.on * this.intensity);
     u.v4a('u_anchors', this.anchorArr); u.i('u_anchorCount', this.anchors.length); u.i('u_active', this.active); u.f('u_activeT', this.activeT);
+    const s = this.story;
+    u.v4('u_stage', s.stage[0], s.stage[1], s.stage[2], s.stage[3]);
+    u.f('u_form', s.form); u.v4a('u_groups', s.groups); u.f('u_embers', s.embers);
+    u.v3('u_burst', s.burst[0], s.burst[1], s.burst[2]);
     gl.enable(gl.RASTERIZER_DISCARD);
     gl.bindVertexArray(this.vaoUpdate[this.cur]);
     gl.bindTransformFeedback(gl.TRANSFORM_FEEDBACK, this.tf[this.cur]);
@@ -344,6 +456,8 @@ class FieldEngine {
       this.uFog.v2('u_res', this.fog.w, this.fog.h);
       this.uFog.f('u_time', this.time); this.uFog.f('u_fog', c.fog * alpha); this.uFog.f('u_tint', c.tint); this.uFog.f('u_scroll', this.scroll);
       this.uFog.f('u_octaves', this.budget > 0.7 ? 4 : 3); this.uFog.f('u_textMask', c.textMask);
+      const st = this.story.stage;
+      this.uFog.v2('u_css', this.W, this.H); this.uFog.v4('u_stage', st[0], st[1], st[2], st[3]); this.uFog.f('u_veil', this.story.veil);
       this.uFog.v3('u_ink', ink[0], ink[1], ink[2]); this.uFog.v3('u_accent', acc[0], acc[1], acc[2]);
       gl.bindVertexArray(this.emptyVao);
       gl.drawArrays(gl.TRIANGLES, 0, 3);
@@ -360,6 +474,8 @@ class FieldEngine {
     this.uBlit.i('u_tex', 0); this.uBlit.v2('u_res', this.canvas.width, this.canvas.height);
     gl.bindVertexArray(this.emptyVao);
     gl.drawArrays(gl.TRIANGLES, 0, 3);
+    // story: the lit wall and its shadows, and any point light
+    this.drawWall(ink);
     // particles
     if (alpha > 0.005) {
       gl.useProgram(this.pPoint);
@@ -367,12 +483,73 @@ class FieldEngine {
       u.v2('u_res', this.W, this.H); u.f('u_dpr', this.dpr); u.f('u_size', c.size); u.f('u_activeT', this.activeT); u.f('u_alpha', alpha); u.f('u_textMask', c.textMask);
       u.v4a('u_anchors', this.anchorArr); u.i('u_active', this.active);
       u.v3('u_ink', ink[0], ink[1], ink[2]); u.v3('u_accent', acc[0], acc[1], acc[2]);
+      const s = this.story;
+      u.v4('u_stage', s.stage[0], s.stage[1], s.stage[2], s.stage[3]); u.f('u_form', s.form); u.v4a('u_groups', s.groups);
+      u.f('u_formTint', s.formTint); u.f('u_maskOn', this.maskOk ? s.maskOn : 0); u.f('u_stageDim', s.stageDim); u.f('u_embers', s.embers);
+      gl.activeTexture(gl.TEXTURE1); gl.bindTexture(gl.TEXTURE_2D, this.maskTex); u.i('u_mask', 1);
       gl.bindVertexArray(this.vaoRender[this.cur]);
       gl.drawArrays(gl.POINTS, 0, Math.round(this.N * clamp(c.density, 0, 1)));
       gl.bindVertexArray(null);
     }
     // threads + glows
     if (this.active >= 0 && this.activeT > 0.01) this.drawThreads(acc as number[]);
+    if (this.markGlows.length || this.markLines.length) this.drawMarks(acc as number[]);
+  }
+
+  private drawWall(ink: number[]) {
+    const s = this.story;
+    const [sx, sy, sw, sh] = s.stage;
+    const wallOn = s.wallLight * s.flick > 0.004, lightOn = s.light[3] > 0.004;
+    if (!(wallOn || lightOn) || sw < 2) return;
+    const gl = this.gl;
+    // scissor to the stage, widened to hold the point light
+    // the light pool may spill past the stage; give it room so it never ends in a straight edge
+    let x0 = sx - sw * 0.3, y0 = sy - sh * 0.3, x1 = sx + sw * 1.3, y1 = sy + sh * 1.3;
+    if (lightOn) { const r = s.light[2] * 2.4; x0 = Math.min(x0, s.light[0] - r); y0 = Math.min(y0, s.light[1] - r); x1 = Math.max(x1, s.light[0] + r); y1 = Math.max(y1, s.light[1] + r); }
+    x0 = clamp(x0, 0, this.W); x1 = clamp(x1, 0, this.W); y0 = clamp(y0, 0, this.H); y1 = clamp(y1, 0, this.H);
+    if (x1 - x0 < 1 || y1 - y0 < 1) return;
+    gl.enable(gl.SCISSOR_TEST);
+    gl.scissor(Math.floor(x0 * this.dpr), Math.floor((this.H - y1) * this.dpr), Math.ceil((x1 - x0) * this.dpr), Math.ceil((y1 - y0) * this.dpr));
+    gl.useProgram(this.pWall);
+    const u = this.uWall;
+    u.v2('u_res', this.canvas.width, this.canvas.height); u.f('u_dpr', this.dpr);
+    u.v4('u_stage', sx, sy, sw, sh); u.v4('u_wall', s.wall[0], s.wall[1], s.wall[2], s.wall[3]);
+    u.f('u_wallLight', s.wallLight * this.intensity); u.f('u_flick', s.flick); u.f('u_dark', this.dark); u.f('u_maskOn', this.maskOk ? s.maskOn : 0);
+    u.v3('u_wallColor', s.wallColor[0], s.wallColor[1], s.wallColor[2]); u.v3('u_ink', ink[0], ink[1], ink[2]);
+    u.v4('u_light', s.light[0], s.light[1], s.light[2], s.light[3] * this.intensity); u.v3('u_lightColor', s.lightColor[0], s.lightColor[1], s.lightColor[2]);
+    gl.activeTexture(gl.TEXTURE1); gl.bindTexture(gl.TEXTURE_2D, this.maskTex); u.i('u_mask', 1);
+    gl.bindVertexArray(this.emptyVao);
+    gl.drawArrays(gl.TRIANGLES, 0, 3);
+    gl.disable(gl.SCISSOR_TEST);
+  }
+
+  private drawMarks(acc: number[]) {
+    const gl = this.gl;
+    for (const line of this.markLines) {
+      const n = Math.min(33, Math.floor(line.length / 2));
+      if (n < 2) continue;
+      gl.useProgram(this.pLine);
+      this.uLine.v2('u_res', this.W, this.H); this.uLine.f('u_progress', 1); this.uLine.v3('u_accent', acc[0], acc[1], acc[2]); this.uLine.f('u_alpha', 0.7 * this.intensity);
+      gl.bindBuffer(gl.ARRAY_BUFFER, this.bufLinePos); gl.bufferSubData(gl.ARRAY_BUFFER, 0, line.subarray(0, n * 2));
+      gl.bindBuffer(gl.ARRAY_BUFFER, this.bufLineT); gl.bufferSubData(gl.ARRAY_BUFFER, 0, new Float32Array(n));
+      gl.bindVertexArray(this.vaoLine);
+      gl.drawArrays(gl.LINE_STRIP, 0, n);
+      gl.bindVertexArray(null);
+    }
+    const g = this.markGlows, n = Math.min(48, Math.floor(g.length / 4));
+    if (n) {
+      const pos = new Float32Array(n * 2), size = new Float32Array(n), k = new Float32Array(n);
+      for (let i = 0; i < n; i++) { pos[i * 2] = g[i * 4]; pos[i * 2 + 1] = g[i * 4 + 1]; size[i] = g[i * 4 + 2]; k[i] = g[i * 4 + 3] * this.intensity; }
+      gl.useProgram(this.pGlow);
+      this.uGlow.v2('u_res', this.W, this.H); this.uGlow.f('u_dpr', this.dpr); this.uGlow.v3('u_accent', acc[0], acc[1], acc[2]);
+      gl.bindBuffer(gl.ARRAY_BUFFER, this.bufMarkPos); gl.bufferSubData(gl.ARRAY_BUFFER, 0, pos);
+      gl.bindBuffer(gl.ARRAY_BUFFER, this.bufMarkSize); gl.bufferSubData(gl.ARRAY_BUFFER, 0, size);
+      gl.bindBuffer(gl.ARRAY_BUFFER, this.bufMarkK); gl.bufferSubData(gl.ARRAY_BUFFER, 0, k);
+      gl.bindVertexArray(this.vaoMark);
+      gl.drawArrays(gl.POINTS, 0, n);
+      gl.bindVertexArray(null);
+    }
+    gl.bindBuffer(gl.ARRAY_BUFFER, null);
   }
 
   private drawThreads(acc: number[]) {

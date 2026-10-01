@@ -42,8 +42,8 @@ src/
     questions/        the "current questions" on the home page (.md)
     concepts/         nodes of the concept map (.md)
   content.config.ts   schemas — a typo in a reference fails the build, not the reader
-  data/site.ts        name, email, profiles, navigation   ← PLACEHOLDERS live here
-  data/cv.ts          CV entries                           ← PLACEHOLDERS live here
+  data/site.ts        name, email, affiliation, profiles, navigation
+  data/cv.ts          CV sections (publications come from the collection)
   components/         Hero, Questions, Constellation, PublicationEntry, EssayCard, …
   layouts/Base.astro  shell: fonts, SEO head, nav, footer, view transitions
   pages/              routes (index, research, publications, essays, lab, ideas, about, cv, contact, rss, robots)
@@ -87,14 +87,46 @@ The abstract, in Markdown.
 
 **A concept** — create `src/content/concepts/<slug>.md` with `title`, `definition`, `relations` (`to`, `type`, `note`), `areas`, and `spine: true` if it belongs on the central thread.
 
-## Placeholders to replace
+## Where the facts come from
 
-Nothing on the site is invented. Where real information was not available, the placeholder is visible and labelled:
+Everything about Abhinav's record — contact details, education, publications, presentations, referees — comes from his CV and from the published and forthcoming papers. Abstracts are verbatim. Papers under review carry no abstract until he supplies one (the Abstract button hides itself when the body is empty), and their `note` field holds the editorial status, e.g. "Minor revisions requested". A section of the CV with no real entries is removed rather than left empty.
 
-- `src/data/site.ts` — email, affiliation, location, profile URLs (empty URLs render as "link pending"), X handle.
-- `src/data/cv.ts` — education, positions, talks, teaching, service, languages (entries with `placeholder: true` show a "replace" mark).
-- `src/content/publications/sample-*.md` — six sample entries showing the archive's format. Delete them or set `placeholder: false` after editing.
-- The five essays were drafted as starting material in your voice, with real references only. Edit freely.
+- Add a profile in `src/data/site.ts` and it appears in the footer, About, Contact and the Person JSON-LD.
+- Change a paper's `status` (e.g. `under-review` → `forthcoming` → `published`, adding `doi`, `volume`, `pages`) and the archive, CV, PDF and citations follow.
+- After any CV change: `npm run build && npm run cv:pdf` to refresh the downloadable PDF.
+
+## The stories
+
+The home page tells stories in its field.
+
+**The hero** plays **"The voice from the wall"** on arrival (eight scenes, about 100 seconds, looping): Plato's cave, from the fire and the shadows to the sun, then the testimony chain and the wall that speaks without a speaker.
+
+**Every other section** has its own story, which begins once a visitor has stayed in it for five seconds without scrolling, clicking or typing, and ends when they move on (or close it):
+
+| Section | Story | Source |
+| --- | --- | --- |
+| Introduction | The oracle at Delphi | Plato, *Apology* (Jowett) |
+| The thread | The gift of fire | Plato, *Protagoras* (Jowett) |
+| Questions | What is knowledge? | Plato, *Theaetetus*, *Meno* (Jowett); told after Russell and Gettier |
+| Research | The blind men and the elephant | John Godfrey Saxe (1872), after the *Udāna* |
+| Publications | The invention of writing | Plato, *Phaedrus* (Jowett) |
+| Essays | The piece of wax | Descartes, *Discourse* and *Meditations* (Veitch) |
+| Lab | The ship of Theseus | Plutarch (Dryden, ed. Clough); told after Hobbes |
+| Ideas | Indra's net | told after the *Avataṃsaka Sūtra* |
+| Correspondence | The happy fish | *Zhuangzi* 17 (Giles, 1889) |
+
+Quotations are verbatim from those public-domain translations, checked against Project Gutenberg and Wikisource. Scenes marked `kind: 'telling'` are narration in the site's own words, set upright rather than in italics, with a source line saying what they are told after.
+
+Where a section story plays: the host looks at what is on screen and finds the largest empty area. If there is room, the story plays there in the background, like the hero's, with its caption beneath; the research story plays behind the constellation itself. If there is no room (phones, dense sections), it comes in a small card whose picture mirrors the stage the field draws, placed in empty space or, failing that, where it hides least (never the end of a heading).
+
+- `src/data/stories.ts` — every story's titles, durations, quotations and sources. Edit captions here.
+- `src/scripts/story/stories/*.ts` — the pictures: one module per story, each scene a function of time.
+- `src/scripts/story/kit.ts` — the scene vocabulary (formations, shadows, lights, glows, lines, labels).
+- `src/scripts/story/shapes.ts` — silhouettes and a posable human figure, drawn with Canvas 2D.
+- `src/scripts/story/player.ts` — plays a story in the field; `hero.ts` and `sections.ts` decide where and when.
+- The field engine's story layer (`StoryState`, `setFormation`, `setMask`, `setMarks`, the `WALL_FS` pass) is inert when no story is playing.
+- Reduced motion: scenes are still frames, chosen with the scene buttons. Without WebGL the stories are hidden.
+- QA: append `?fieldBudget=0.5` to force particle density on software renderers. `window.__story.go(scene, seconds)` jumps the hero's story; `window.__sectionStory.open(id, scene, seconds)` opens a section story and `.debug(id)` prints the room-finding grid.
 
 ## The motion system
 

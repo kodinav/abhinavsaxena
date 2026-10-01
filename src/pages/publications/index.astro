@@ -11,26 +11,20 @@ const years = Array.from(new Set(pubs.map((p) => p.data.year))).sort((a, b) => b
 const usedAreas = areas.filter((a) => pubs.some((p) => p.data.areas.some((x) => x.id === a.id)));
 const statuses = Array.from(new Set(pubs.map((p) => p.data.status)));
 const types = Array.from(new Set(pubs.map((p) => p.data.venueType)));
-const hasPlaceholders = pubs.some((p) => p.data.placeholder);
 const jsonLd = [
   breadcrumbJsonLd([{ name: 'Home', path: '/' }, { name: 'Publications', path: '/publications' }]),
-  ...pubs.filter((p) => !p.data.placeholder).map((p) =>
-    scholarlyArticleJsonLd({ id: p.id, title: p.data.title, authors: p.data.authors, year: p.data.year, venue: p.data.venue, venueType: p.data.venueType, doi: p.data.doi, url: p.data.url, abstract: p.body?.slice(0, 500), topics: p.data.topics }),
+  ...pubs.filter((p) => p.data.status === 'published' || p.data.status === 'forthcoming').map((p) =>
+    scholarlyArticleJsonLd({ id: p.id, title: p.data.title, authors: p.data.authors, year: p.data.year, published: p.data.status === 'published', venue: p.data.venue, venueType: p.data.venueType, doi: p.data.doi, url: p.data.url, abstract: p.body?.trim().slice(0, 500), topics: p.data.topics }),
   ),
 ];
 ---
-<Base title="Publications" description="Papers by Abhinav Saxena in philosophy of AI, ethics of AI, philosophy of mind, epistemology and social epistemology — searchable by year, topic, venue and research area." path="/publications" jsonLd={jsonLd}>
+<Base title="Publications" description="Papers by Abhinav Saxena on testimony and large language models, algorithmic welfare and the limits of consent, the legitimacy of foundation models, and provenance in AI art and archives — with abstracts, DOIs and citations." path="/publications" jsonLd={jsonLd}>
   <section class="section archive" data-archive>
     <div class="container">
       <header class="archive__head">
         <span class="eyebrow" data-reveal>Publications</span>
         <h1 class="h1" data-split="chars">The archive</h1>
-        <p class="lede" data-split="lines" data-split-delay="0.15">Papers, chapters and works in progress. Each entry opens to its abstract; citations copy in one click.</p>
-        {hasPlaceholders && (
-          <p class="archive__note" data-reveal>
-            Entries marked <span class="pub__sample">Sample entry — replace</span> are placeholders showing the archive's format. Real publications will replace them.
-          </p>
-        )}
+        <p class="lede" data-split="lines" data-split-delay="0.15">Published and forthcoming papers, and work under review. Each entry with an abstract opens to it; citations copy in one click.</p>
       </header>
 
       <div class="archive__tools" data-reveal>
@@ -75,7 +69,6 @@ const jsonLd = [
   .archive__head { max-width: 64ch; }
   .archive__head .h1 { margin-top: var(--s-s); }
   .archive__head .lede { margin-top: var(--s-s); }
-  .archive__note { margin-top: var(--s-m); font-size: var(--step--1); color: var(--ink-2); }
   .archive__tools { margin-top: var(--s-xl); position: sticky; top: 0; z-index: 5; background: var(--paper); padding: calc(var(--nav-h) + var(--s-2xs)) 0 var(--s-s); margin-top: calc(var(--s-xl) - var(--nav-h)); border-bottom: 1px solid var(--line); }
   .archive__search { display: flex; align-items: center; gap: 0.75rem; max-width: 34rem; border-bottom: 1px solid var(--line-2); color: var(--ink-3); transition: border-color var(--dur-2); }
   .archive__search:focus-within { border-color: var(--ink); color: var(--ink); }

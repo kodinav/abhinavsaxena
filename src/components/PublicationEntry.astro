@@ -10,6 +10,7 @@ const { Content } = await render(pub);
 const doi = doiUrl(d.doi);
 const link = doi ?? d.url;
 const citation = formatCitation(d);
+const hasAbstract = Boolean(pub.body?.trim());
 ---
 <article
   class={`pub ${compact ? 'pub--compact' : ''} pub--${d.status}`}
@@ -30,12 +31,12 @@ const citation = formatCitation(d);
     <div class="pub__stamps">
       <span class={`pub__status pub__status--${d.status}`}>{statusLabel[d.status]}</span>
       <span class="pub__type">{venueTypeLabel[d.venueType]}</span>
-      {d.placeholder && <span class="pub__sample">Sample entry — replace</span>}
+      {d.note && <span class="pub__note">{d.note}</span>}
     </div>
     <H class="pub__title serif">{d.title}</H>
     <p class="pub__authors">{formatAuthors(d.authors)}</p>
     <p class="pub__venue serif">
-      {d.venueType === 'chapter' && <span>In </span>}<em>{d.venue}</em>{d.volume && <span>, {d.volume}</span>}{d.issue && <span>({d.issue})</span>}{d.pages && <span>, {d.pages}</span>}
+      {d.venueType === 'chapter' && <span>In </span>}<em>{d.venue}</em>{d.volume && <span> {d.volume}</span>}{d.issue && <span>({d.issue})</span>}{d.pages && <span>, {d.pages}</span>}
     </p>
     {!compact && (
       <div class="pub__areas">
@@ -44,16 +45,20 @@ const citation = formatCitation(d);
       </div>
     )}
     <div class="pub__actions">
-      <button type="button" class="pub__toggle" aria-expanded="false" aria-controls={`abs-${pub.id}`}>
-        <span class="pub__toggle-icon" aria-hidden="true"><i></i><i></i></span>Abstract
-      </button>
+      {hasAbstract && (
+        <button type="button" class="pub__toggle" aria-expanded="false" aria-controls={`abs-${pub.id}`}>
+          <span class="pub__toggle-icon" aria-hidden="true"><i></i><i></i></span>Abstract
+        </button>
+      )}
       {link && <a class="pub__link" href={link} target="_blank" rel="noopener">{doi ? 'DOI' : 'Link'} <span aria-hidden="true">↗</span></a>}
       {d.pdf && <a class="pub__link" href={d.pdf} target="_blank" rel="noopener">PDF <span aria-hidden="true">↗</span></a>}
       <button type="button" class="pub__link" data-copy={citation}><span data-copy-label>Copy citation</span></button>
     </div>
-    <div class="pub__abstract" id={`abs-${pub.id}`} hidden>
-      <div class="pub__abstract-inner prose prose--compact"><Content /></div>
-    </div>
+    {hasAbstract && (
+      <div class="pub__abstract" id={`abs-${pub.id}`} hidden>
+        <div class="pub__abstract-inner prose prose--compact"><Content /></div>
+      </div>
+    )}
   </div>
 </article>
 <style is:global>
@@ -68,7 +73,7 @@ const citation = formatCitation(d);
   .pub__status--published::before { background: var(--accent); }
   .pub__status--forthcoming::before { background: var(--accent); opacity: 0.6; }
   .pub__status--under-review::before, .pub__status--in-progress::before { background: transparent; border: 1px solid var(--ink-3); }
-  .pub__sample { color: var(--accent); border: 1px dashed rgb(var(--accent-rgb) / 0.6); padding: 0.1em 0.5em; border-radius: 999px; align-self: flex-start; width: fit-content; font-family: var(--font-sans); font-size: var(--step--2); letter-spacing: 0.08em; text-transform: uppercase; }
+  .pub__note { color: var(--ink-3); text-transform: none; letter-spacing: 0.02em; font-style: italic; }
   .pub__title { margin-top: var(--s-xs); font-size: var(--step-2); line-height: 1.18; letter-spacing: -0.01em; text-wrap: balance; max-width: 34ch; }
   .pub--compact .pub__title { font-size: var(--step-1); }
   .pub__authors { margin-top: 0.4rem; font-family: var(--font-sans); font-size: var(--step--1); color: var(--ink-2); }

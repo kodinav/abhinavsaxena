@@ -19,4 +19,4 @@ relations:
 areas: [ethics-and-technology, phenomenology]
 ---
 
-I read technology phenomenologically: not as a set of objects but as a way the world shows up. A search box changes what a question is. A model that answers changes what an answer is. Philosophy of technology, in my sense, is attention to these quiet changes before they harden into common sense.
+Technology can be read not as a set of objects but as a way the world shows up: a search box changes what a question is; a model that answers changes what an answer is. In my work the decisive feature of a technology is often its architecture — whether it leaves room, at the point of decision, for someone who can see that a rule is failing the case in front of them.

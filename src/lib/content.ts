@@ -5,9 +5,17 @@ export async function getEssays() {
   return all.sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
 }
 
+const statusRank = { published: 0, forthcoming: 1, preprint: 2, 'under-review': 3, 'in-progress': 4 } as const;
+
+/** Published work first, then forthcoming, then work still in review; newest first within each. */
 export async function getPublications() {
   const all = await getCollection('publications');
-  return all.sort((a, b) => b.data.year - a.data.year || a.data.title.localeCompare(b.data.title));
+  return all.sort(
+    (a, b) =>
+      statusRank[a.data.status] - statusRank[b.data.status] ||
+      b.data.year - a.data.year ||
+      a.data.title.localeCompare(b.data.title),
+  );
 }
 
 export async function getResearch() {

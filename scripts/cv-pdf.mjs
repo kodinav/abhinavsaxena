@@ -8,8 +8,11 @@ import { serveDist } from './serve.mjs';
 
 const server = await serveDist(0); const PORT = server.port;
 const browser = await chromium.launch();
-const page = await browser.newPage({ colorScheme: 'light' });
+// Reduced motion: no intro, no split-text reveals, a still field. The print stylesheet does the rest.
+const page = await browser.newPage({ colorScheme: 'light', reducedMotion: 'reduce' });
+await page.addInitScript(() => { try { sessionStorage.setItem('intro-seen', '1'); } catch {} });
 await page.goto(`http://localhost:${PORT}/cv`, { waitUntil: 'networkidle' });
+await page.waitForFunction(() => document.documentElement.classList.contains('is-ready'), null, { timeout: 20000 }).catch(() => {});
 await page.emulateMedia({ media: 'print', colorScheme: 'light' });
 await mkdir('public/cv', { recursive: true });
 await page.pdf({ path: 'public/cv/abhinav-saxena-cv.pdf', format: 'A4', printBackground: false, margin: { top: '18mm', bottom: '18mm', left: '16mm', right: '16mm' } });

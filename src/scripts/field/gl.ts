@@ -32,6 +32,7 @@ export class Uniforms {
   i(name: string, v: number) { this.gl.uniform1i(this.loc(name), v); }
   v2(name: string, x: number, y: number) { this.gl.uniform2f(this.loc(name), x, y); }
   v3(name: string, x: number, y: number, z: number) { this.gl.uniform3f(this.loc(name), x, y, z); }
+  v4(name: string, x: number, y: number, z: number, w: number) { this.gl.uniform4f(this.loc(name), x, y, z, w); }
   v4a(name: string, arr: Float32Array) { this.gl.uniform4fv(this.loc(name), arr); }
 }
 

@@ -32,8 +32,14 @@ float hash1(float n){ return fract(sin(n)*43758.5453123); }
 export const UPDATE_VS = `#version 300 es
 precision highp float;
 in vec2 a_pos; in vec2 a_vel; in float a_life; in float a_seed;
+in vec4 a_target; // story formation: xy in stage units, z group, w weight
 out vec2 v_pos; out vec2 v_vel; out float v_life;
 uniform vec2 u_res, u_pointer, u_pointerVel, u_drive;
+uniform vec4 u_stage;      // story stage rect, css px
+uniform float u_form;      // formation strength 0..1
+uniform vec4 u_groups[8];  // per group: offset xy (stage units), strength, tint
+uniform float u_embers;    // rising sparks inside the stage
+uniform vec3 u_burst;      // radial impulse: x, y (px), strength
 uniform float u_time, u_dt, u_scale, u_speed, u_structure, u_converge, u_swirl, u_scroll, u_pointerOn;
 uniform vec4 u_anchors[12];
 uniform int u_anchorCount, u_active;
@@ -84,14 +90,33 @@ void main(){
   // --- ink trail displacement
   vec3 tr = texture(u_trail, vec2(p.x / u_res.x, 1.0 - p.y / u_res.y)).rgb;
   force += (tr.gb * 2.0 - 1.0) * tr.r * 520.0;
+  // --- story: sparks rising through the stage, and a one-off radial burst
+  float inS = step(u_stage.x, p.x) * step(p.x, u_stage.x + u_stage.z) * step(u_stage.y, p.y) * step(p.y, u_stage.y + u_stage.w);
+  force += vec2(snoise(vec3(p * 0.004, u_time * 0.5)) * 0.7, -1.0) * u_embers * inS * 150.0;
+  vec2 db = p - u_burst.xy; float dbl = length(db) + 1.0;
+  force += (db / dbl) * u_burst.z * smoothstep(760.0, 0.0, dbl) * 1500.0;
   // --- integrate
   vel = mix(vel, force * u_speed, 0.075);
+  // --- story formation: a spring toward this particle's place in the figure
+  vec4 G = u_groups[int(a_target.z + 0.5)];
+  float fw = clamp(a_target.w * u_form * G.z * (1.0 - u_activeT * 0.85), 0.0, 1.0);
+  vec2 tp = u_stage.xy + (a_target.xy + G.xy) * u_stage.zw;
+  if (fw > 0.001) {
+    vec2 breathe = vec2(snoise(vec3(a_seed * 0.13, u_time * 0.45, 3.0)), snoise(vec3(a_seed * 0.13, u_time * 0.45, 9.0))) * 2.4;
+    vel = mix(vel, (tp + breathe - p) * 5.5, fw * 0.22);
+  }
   p += vel * u_dt * (0.55 + 0.9 * hs);
-  p.y -= u_scroll * u_dt * 260.0 * (0.4 + hs);
+  p.y -= u_scroll * u_dt * 260.0 * (0.4 + hs) * (1.0 - fw);
   if (life <= 0.0 || p.x < -24.0 || p.x > u_res.x + 24.0 || p.y < -24.0 || p.y > u_res.y + 24.0) {
-    p = respawn(a_seed, u_time * 0.61 + a_seed * 7.0);
+    if (fw > 0.3) {
+      // a formed particle re-materialises in place, so figures twinkle rather than thin out
+      p = tp + (vec2(hash1(a_seed * 1.7 + u_time), hash1(a_seed * 2.3 + u_time)) - 0.5) * 8.0;
+      life = 2.0 + 6.0 * hash1(a_seed * 3.7 + u_time);
+    } else {
+      p = respawn(a_seed, u_time * 0.61 + a_seed * 7.0);
+      life = 2.5 + 7.0 * hash1(a_seed * 3.1 + u_time);
+    }
     vel = vec2(0.0);
-    life = 2.5 + 7.0 * hash1(a_seed * 3.1 + u_time);
   }
   v_pos = p; v_vel = vel; v_life = life;
 }`;
@@ -102,8 +127,12 @@ precision mediump float; out vec4 o; void main(){ o = vec4(0.0); }`;
 export const POINT_VS = `#version 300 es
 precision highp float;
 in vec2 a_pos; in vec2 a_vel; in float a_life; in float a_seed;
+in vec4 a_target;
 uniform vec2 u_res; uniform float u_dpr, u_size, u_activeT, u_alpha, u_textMask;
 uniform vec4 u_anchors[12]; uniform int u_active;
+uniform vec4 u_stage; uniform float u_form; uniform vec4 u_groups[8];
+uniform float u_formTint, u_maskOn, u_stageDim, u_embers;
+uniform sampler2D u_mask;
 out float v_alpha; out float v_tint;
 float hash1(float n){ return fract(sin(n)*43758.5453123); }
 void main(){
@@ -119,6 +148,18 @@ void main(){
   v_alpha *= mask * (0.35 + 0.65 * top);
   float t = 0.0;
   if (u_active >= 0) { vec4 a = u_anchors[u_active]; float d = length(a.xy - a_pos); t = smoothstep(420.0, 30.0, d) * u_activeT; v_alpha = max(v_alpha, t * 0.9 * u_alpha); }
+  // --- story: quiet the stage, keep shadows empty, let formed particles carry the figure
+  vec4 G = u_groups[int(a_target.z + 0.5)];
+  float fw = clamp(a_target.w * u_form * G.z * (1.0 - u_activeT * 0.85), 0.0, 1.0);
+  vec2 suv = (a_pos - u_stage.xy) / max(u_stage.zw, vec2(1.0));
+  float inS = step(0.0, suv.x) * step(suv.x, 1.0) * step(0.0, suv.y) * step(suv.y, 1.0);
+  float m = inS * texture(u_mask, clamp(suv, 0.0, 1.0)).r;
+  v_alpha *= 1.0 - u_stageDim * inS * (1.0 - fw);
+  v_alpha *= 1.0 - u_maskOn * m * 0.94;
+  v_alpha = max(v_alpha, fw * u_alpha * (0.72 + 0.28 * h) * smoothstep(0.0, 0.6, a_life));
+  gl_PointSize += fw * 0.8 * u_dpr;
+  t = max(t, fw * clamp(u_formTint + G.w, 0.0, 1.0));
+  t = max(t, u_embers * inS * smoothstep(0.15, 1.0, suv.y) * 0.95);
   v_tint = t;
 }`;
 export const POINT_FS = `#version 300 es
@@ -138,6 +179,7 @@ export const FOG_FS = `#version 300 es
 precision highp float;
 uniform vec2 u_res; uniform float u_time, u_fog, u_tint, u_scroll, u_octaves, u_textMask;
 uniform vec3 u_ink, u_accent; uniform sampler2D u_trail;
+uniform vec2 u_css; uniform vec4 u_stage; uniform float u_veil;
 out vec4 o;
 ${NOISE}
 float fbm(vec3 p){
@@ -161,6 +203,8 @@ void main(){
   float vign = smoothstep(1.35, 0.35, length(p));
   float mask = mix(1.0, mix(0.3, 1.0, smoothstep(0.28, 0.66, uv.x)), u_textMask);
   float a = (v * u_fog * 0.2 * (1.0 - u_scroll * 0.7) * (0.55 + 0.45 * vign) + tr.r * 0.05 * u_fog) * mask;
+  vec2 suv = (vec2(uv.x, 1.0 - uv.y) * u_css - u_stage.xy) / max(u_stage.zw, vec2(1.0));
+  a *= 1.0 - u_veil * smoothstep(1.0, 0.35, length((suv - 0.5) / vec2(0.62, 0.64)));
   o = vec4(col * a, a);
 }`;
 
@@ -222,4 +266,36 @@ void main(){
   float d = length(gl_PointCoord - 0.5) * 2.0;
   float a = (smoothstep(1.0, 0.0, d) * 0.35 + smoothstep(0.22, 0.0, d) * 0.9) * v_k;
   o = vec4(u_accent * a, a);
+}`;
+
+/* ---------------- story wall: the lit wall, its shadows, and a point light ---------------- */
+export const WALL_FS = `#version 300 es
+precision highp float;
+uniform vec2 u_res; uniform float u_dpr;
+uniform vec4 u_stage;                 // css px
+uniform sampler2D u_mask;             // shadows, white = dark
+uniform vec4 u_wall;                  // light pool: cx, cy, rx, ry in stage units
+uniform float u_wallLight, u_flick, u_dark, u_maskOn;
+uniform vec3 u_wallColor, u_ink;
+uniform vec4 u_light;                 // x, y, radius (css px), intensity
+uniform vec3 u_lightColor;
+out vec4 o;
+void main(){
+  vec2 fc = vec2(gl_FragCoord.x, u_res.y - gl_FragCoord.y) / u_dpr;
+  vec2 suv = (fc - u_stage.xy) / max(u_stage.zw, vec2(1.0));
+  float pool = smoothstep(1.0, 0.22, length((suv - u_wall.xy) / u_wall.zw));
+  float inS = step(0.0, suv.x) * step(suv.x, 1.0) * step(0.0, suv.y) * step(suv.y, 1.0);
+  // shadows fade out towards the stage's sides and foot, so the stage never shows as a box
+  float edge = smoothstep(0.0, 0.16, suv.x) * smoothstep(1.0, 0.84, suv.x) * smoothstep(0.0, 0.04, suv.y) * smoothstep(1.0, 0.9, suv.y);
+  float m = texture(u_mask, clamp(suv, 0.0, 1.0)).r * inS * edge * u_maskOn;
+  float lit = u_wallLight * pool * u_flick;
+  // dark theme: the wall glows and a shadow is its absence; light theme: a warm wash with shadows in ink
+  float aWall = lit * mix(0.17, 0.56, u_dark) * (1.0 - m);
+  float aShadow = lit * m * mix(0.66, 0.0, u_dark);
+  vec3 col = u_wallColor * aWall + u_ink * aShadow;
+  float a = aWall + aShadow;
+  float d = length(fc - u_light.xy);
+  float g = u_light.w * exp(-(d * d) / (u_light.z * u_light.z + 1.0)) * mix(0.42, 0.85, u_dark);
+  col += u_lightColor * g; a += g;
+  o = vec4(col, clamp(a, 0.0, 1.0));
 }`;

@@ -10,25 +10,26 @@ const items = await Promise.all(
     const { Content } = await render(q);
     const areas = await Promise.all(q.data.areas.map((a) => getEntry(a)));
     const essay = q.data.essay ? await getEntry(q.data.essay) : null;
+    const publication = q.data.publication ? await getEntry(q.data.publication) : null;
     const experiment = q.data.experiment ? await getEntry(q.data.experiment) : null;
     // wrap emphasised phrases
     let html = q.data.question;
     for (const phrase of q.data.emphasis) {
       html = html.replace(phrase, `<em class="q-em">${phrase}</em>`);
     }
-    return { q, Content, areas: areas.filter(Boolean), essay, experiment, html };
+    return { q, Content, areas: areas.filter(Boolean), essay, publication, experiment, html };
   }),
 );
 ---
-<section class="questions section" id="questions" aria-labelledby="questions-title">
+<section class="questions section" id="questions" aria-labelledby="questions-title" data-section-story="knowledge">
   <div class="container">
     <header class="section-head">
       <span class="eyebrow"><span class="num">{num}</span>Current questions</span>
       <h2 class="h2" id="questions-title" data-split="lines">Questions I am working on</h2>
-      <p class="lede">Not settled positions — open problems. Each one is a door into a research area, an essay, or an experiment in the lab.</p>
+      <p class="lede">Open problems, some of them worked out in papers. Each one is a door into a research area, a paper, an essay, or an experiment in the lab.</p>
     </header>
     <ol class="questions__list" role="list" data-questions data-reveal-group="60">
-      {items.map(({ q, Content, areas, essay, experiment, html }, i) => (
+      {items.map(({ q, Content, areas, essay, publication, experiment, html }, i) => (
         <li class="question" data-question data-reveal>
           <h3 class="question__h">
             <button type="button" class="question__trigger" aria-expanded="false" aria-controls={`q-${i + 1}`} id={`q-${i + 1}-trigger`}>
@@ -45,6 +46,7 @@ const items = await Promise.all(
                   {areas.map((a) => a && <a class="chip" href={`/research/${a.id}`}>{a.data.title}</a>)}
                 </div>
                 <div class="question__go">
+                  {publication && <a class="arrow-link" href={`/publications#${publication.id}`}>Paper: {publication.data.title.split(':')[0]} <span class="arr" aria-hidden="true"></span></a>}
                   {essay && <a class="arrow-link" href={`/essays/${essay.id}`}>Essay: {essay.data.title} <span class="arr" aria-hidden="true"></span></a>}
                   {experiment && <a class="arrow-link" href={`/lab/${experiment.id}`}>Lab: {experiment.data.title} <span class="arr" aria-hidden="true"></span></a>}
                 </div>

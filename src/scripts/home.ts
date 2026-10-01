@@ -2,6 +2,8 @@ import { onPage, isTouch } from '@/lib/page';
 import { gsap, ScrollTrigger, reduced, onPageCleanup } from '@/scripts/motion/core';
 import { mountKinetic } from '@/scripts/motion/kinetic';
 import { field } from '@/scripts/field/field';
+import { mountStory } from '@/scripts/story/hero';
+import { mountSectionStories } from '@/scripts/story/sections';
 
 interface GNode { id: string; label: string; primary: boolean; definition: string }
 interface GLink { a: string; b: string; note: string }
@@ -72,6 +74,9 @@ onPage<HTMLElement>('[data-hero]', (hero) => {
   window.addEventListener('scroll', push, { passive: true });
   measure();
 
+  /* the story the background tells */
+  const stopStory = mountStory(hero);
+
   /* kinetic name */
   const name = hero.querySelector<HTMLElement>('[data-kinetic]');
   const stopKinetic = name ? mountKinetic(name) : () => {};
@@ -106,11 +111,14 @@ onPage<HTMLElement>('[data-hero]', (hero) => {
     hero.removeEventListener('pointerdown', onDown, { capture: true } as any);
     hero.removeEventListener('click', onHeroTap);
     window.removeEventListener('scroll', push);
-    ro.disconnect(); stopKinetic(); st?.kill();
+    ro.disconnect(); stopKinetic(); stopStory(); st?.kill();
     document.removeEventListener('intro:done', entrance);
     field.setAnchors([]); field.setActive(null); field.setScroll(0);
   };
 });
+
+/* ============================================================ SECTION STORIES (after five quiet seconds) */
+onPage<HTMLElement>('[data-sstory]', (card) => mountSectionStories(card));
 
 /* ============================================================ THE THREAD (pinned chapter) */
 onPage<HTMLElement>('[data-thread]', (section) => {

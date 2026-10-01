@@ -1,19 +1,16 @@
 ---
 title: Indian Philosophy
-short: Classical Indian epistemology as a live resource for questions about testimony, mind and self.
-order: 7
+short: Classical Indian epistemology as a resource for questions about testimony and knowledge.
+order: 9
 angle: 160
 radius: 0.75
 keyQuestions:
-  - What can the Nyāya theory of testimony (śabda) tell us about believing on the say-so of a machine?
-  - Does the Buddhist analysis of the self as a stream (santāna) describe artificial systems better than the Western substance view?
-  - How should we read the pramāṇa tradition's insistence that a source of knowledge be *reliable* rather than *justified*?
-related: [epistemology, philosophy-of-mind, phenomenology]
-concepts: [testimony, knowledge, personal-identity]
+  - What does the Nyāya account of testimony (śabda), keyed to the standing of a reliable speaker (āpta), say about believing on the say-so of a machine?
+  - How do the classical means of knowledge (pramāṇa) bear on the line between testimony and instrument reading?
+related: [epistemology, social-epistemology, phenomenology]
+concepts: [testimony, knowledge, trust]
 ---
 
-Classical Indian philosophy developed sophisticated theories of knowledge, mind and self that are almost entirely absent from contemporary debates about artificial intelligence. I think this is a loss — not for reasons of representation but because those theories are often better suited to the questions.
+Classical Indian philosophy developed detailed theories of knowledge that rarely appear in contemporary debates about artificial intelligence. The Nyāya school counted testimony (*śabda*) as a means of knowledge (*pramāṇa*) in its own right, alongside perception, inference and comparison, and defined it as the instruction of a reliable person (*āptopadeśa*). Where much modern Western epistemology asks what licenses the hearer's belief, the Nyāya account asks what the speaker must be.
 
-The Nyāya school treated **testimony (śabda)** as a full source of knowledge (pramāṇa), on a par with perception and inference, provided the speaker is reliable (āpta). Rather than reducing testimony to inference about the speaker's honesty, it asks directly about the speaker's standing. That is exactly the question we now face with machine outputs.
-
-The Buddhist analysis of the self as a **causal stream (santāna)** rather than a substance likewise anticipates questions about systems that persist by copying rather than by continuity. I read these traditions not as history but as interlocutors.
+That is close to the question my work on testimony asks of language models: not whether a hearer is entitled to believe what a source says, but what must be true of the source for knowledge to pass through it. I read the classical tradition as an interlocutor on that question rather than as history.

@@ -3,6 +3,7 @@ import Base from '@/layouts/Base.astro';
 import Constellation from '@/components/Constellation.astro';
 import { getResearch, getEssays, getPublications, getLab } from '@/lib/content';
 import { breadcrumbJsonLd } from '@/lib/seo';
+import { countWord } from '@/lib/format';
 
 const [areas, essays, pubs, lab] = await Promise.all([getResearch(), getEssays(), getPublications(), getLab()]);
 const counts = (id: string) => ({
@@ -11,13 +12,13 @@ const counts = (id: string) => ({
   lab: lab.filter((l) => l.data.areas.some((a) => a.id === id)).length,
 });
 ---
-<Base title="Research" description="Research areas of Abhinav Saxena: philosophy of AI, ethics of AI, philosophy of mind, epistemology, social epistemology, ethics and technology, Indian philosophy, phenomenology and existentialism." path="/research" jsonLd={[breadcrumbJsonLd([{ name: 'Home', path: '/' }, { name: 'Research', path: '/research' }])]}>
+<Base title="Research" description="Research areas of Abhinav Saxena: epistemology and the social epistemology of AI, philosophy of AI, ethics of AI, political philosophy, ethics and technology, environmental ethics, philosophy of mind, Indian philosophy, phenomenology and existentialism." path="/research" jsonLd={[breadcrumbJsonLd([{ name: 'Home', path: '/' }, { name: 'Research', path: '/research' }])]}>
   <section class="section">
     <div class="container">
       <header class="page-head">
         <span class="eyebrow" data-reveal>Research</span>
-        <h1 class="h1" data-split="chars">Nine areas, one territory</h1>
-        <p class="lede" data-split="lines" data-split-delay="0.15">My work does not divide neatly into fields. The same question — what becomes of knowledge, agency and responsibility when machines take part — surfaces in each of these areas in a different form. The constellation shows where they touch.</p>
+        <h1 class="h1" data-split="chars">{countWord(areas.length)} areas, one territory</h1>
+        <p class="lede" data-split="lines" data-split-delay="0.15">My work does not divide neatly into fields. The same question — what becomes of knowledge, standing and responsibility when machines take part — surfaces in each of these areas in a different form. The constellation shows where they touch.</p>
       </header>
       <div class="research-map" data-reveal>
         <Constellation />

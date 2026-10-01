@@ -10,20 +10,24 @@ export function personJsonLd(extra: Record<string, unknown> = {}) {
     givenName: 'Abhinav',
     familyName: 'Saxena',
     url: site.url,
-    jobTitle: 'Philosopher and Researcher',
+    jobTitle: 'Philosopher, Independent Researcher',
     description: site.description,
-    knowsAbout: [
-      'Philosophy of artificial intelligence',
-      'Ethics of artificial intelligence',
-      'Philosophy of mind',
-      'Epistemology',
-      'Social epistemology',
-      'Ethics and technology',
-      'Indian philosophy',
-      'Phenomenology',
-      'Existentialism',
+    email: `mailto:${site.email}`,
+    homeLocation: { '@type': 'Place', name: site.location },
+    alumniOf: [
+      { '@type': 'CollegeOrUniversity', name: 'University of Delhi' },
+      { '@type': 'CollegeOrUniversity', name: 'Mahatma Jyotiba Phule Rohilkhand University' },
     ],
-    ...(site.affiliation ? { affiliation: { '@type': 'Organization', name: site.affiliation } } : {}),
+    knowsAbout: [
+      'Epistemology',
+      'Epistemology of testimony',
+      'Social epistemology of artificial intelligence',
+      'Ethics of artificial intelligence',
+      'Philosophy of technology',
+      'Political philosophy',
+      'Ethics',
+      'Environmental ethics',
+    ],
     ...(sameAs.length ? { sameAs } : {}),
     ...extra,
   };
@@ -90,6 +94,8 @@ export function scholarlyArticleJsonLd(p: {
   title: string;
   authors: string[];
   year: number;
+  /** False for forthcoming work: no publication date is claimed. */
+  published?: boolean;
   venue: string;
   venueType: string;
   doi?: string;
@@ -107,7 +113,7 @@ export function scholarlyArticleJsonLd(p: {
     author: p.authors.map((name) =>
       name === site.name ? { '@id': `${site.url}/#person` } : { '@type': 'Person', name },
     ),
-    datePublished: String(p.year),
+    ...(p.published === false ? { creativeWorkStatus: 'Forthcoming' } : { datePublished: String(p.year) }),
     ...(p.venueType === 'journal' || p.venueType === 'conference'
       ? { isPartOf: { '@type': 'Periodical', name: p.venue } }
       : p.venueType === 'chapter'

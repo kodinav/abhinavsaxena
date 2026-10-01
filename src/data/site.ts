@@ -1,8 +1,8 @@
 /**
  * Site-wide configuration.
  *
- * Fields marked PLACEHOLDER are safe to leave as-is until you have the real
- * value. Empty profile URLs are rendered as "pending" rather than invented.
+ * Profiles list only accounts that exist; add one here and it appears in the
+ * footer, About and Contact pages.
  */
 export const site = {
   name: 'Abhinav Saxena',
@@ -10,46 +10,32 @@ export const site = {
   title: 'Abhinav Saxena — Philosopher & Researcher',
   tagline: 'Philosopher · Researcher · Writer',
   description:
-    'Abhinav Saxena is a philosopher and researcher working at the intersection of philosophy of AI, philosophy of mind, ethics, and epistemology — on what knowledge, agency and responsibility become when they are mediated by machines.',
+    'Abhinav Saxena is a philosopher working in epistemology, with a focus on testimony and the social epistemology of artificial intelligence, and on the ethics and politics of algorithmic systems.',
   keywords: [
     'Abhinav Saxena',
     'Abhinav Saxena philosopher',
     'Abhinav Saxena philosophy',
     'Abhinav Saxena AI ethics',
-    'Abhinav Saxena philosophy of AI',
-    'Abhinav Saxena researcher',
-    'philosophy of artificial intelligence',
-    'ethics of AI',
-    'philosophy of mind',
-    'epistemology',
-    'social epistemology',
-    'Indian philosophy',
-    'phenomenology',
+    'Abhinav Saxena epistemology',
+    'epistemology of testimony',
+    'social epistemology of AI',
+    'large language models testimony',
+    'AI ethics',
+    'algorithmic welfare',
+    'constitutive dependence',
+    'Aadhaar ethics',
+    'philosophy of technology',
+    'political philosophy',
   ],
   locale: 'en_IN',
   language: 'en',
-  /** PLACEHOLDER — replace with your preferred academic contact address. */
-  email: 'contact@abhinavsaxena.in',
-  /** PLACEHOLDER — institution / affiliation. Leave empty to hide. */
-  affiliation: '',
-  /** PLACEHOLDER — city, country. Leave empty to hide. */
-  location: '',
-  /**
-   * Academic and social profiles. Leave `url` empty until you have one:
-   * the UI shows the profile as pending instead of linking to nothing.
-   */
+  email: 'abhinav.philosophy@gmail.com',
+  affiliation: 'Independent Researcher',
+  location: 'New Delhi, India',
   profiles: [
-    { id: 'orcid', label: 'ORCID', url: '', handle: '' },
-    { id: 'scholar', label: 'Google Scholar', url: '', handle: '' },
-    { id: 'philpapers', label: 'PhilPapers', url: '', handle: '' },
-    { id: 'philpeople', label: 'PhilPeople', url: '', handle: '' },
-    { id: 'academia', label: 'Academia.edu', url: '', handle: '' },
-    { id: 'linkedin', label: 'LinkedIn', url: '', handle: '' },
-    { id: 'x', label: 'X (Twitter)', url: '', handle: '' },
-    { id: 'bluesky', label: 'Bluesky', url: '', handle: '' },
-    { id: 'github', label: 'GitHub', url: '', handle: '' },
+    { id: 'orcid', label: 'ORCID', url: 'https://orcid.org/0009-0002-6424-4197', handle: '0009-0002-6424-4197' },
   ],
-  /** Twitter/X handle for cards, without @. Leave empty if none. PLACEHOLDER */
+  /** Twitter/X handle for cards, without @. Empty when there is none. */
   twitterHandle: '',
   nav: [
     { label: 'Research', href: '/research' },
