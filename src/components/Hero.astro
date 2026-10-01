@@ -174,8 +174,6 @@ const first = acts[0];
   @keyframes scroll-hint { 0% { transform: scaleX(0); transform-origin: left } 50% { transform: scaleX(1); transform-origin: left } 51% { transform-origin: right } 100% { transform: scaleX(0); transform-origin: right } }
 
   .hero__stage { display: none; }
-  /* without WebGL there are no pictures for the captions to describe */
-  :global(html.no-webgl) .story--hero, :global(html.no-webgl) .hero__stage { display: none; }
   /* while the story plays, the floating concepts give it the stage and surface only as relations */
   @media (min-width: 901px) {
     /* !important: the entrance animation leaves an inline opacity on these */

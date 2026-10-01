@@ -51,12 +51,12 @@ await step('story controls', async () => {
 await step('section story on dwell', async () => {
   await page.goto(base + '/', { waitUntil: 'load' }); await ready();
   await page.waitForFunction(() => !!window.__sectionStory, null, { timeout: 15000 });
-  await page.evaluate(() => { const el = document.querySelector('#publications'); const y = el.getBoundingClientRect().top + scrollY + 10; window.lenis ? window.lenis.scrollTo(y, { immediate: true }) : scrollTo(0, y); });
+  await page.evaluate(() => { const el = document.querySelector('#lab'); const y = el.getBoundingClientRect().top + scrollY + 10; window.lenis ? window.lenis.scrollTo(y, { immediate: true }) : scrollTo(0, y); });
   await page.waitForTimeout(2500);
   if (await page.evaluate(() => window.__sectionStory.active)) throw new Error('opened before the dwell');
   await page.waitForTimeout(4200);
   const a = await page.evaluate(() => window.__sectionStory.active);
-  if (!a || a.id !== 'writing') throw new Error('no story after dwelling: ' + JSON.stringify(a));
+  if (!a || a.id !== 'theseus') throw new Error('no story after dwelling: ' + JSON.stringify(a));
   await shot('section-story');
   await page.click('[data-sstory] [data-story-close]'); await page.waitForTimeout(500);
   if (await page.evaluate(() => window.__sectionStory.active)) throw new Error('close did not close');

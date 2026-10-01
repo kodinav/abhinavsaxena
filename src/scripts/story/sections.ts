@@ -1,9 +1,8 @@
-import { field, PRESETS } from '@/scripts/field/field';
+import { PRESETS } from '@/scripts/field/field';
 import { stories, type StoryId } from '@/data/stories';
-import { StoryPlayer, type Host } from './player';
+import { StoryPlayer, type Host, type Rect } from './player';
 import { CaptionUI } from './ui';
 import { VISUALS } from './stories';
-import type { Rect } from './kit';
 
 /**
  * Section stories. Each section of the home page with `data-section-story`
@@ -12,26 +11,28 @@ import type { Rect } from './kit';
  * on (or close it).
  *
  * Where it plays: if the screen has a large enough empty area around the
- * section's content, the story plays there in the background, like the
+ * section's content, the story plays there, under the page's text, like the
  * hero's, with its caption beneath it. Otherwise (phones, dense sections) it
- * comes in a small card whose picture mirrors the stage the field draws.
+ * comes in a small card with the picture inside.
  */
 const DWELL_MS = 5000;
 const MOVE_PX = 180;
 const CELL = 16;
 
 interface CardAt { x: number; y: number; w: number; wide: boolean }
-type Layout = { mode: 'inline'; stage: Rect; caption: Rect; boxed?: boolean } | { mode: 'card'; at?: CardAt };
+type Layout = { mode: 'inline'; stage: Rect; caption: Rect } | { mode: 'card'; at?: CardAt };
 interface Active { sec: HTMLElement; id: StoryId; player: StoryPlayer; mode: 'inline' | 'card'; startY: number; stage: Rect; caption?: Rect }
 
 export function mountSectionStories(card: HTMLElement) {
   const sections = Array.from(document.querySelectorAll<HTMLElement>('[data-section-story]'));
   const hero = document.querySelector<HTMLElement>('[data-hero]');
   const frame = card.querySelector<HTMLElement>('[data-sstory-frame]')!;
-  const mirror = card.querySelector<HTMLCanvasElement>('[data-sstory-mirror]')!;
-  const mctx = mirror.getContext('2d')!;
   const uiRoot = card.querySelector<HTMLElement>('[data-story-ui]')!;
   if (!sections.length) return () => {};
+  // one canvas for every section's story: in a card it sits in the frame, inline it lies under the page
+  const canvas = document.createElement('canvas');
+  canvas.className = 'story-stage';
+  canvas.setAttribute('aria-hidden', 'true');
 
   let active: Active | null = null;
   let lastMove = performance.now();
@@ -61,16 +62,14 @@ export function mountSectionStories(card: HTMLElement) {
 
   const host = (id: StoryId): Host => ({
     ui,
-    mobile: () => window.innerWidth <= 900,
+    canvas,
+    feather: () => {
+      const st = stageNow(id);
+      return canvas.classList.contains('story-stage--card') || !st ? 0 : Math.min(st[2], st[3]) * 0.12;
+    },
     basePreset: () => ({ ...PRESETS.ambient, alpha: 0.82, density: 0.8, fog: 0.55, speed: 0.6, textMask: 0 }),
     restPreset: () => 'ambient',
     stage: () => stageNow(id),
-    afterDraw: (st) => {
-      if (!active || active.id !== id || active.mode !== 'card') return;
-      const src = field.canvasEl, dpr = field.pixelRatio;
-      mctx.clearRect(0, 0, mirror.width, mirror.height);
-      mctx.drawImage(src, st[0] * dpr, st[1] * dpr, st[2] * dpr, st[3] * dpr, 0, 0, mirror.width, mirror.height);
-    },
     onEnd: () => {
       window.clearTimeout(endTimer);
       endTimer = window.setTimeout(() => close({ done: true }), 2600);
@@ -111,7 +110,7 @@ export function mountSectionStories(card: HTMLElement) {
     const skip = (el: Element | null): boolean => {
       if (!el) return true;
       if (seen.has(el)) return seen.get(el)!;
-      const out = !!el.closest('[data-sstory], .story-labels, .marquee, .field, [data-hero], [hidden]') ||
+      const out = !!el.closest('[data-sstory], .story-stage, .marquee, .field, [data-hero], [hidden]') ||
         (typeof (el as any).checkVisibility === 'function' && !(el as any).checkVisibility({ checkOpacity: true, checkVisibilityCSS: true }));
       seen.set(el, out);
       return out;
@@ -209,7 +208,7 @@ export function mountSectionStories(card: HTMLElement) {
     for (let r = r0; r <= r1; r++) for (let c = c0; c <= c1; c++) n += g.occ[r * g.cols + c];
     return n;
   }
-  /** Of the four corners, the one where a box of this size hides the least. */
+  /** Of the corners, edges and middle of the screen, the place where a box of this size hides the least. */
   function quietestCorner(g: ReturnType<typeof occupancy>, w: number, h: number): [number, number] {
     const vw = window.innerWidth, vh = window.innerHeight;
     const navH = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--nav-h')) * 16 || 68;
@@ -252,30 +251,6 @@ export function mountSectionStories(card: HTMLElement) {
     const card = (): Layout => ({ mode: 'card', at: cardSpot(g, id, aspect) });
     const capW = Math.min(460, Math.max(340, vw * 0.28));
     const capH = captionHeight(id, capW) + 20;
-    const hint = sec.querySelector<HTMLElement>('[data-story-stage]');
-    if (hint) {
-      // the section names its own stage (the research constellation): play behind it, caption wherever there is room
-      const r = hint.getBoundingClientRect();
-      const top = Math.max(r.top, 80), bottom = Math.min(r.bottom, window.innerHeight - 12);
-      let w = r.width, h = bottom - top;
-      if (h < 160) return card();
-      if (w / h > aspect) w = h * aspect; else h = w / aspect;
-      const stage: Rect = [r.left + (r.width - w) / 2, top + (bottom - top - h) / 2, w, h];
-      let best: Rect | null = null, bestArea = 0;
-      freeRects(g, (x, y, cw, ch) => {
-        if (cw < capW || ch < capH) return;
-        const overlaps = x < stage[0] + stage[2] && x + cw > stage[0] && y < stage[1] + stage[3] && y + ch > stage[1];
-        if (overlaps) return;
-        if (cw * ch > bestArea) { bestArea = cw * ch; best = [x, y, cw, ch]; }
-      });
-      if (!best) {
-        // no room for the caption beside the stage: it waits in the quietest corner instead
-        const [cx, cy] = quietestCorner(g, capW, capH);
-        return { mode: 'inline', stage, caption: [cx, cy, capW, capH], boxed: true };
-      }
-      const b = best as Rect;
-      return { mode: 'inline', stage, caption: [b[0], b[1] + (b[3] - capH) / 2, capW, capH] };
-    }
     let best: { score: number; x: number; y: number; w: number; h: number; sw: number; sh: number } | null = null;
     freeRects(g, (x, y, w, h) => {
       const sh0 = h - capH - 12;
@@ -301,17 +276,19 @@ export function mountSectionStories(card: HTMLElement) {
     let stage: Rect;
     card.classList.toggle('is-card', layout.mode === 'card');
     card.classList.toggle('is-inline', layout.mode === 'inline');
-    card.classList.toggle('is-boxed', layout.mode === 'inline' && !!layout.boxed);
     if (layout.mode === 'inline') {
       card.style.left = `${layout.caption[0]}px`; card.style.top = `${layout.caption[1]}px`; card.style.width = `${layout.caption[2]}px`;
       stage = layout.stage;
+      card.before(canvas);
+      canvas.className = 'story-stage story-stage--inline';
+      Object.assign(canvas.style, { left: `${stage[0]}px`, top: `${stage[1]}px`, width: `${stage[2]}px`, height: `${stage[3]}px`, transform: '' });
     } else {
       // in empty space if there is any, otherwise the corner
       const at = layout.at;
       card.classList.toggle('is-wide', !!at?.wide);
       card.style.left = at ? `${at.x}px` : ''; card.style.top = at ? `${at.y}px` : ''; card.style.width = at ? `${at.w}px` : '';
       card.style.right = at ? 'auto' : ''; card.style.bottom = at ? 'auto' : '';
-      // size the picture to the story's shape, then mirror the stage into it
+      // size the picture to the story's shape
       if (at?.wide) {
         const fh = Math.min(300 / visuals.aspect, 240);
         frame.style.height = `${fh}px`; frame.style.width = `${fh * visuals.aspect}px`; frame.style.marginInline = '';
@@ -321,9 +298,10 @@ export function mountSectionStories(card: HTMLElement) {
         frame.style.height = `${fh}px`; frame.style.width = `${fh * visuals.aspect}px`; frame.style.marginInline = 'auto';
       }
       const fr = frame.getBoundingClientRect();
-      const dpr = Math.min(window.devicePixelRatio || 1, 2);
-      mirror.width = Math.round(fr.width * dpr); mirror.height = Math.round(fr.height * dpr);
       stage = [fr.left, fr.top, fr.width, fr.height];
+      frame.append(canvas);
+      canvas.className = 'story-stage story-stage--card';
+      Object.assign(canvas.style, { left: '', top: '', width: '', height: '', transform: '' });
     }
     let player = players.get(id);
     if (!player) { player = new StoryPlayer(visuals, stories[id], host(id)); players.set(id, player); }
@@ -345,15 +323,14 @@ export function mountSectionStories(card: HTMLElement) {
 
   function close(opts: { done?: boolean; dismiss?: boolean } = {}) {
     if (!active) return;
-    const { id, player, mode } = active;
+    const { id, player } = active;
     if (opts.done) finished.add(id);
     if (opts.dismiss) dismissed.add(id);
     if (opts.done) player.index = 0;
     frozen.set(id, stageNow(id)!);
     active = null;
     card.classList.remove('is-open');
-    // a card's stage sits under the card itself: let go at once rather than let it fade behind the page
-    player.stop(mode === 'inline');
+    player.stop();
     window.clearTimeout(endTimer);
     lastMove = performance.now();
   }
@@ -366,10 +343,16 @@ export function mountSectionStories(card: HTMLElement) {
     lastY = y;
     moved();
     if (active && (Math.abs(y - active.startY) > MOVE_PX || dominant() !== active.sec)) close();
-    else if (active && active.mode === 'inline') card.style.transform = `translateY(${-(y - active.startY)}px)`;
+    else if (active && active.mode === 'inline') {
+      const shift = `translateY(${-(y - active.startY)}px)`;
+      card.style.transform = shift;
+      canvas.style.transform = shift;
+    }
   };
   const onResize = () => { moved(); if (active) close(); };
   const onPointer = (e: Event) => { if (!(e.target as Element)?.closest?.('[data-sstory]')) moved(); };
+  const onTheme = () => active?.player.refresh();
+  document.addEventListener('themechange', onTheme);
   window.addEventListener('scroll', onScroll, { passive: true });
   window.addEventListener('resize', onResize);
   window.addEventListener('pointerdown', onPointer, { passive: true });
@@ -419,8 +402,10 @@ export function mountSectionStories(card: HTMLElement) {
     window.removeEventListener('resize', onResize);
     window.removeEventListener('pointerdown', onPointer);
     window.removeEventListener('keydown', moved);
+    document.removeEventListener('themechange', onTheme);
     if (active) { active.player.stop(false); active = null; }
     card.classList.remove('is-open');
+    canvas.remove();
     ui.destroy();
     delete (window as any).__sectionStory;
   };

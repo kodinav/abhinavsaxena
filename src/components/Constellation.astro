@@ -37,7 +37,7 @@ for (const a of areas) {
 const graph = JSON.stringify({ nodes, links });
 ---
 <div class={`constellation ${compact ? 'constellation--compact' : ''}`} data-constellation data-graph={graph}>
-  <div class="constellation__stage" data-story-stage>
+  <div class="constellation__stage">
     <svg class="constellation__svg" role="group" aria-label="Research areas drawn as a constellation. Select a node to read about it.">
       <g class="edges"></g>
       <g class="nodes"></g>

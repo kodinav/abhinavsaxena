@@ -5,7 +5,6 @@ import { clamp } from '@/lib/page';
  * The caption and controls of a story: scene number and title, the quotation
  * (or telling) and its source, a play/pause button, one button per scene that
  * doubles as its progress bar, and, for section stories, a close button.
- * Also owns the page's floating labels layer.
  */
 export class CaptionUI {
   private titleEl: HTMLElement | null;
@@ -21,9 +20,6 @@ export class CaptionUI {
   private shown = -1;
   private text: StoryText | null = null;
   private swapTimer = 0;
-  private layer: HTMLElement;
-  private labels: HTMLElement[] = [];
-  private labelUsed: boolean[] = [];
   private onClick: (e: Event) => void;
 
   constructor(public root: HTMLElement, private on: { toggle: () => void; go: (i: number) => void; close?: () => void }) {
@@ -39,21 +35,11 @@ export class CaptionUI {
       if (go) this.on.go(Number(go.dataset.storyGo));
     };
     root.addEventListener('click', this.onClick);
-    let layer = document.querySelector<HTMLElement>('[data-story-labels]');
-    if (!layer) {
-      layer = document.createElement('div');
-      layer.className = 'story-labels';
-      layer.dataset.storyLabels = '';
-      layer.setAttribute('aria-hidden', 'true');
-      document.body.append(layer);
-    }
-    this.layer = layer;
   }
 
   destroy() {
     this.root.removeEventListener('click', this.onClick);
     window.clearTimeout(this.swapTimer);
-    this.hideLabels();
   }
 
   setStory(text: StoryText) {
@@ -116,17 +102,4 @@ export class CaptionUI {
     this.toggleBtn.setAttribute('aria-label', on ? 'Pause the story' : 'Play the story');
   }
   setReduced() { this.root.classList.add('is-reduced'); }
-
-  /* ------------------------------------------------------------ floating labels */
-  beginLabels(small = false) { this.labelUsed.fill(false); this.layer.classList.toggle('is-small', small); }
-  label(i: number, x: number, y: number, text: string, k: number) {
-    let el = this.labels[i];
-    if (!el) { el = document.createElement('span'); this.layer.append(el); this.labels[i] = el; }
-    if (el.textContent !== text) el.textContent = text;
-    el.style.transform = `translate(${x}px, ${y}px) translate(-50%, 0)`;
-    el.style.opacity = String(clamp(k, 0, 1));
-    this.labelUsed[i] = true;
-  }
-  endLabels() { this.labels.forEach((el, i) => { if (!this.labelUsed[i]) el.style.opacity = '0'; }); }
-  hideLabels() { this.labels.forEach((el) => (el.style.opacity = '0')); }
 }

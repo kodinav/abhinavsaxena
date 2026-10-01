@@ -97,7 +97,7 @@ Everything about Abhinav's record — contact details, education, publications, 
 
 ## The stories
 
-The home page tells stories in its field.
+The home page tells stories as shadow-puppet theatre: dark cut-out figures in the manner of Greek black-figure vase painting, acting on a lit screen, drawn with Canvas 2D. Every scene is its own shot (a new setting, camera or action, dissolving from the one before), and the pictures carry the story by themselves: characters act out cause and effect, props say who they are, and speech and thought bubbles hold pictures rather than words, so a visitor who never reads the caption can still follow what happens.
 
 **The hero** plays **"The voice from the wall"** on arrival (eight scenes, about 100 seconds, looping): Plato's cave, from the fire and the shadows to the sun, then the testimony chain and the wall that speaks without a speaker.
 
@@ -117,15 +117,13 @@ The home page tells stories in its field.
 
 Quotations are verbatim from those public-domain translations, checked against Project Gutenberg and Wikisource. Scenes marked `kind: 'telling'` are narration in the site's own words, set upright rather than in italics, with a source line saying what they are told after.
 
-Where a section story plays: the host looks at what is on screen and finds the largest empty area. If there is room, the story plays there in the background, like the hero's, with its caption beneath; the research story plays behind the constellation itself. If there is no room (phones, dense sections), it comes in a small card whose picture mirrors the stage the field draws, placed in empty space or, failing that, where it hides least (never the end of a heading).
+Where a section story plays: the host looks at what is on screen and finds the largest empty area. If there is room, the story plays there, under the page's text, with its caption beneath. If there is no room (phones, dense sections), it comes in a small card with the picture in it, placed in empty space or, failing that, where it hides least (never the end of a heading).
 
 - `src/data/stories.ts` — every story's titles, durations, quotations and sources. Edit captions here.
-- `src/scripts/story/stories/*.ts` — the pictures: one module per story, each scene a function of time.
-- `src/scripts/story/kit.ts` — the scene vocabulary (formations, shadows, lights, glows, lines, labels).
-- `src/scripts/story/shapes.ts` — silhouettes and a posable human figure, drawn with Canvas 2D.
-- `src/scripts/story/player.ts` — plays a story in the field; `hero.ts` and `sections.ts` decide where and when.
-- The field engine's story layer (`StoryState`, `setFormation`, `setMask`, `setMarks`, the `WALL_FS` pass) is inert when no story is playing.
-- Reduced motion: scenes are still frames, chosen with the scene buttons. Without WebGL the stories are hidden.
+- `src/scripts/story/stories/*.ts` — the pictures: one module per story, each scene a function that paints the whole frame for a moment in time.
+- `src/scripts/story/puppet/` — the theatre: `theatre.ts` (the stage, its lit screen, the camera, the dissolve between scenes and the soft edge into the page), `figure.ts` (articulated people), `beasts.ts`, `scenery.ts`, `objects.ts`, `fx.ts` (fire, light, smoke, weather, sound), `bubbles.ts` (speech and thought bubbles and the pictures inside them), `marks.ts` (threads and the odd word).
+- `src/scripts/story/player.ts` — plays a story; `hero.ts` and `sections.ts` decide where and when. The field dims behind a playing stage, and the stage's light spills out into it.
+- Reduced motion: each scene is a still at its most telling moment, chosen with the scene buttons. The stories do not need WebGL.
 - QA: append `?fieldBudget=0.5` to force particle density on software renderers. `window.__story.go(scene, seconds)` jumps the hero's story; `window.__sectionStory.open(id, scene, seconds)` opens a section story and `.debug(id)` prints the room-finding grid.
 
 ## The motion system
