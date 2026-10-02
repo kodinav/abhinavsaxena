@@ -3,7 +3,7 @@ import Base from '@/layouts/Base.astro';
 import Doc from '@/components/Doc.astro';
 import DocSection from '@/components/DocSection.astro';
 import { getEntry, render } from 'astro:content';
-import { getConcepts, getQuestions } from '@/lib/content';
+import { getConcepts, getLibrary, getQuestions } from '@/lib/content';
 import { breadcrumbJsonLd, definedTermJsonLd } from '@/lib/seo';
 import { site } from '@/data/site';
 
@@ -22,6 +22,7 @@ for (const s of d.seeAlso) if (!linked.has(s.id)) linked.set(s.id, '');
 const seeAlso = (await Promise.all([...linked.keys()].map((id) => getEntry('concepts', id)))).filter(Boolean);
 const areas = (await Promise.all(d.areas.map((a) => getEntry(a)))).filter(Boolean);
 const questions = (await getQuestions()).filter((q) => q.data.concepts.some((c) => c.id === concept.id));
+const texts = (await getLibrary()).filter((t) => t.data.concepts.some((c) => c.id === concept.id));
 // terms that point back here, so the glossary links in both directions
 const backlinks = all.filter((c) => c.id !== concept.id && !linked.has(c.id) && (c.data.seeAlso.some((s) => s.id === concept.id) || c.data.relations.some((r) => r.to.id === concept.id)));
 const md = (s: string) => s.replace(/\*(.+?)\*/g, '<em>$1</em>');
@@ -73,6 +74,11 @@ const description = `${plain(d.definition)} ${d.title} explained by philosopher 
       {questions.length > 0 && (
         <DocSection title="Questions that turn on it" id="questions">
           <div class="links">{questions.map((q) => <a href={`/questions/${q.id}/`}><small>Question</small><span class="serif">{q.data.question}</span></a>)}</div>
+        </DocSection>
+      )}
+      {texts.length > 0 && (
+        <DocSection title="In the library" id="library">
+          <div class="links">{texts.map((t) => <a href={`/library/${t.id}/`}><small>{t.data.author}</small><span class="serif">{t.data.heading}</span></a>)}</div>
         </DocSection>
       )}
       {backlinks.length > 0 && (

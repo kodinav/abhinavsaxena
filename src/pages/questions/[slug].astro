@@ -3,7 +3,7 @@ import Base from '@/layouts/Base.astro';
 import Doc from '@/components/Doc.astro';
 import DocSection from '@/components/DocSection.astro';
 import { getEntry, render } from 'astro:content';
-import { getQuestions } from '@/lib/content';
+import { getLibrary, getQuestions } from '@/lib/content';
 import { articleJsonLd, breadcrumbJsonLd, faqJsonLd } from '@/lib/seo';
 import { site } from '@/data/site';
 
@@ -23,6 +23,7 @@ const [areas, concepts, related] = await Promise.all([
 const publication = d.publication ? await getEntry(d.publication) : null;
 const essay = d.essay ? await getEntry(d.essay) : null;
 const experiment = d.experiment ? await getEntry(d.experiment) : null;
+const texts = (await getLibrary()).filter((t) => t.data.questions.some((q) => q.id === question.id));
 // the page's own question leads the FAQ data, so answer engines get the short answer first
 const faq = [{ q: d.question, a: d.answer }, ...d.faq];
 const plain = (s: string) => s.replace(/\*(.+?)\*/g, '$1');
@@ -73,6 +74,11 @@ const citation = `Saxena, A. (${d.date.getUTCFullYear()}). ${d.question} abhinav
             {essay && <a href={`/essays/${essay.id}/`}><small>Essay</small><span class="serif">{essay.data.title}</span></a>}
             {experiment && <a href={`/lab/${experiment.id}/`}><small>Experiment</small><span class="serif">{experiment.data.title}</span></a>}
           </div>
+        </DocSection>
+      )}
+      {texts.length > 0 && (
+        <DocSection title="In the library" id="library">
+          <div class="links">{texts.map((t) => <a href={`/library/${t.id}/`}><small>{t.data.author}</small><span class="serif">{t.data.heading}</span></a>)}</div>
         </DocSection>
       )}
       {d.sources.length > 0 && (

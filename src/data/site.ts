@@ -49,9 +49,6 @@ export const site = {
     { label: 'About', href: '/about/' },
   ] as ReadonlyArray<{ label: string; href: string; long?: string }>,
   more: [
-    { label: 'Questions', href: '/questions/', note: 'Short answers, with the argument' },
-    { label: 'Glossary', href: '/glossary/', note: 'The terms, defined' },
-    { label: 'Library', href: '/library/', note: 'Open texts, with commentary' },
     { label: 'Ideas', href: '/ideas/', note: 'A map of the concepts' },
     { label: 'Curriculum Vitae', href: '/cv/', note: 'Web CV, printable' },
     { label: 'Contact', href: '/contact/', note: 'Correspondence and profiles' },
