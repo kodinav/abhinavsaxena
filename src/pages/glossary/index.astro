@@ -1,0 +1,57 @@
+---
+import Base from '@/layouts/Base.astro';
+import { getConcepts } from '@/lib/content';
+import { breadcrumbJsonLd, definedTermSetJsonLd } from '@/lib/seo';
+
+const concepts = (await getConcepts()).sort((a, b) => a.data.title.replace(/^The /, '').localeCompare(b.data.title.replace(/^The /, '')));
+const plain = (s: string) => s.replace(/\*(.+?)\*/g, '$1');
+const groups = new Map<string, typeof concepts>();
+for (const c of concepts) {
+  const letter = c.data.title.replace(/^The /, '').normalize('NFD')[0].toUpperCase();
+  if (!groups.has(letter)) groups.set(letter, []);
+  groups.get(letter)!.push(c);
+}
+const jsonLd = [
+  definedTermSetJsonLd(concepts.map((c) => ({ id: c.id, name: c.data.title, description: plain(c.data.definition) }))),
+  breadcrumbJsonLd([{ name: 'Home', path: '/' }, { name: 'Glossary', path: '/glossary/' }]),
+];
+---
+<Base title="Glossary of AI, knowledge and ethics" description="A glossary of the epistemology and ethics of AI by philosopher Abhinav Saxena: testimony, the Tracking Minimum, epistemic opacity, AI hallucination, constitutive dependence, informed consent and more, each with a quotable definition." path="/glossary/" jsonLd={jsonLd}>
+  <section class="section gl">
+    <div class="container">
+      <header class="section-head">
+        <span class="eyebrow">Glossary</span>
+        <h1 class="h1">Glossary</h1>
+        <p class="lede">The terms my work turns on, defined in a sentence and explained in a page: the epistemology of testimony and of AI, and the ethics and politics of algorithmic systems. Terms I introduced say so; the rest give the standard account and why it matters now.</p>
+      </header>
+      <nav class="gl__letters" aria-label="Letters">{[...groups.keys()].map((l) => <a href={`#letter-${l}`}>{l}</a>)}</nav>
+      {[...groups.entries()].map(([letter, items]) => (
+        <section class="gl__group" id={`letter-${letter}`} aria-label={letter}>
+          <h2 class="gl__letter serif">{letter}</h2>
+          <dl class="gl__list">
+            {items.map((c) => (
+              <div class="gl__item">
+                <dt><a class="serif" href={`/glossary/${c.id}/`}>{c.data.title}</a></dt>
+                <dd>{plain(c.data.definition)}</dd>
+              </div>
+            ))}
+          </dl>
+        </section>
+      ))}
+    </div>
+  </section>
+</Base>
+
+<style>
+  .gl__letters { margin-top: var(--s-xl); display: flex; flex-wrap: wrap; gap: 0.25rem 0.9rem; font-family: var(--font-sans); font-size: var(--step--1); letter-spacing: 0.08em; }
+  .gl__letters a { color: var(--ink-3); }
+  .gl__letters a:hover { color: var(--accent); }
+  .gl__group { margin-top: var(--s-xl); display: grid; grid-template-columns: 4rem minmax(0, 1fr); gap: var(--s-m); border-top: 1px solid var(--line); padding-top: var(--s-m); }
+  .gl__letter { font-size: var(--step-3); line-height: 1; color: var(--ink-3); }
+  .gl__list { display: flex; flex-direction: column; gap: var(--s-m); }
+  .gl__item { display: grid; grid-template-columns: minmax(0, 18rem) minmax(0, 1fr); gap: var(--s-l); }
+  .gl__item dt a { font-size: var(--step-1); line-height: 1.25; }
+  .gl__item dt a:hover { color: var(--accent); }
+  .gl__item dd { color: var(--ink-2); line-height: 1.55; max-width: 62ch; }
+  @media (max-width: 800px) { .gl__group, .gl__item { grid-template-columns: 1fr; gap: 0.4rem; } }
+</style>

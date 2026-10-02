@@ -1,0 +1,104 @@
+---
+import Base from '@/layouts/Base.astro';
+import Doc from '@/components/Doc.astro';
+import DocSection from '@/components/DocSection.astro';
+import { getEntry, render } from 'astro:content';
+import { getLibrary } from '@/lib/content';
+import { breadcrumbJsonLd } from '@/lib/seo';
+import { site } from '@/data/site';
+
+export async function getStaticPaths() {
+  const texts = await getLibrary();
+  return texts.map((text) => ({ params: { slug: text.id }, props: { text } }));
+}
+const { text } = Astro.props;
+const d = text.data;
+const { Content } = await render(text);
+const path = `/library/${text.id}/`;
+const [questions, concepts] = await Promise.all([
+  Promise.all(d.questions.map((q) => getEntry(q))),
+  Promise.all(d.concepts.map((c) => getEntry(c))),
+]);
+const year = d.year < 0 ? `c. ${-d.year} BCE` : String(d.year);
+// Gutenberg marks italics with underscores; set them as italics, and keep paragraphs
+const paras = (t: string) => t.split(/\n{2,}/).map((p) => p.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/_([^_\n]+)_/g, '<em>$1</em>').replace(/\n/g, ' '));
+const jsonLd = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'CreativeWork',
+    '@id': `${site.url}${path}#work`,
+    name: d.title,
+    author: { '@type': 'Person', name: d.author },
+    ...(d.translator ? { translator: { '@type': 'Person', name: d.translator } } : {}),
+    ...(d.year > 0 ? { dateCreated: String(d.year) } : {}),
+    isBasedOn: d.sourceUrl,
+    license: 'https://creativecommons.org/publicdomain/mark/1.0/',
+    inLanguage: 'en',
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'Article',
+    '@id': `${site.url}${path}#commentary`,
+    headline: d.heading,
+    description: d.description,
+    author: { '@id': `${site.url}/#person` },
+    about: { '@id': `${site.url}${path}#work` },
+    mainEntityOfPage: `${site.url}${path}`,
+    inLanguage: 'en',
+  },
+  breadcrumbJsonLd([{ name: 'Home', path: '/' }, { name: 'Library', path: '/library/' }, { name: d.heading, path }]),
+];
+const toc = [{ slug: 'commentary', text: 'Why it matters' }, ...d.passages.map((p, i) => ({ slug: `passage-${i + 1}`, text: p.label })), { slug: 'source', text: 'The text and its source' }];
+---
+<Base title={d.seoTitle ?? d.heading} description={d.description} path={path} type="article" jsonLd={jsonLd} bodyClass="reading" field="reading">
+  <Doc eyebrow="Library" eyebrowHref="/library/" title={d.heading} answer={d.lede} answerLabel="Why it is here" standfirst={`${d.author}, ${d.title} (${year})${d.translator ? `, translated by ${d.translator}` : ''}`} toc={toc} crumbs={[{ name: 'Home', path: '/' }, { name: 'Library', path: '/library/' }, { name: d.heading, path }]}>
+    <h2 id="commentary">Why it matters</h2>
+    <Content />
+    {d.passages.map((p, i) => (
+      <section class="lib-passage" aria-labelledby={`passage-${i + 1}`}>
+        <h2 id={`passage-${i + 1}`}>{p.label}</h2>
+        <p class="lib-passage__loc">{p.locator}</p>
+        <blockquote class="lib-passage__text">{paras(p.text).map((html) => <p set:html={html} />)}</blockquote>
+      </section>
+    ))}
+
+    <Fragment slot="side">
+      <div class="lib-side">
+        <span class="tag">Public domain</span>
+        <p>The passages are reproduced word for word from {d.sourceName}. Commentary by Abhinav Saxena.</p>
+      </div>
+    </Fragment>
+
+    <Fragment slot="foot">
+      <DocSection title="The text and its source" id="source">
+        <dl class="lib-facts">
+          <div><dt class="tag">Edition</dt><dd>{d.edition}</dd></div>
+          <div><dt class="tag">Source</dt><dd><a class="link" href={d.sourceUrl} rel="noopener" target="_blank">{d.sourceName}</a></dd></div>
+          <div><dt class="tag">Status</dt><dd>{d.licence}</dd></div>
+          {d.notes && <div><dt class="tag">Notes on the text</dt><dd>{d.notes}</dd></div>}
+        </dl>
+      </DocSection>
+      {questions.filter(Boolean).length > 0 && (
+        <DocSection title="Questions it bears on" id="questions">
+          <div class="links">{questions.map((q) => q && <a href={`/questions/${q.id}/`}><small>Question</small><span class="serif">{q.data.question}</span></a>)}</div>
+        </DocSection>
+      )}
+      {concepts.filter(Boolean).length > 0 && (
+        <DocSection title="Terms" id="terms">
+          <div class="chips">{concepts.map((c) => c && <a class="chip" href={`/glossary/${c.id}/`}>{c.data.title}</a>)}</div>
+        </DocSection>
+      )}
+    </Fragment>
+  </Doc>
+</Base>
+
+<style>
+  .lib-passage__loc { font-family: var(--font-sans); font-size: var(--step--2); letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-3); }
+  .lib-passage__text { margin: var(--s-s) 0 0; padding-left: var(--s-m); border-left: 1px solid var(--line-2); font-family: var(--font-serif); color: var(--ink-2); }
+  .lib-passage__text :global(p + p) { margin-top: 0.8em; }
+  .lib-side { display: flex; flex-direction: column; gap: 0.4rem; }
+  .lib-side p { font-family: var(--font-sans); font-size: var(--step--1); color: var(--ink-3); line-height: 1.5; }
+  .lib-facts { display: flex; flex-direction: column; gap: var(--s-s); }
+  .lib-facts dt { display: block; margin-bottom: 0.2rem; }
+  .lib-facts dd { color: var(--ink-2); font-size: var(--step--1); line-height: 1.55; max-width: var(--measure-wide); }
+</style>

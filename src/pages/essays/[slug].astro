@@ -23,14 +23,14 @@ const related = relatedEssays(essay, all, 3);
 const idx = all.findIndex((e) => e.id === essay.id);
 const newer = idx > 0 ? all[idx - 1] : null;
 const older = idx < all.length - 1 ? all[idx + 1] : null;
-const path = `/essays/${essay.id}`;
+const path = `/essays/${essay.id}/`;
 const toc = headings.filter((h) => h.depth === 2);
 const url = `${site.url}${path}`;
 const shareX = `https://twitter.com/intent/tweet?text=${encodeURIComponent(d.title)}&url=${encodeURIComponent(url)}`;
 const shareMail = `mailto:?subject=${encodeURIComponent(d.title)}&body=${encodeURIComponent(`${d.description}\n\n${url}`)}`;
 const jsonLd = [
   articleJsonLd({ path, title: d.title, description: d.description, published: d.date, updated: d.updated, tags: d.tags, wordCount }),
-  breadcrumbJsonLd([{ name: 'Home', path: '/' }, { name: 'Essays', path: '/essays' }, { name: d.title, path }]),
+  breadcrumbJsonLd([{ name: 'Home', path: '/' }, { name: 'Essays', path: '/essays/' }, { name: d.title, path }]),
 ];
 ---
 <Base title={d.title} description={d.description} path={path} type="article" published={d.date} updated={d.updated} tags={d.tags} jsonLd={jsonLd} bodyClass="reading" field="reading">
@@ -39,7 +39,7 @@ const jsonLd = [
 
     <header class="reader__head container">
       <div class="reader__meta" data-reveal>
-        {areas.map((a) => a && <a class="reader__area" href={`/research/${a.id}`}>{a.data.title}</a>)}
+        {areas.map((a) => a && <a class="reader__area" href={`/research/${a.id}/`}>{a.data.title}</a>)}
         <span class="reader__dot" aria-hidden="true">·</span>
         <time datetime={d.date.toISOString()}>{formatDate(d.date)}</time>
         <span class="reader__dot" aria-hidden="true">·</span>
@@ -50,7 +50,7 @@ const jsonLd = [
       <p class="reader__standfirst serif" data-split="lines" data-split-delay="0.3">{d.description}</p>
       <div class="reader__byline" data-reveal style="--reveal-delay: 220ms">
         <span class="reader__rule" aria-hidden="true"></span>
-        <span>By <a class="link" href="/about">Abhinav Saxena</a></span>
+        <span>By <a class="link" href="/about/">Abhinav Saxena</a></span>
         {d.updated && <span class="muted">Updated {formatDate(d.updated)}</span>}
       </div>
     </header>
@@ -107,7 +107,7 @@ const jsonLd = [
       )}
 
       <div class="reader__tags">
-        {d.tags.map((t) => <a class="chip" href={`/essays?tag=${encodeURIComponent(t)}`}>{t}</a>)}
+        {d.tags.map((t) => <a class="chip" href={`/essays/?tag=${encodeURIComponent(t)}`}>{t}</a>)}
       </div>
 
       <div class="reader__cite">
@@ -117,8 +117,8 @@ const jsonLd = [
       </div>
 
       <nav class="reader__nav" aria-label="Adjacent essays">
-        {older ? <a class="reader__nav-link" href={`/essays/${older.id}`} rel="prev"><span class="tag">← Earlier</span><span class="serif">{older.data.title}</span></a> : <span></span>}
-        {newer ? <a class="reader__nav-link reader__nav-link--next" href={`/essays/${newer.id}`} rel="next"><span class="tag">Later →</span><span class="serif">{newer.data.title}</span></a> : <span></span>}
+        {older ? <a class="reader__nav-link" href={`/essays/${older.id}/`} rel="prev"><span class="tag">← Earlier</span><span class="serif">{older.data.title}</span></a> : <span></span>}
+        {newer ? <a class="reader__nav-link reader__nav-link--next" href={`/essays/${newer.id}/`} rel="next"><span class="tag">Later →</span><span class="serif">{newer.data.title}</span></a> : <span></span>}
       </nav>
 
       {related.length > 0 && (

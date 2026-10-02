@@ -19,6 +19,7 @@ Built with [Astro 7](https://astro.build): static output, no framework runtime, 
 | `npm run qa:axe` | Run axe-core accessibility checks on every page in both themes (run after `build`) |
 | `node scripts/qa-experience.mjs` | Capture the intro, hero hover, thread chapter and a page transition with WebGL enabled (run after `build`) |
 | `node scripts/og-image.mjs` | Regenerate the Open Graph image and icons |
+| `npm run seo:indexnow` | Tell Bing, Yandex and the other IndexNow engines about every URL in the live sitemap (run after a deploy) |
 
 ## Deploying
 
@@ -39,14 +40,16 @@ src/
     publications/     papers (.md; body = abstract)
     essays/           essays (.mdx; footnotes + references supported)
     lab/              experiment metadata (.md); code lives in src/scripts/lab
-    questions/        the "current questions" on the home page (.md)
-    concepts/         nodes of the concept map (.md)
+    questions/        questions with answers, each its own page at /questions/<file name>/; `onHome` puts one on the home page (.md)
+    concepts/         the glossary at /glossary/<slug>/; `map: false` keeps a term off the map of ideas (.md)
+    library/          public-domain texts with commentary at /library/<slug>/ (.json)
   content.config.ts   schemas — a typo in a reference fails the build, not the reader
   data/site.ts        name, email, affiliation, profiles, navigation
   data/cv.ts          CV sections (publications come from the collection)
+  data/reading-list.ts  the reading list at /library/reading-list/, DOIs checked against Crossref
   components/         Hero, Questions, Constellation, PublicationEntry, EssayCard, …
   layouts/Base.astro  shell: fonts, SEO head, nav, footer, view transitions
-  pages/              routes (index, research, publications, essays, lab, ideas, about, cv, contact, rss, robots)
+  pages/              routes (index, research, publications, essays, questions, glossary, library, lab, ideas, about, cv, contact, rss, robots, llms.txt)
   scripts/            client behaviour (graphs, reader, archive filters, lab, home orchestration)
   scripts/field/      the WebGL2 field: gl.ts (helpers), shaders.ts (GLSL), field.ts (engine + presets)
   scripts/motion/     GSAP/Lenis layer: core (registration, smooth scroll, lifecycle), preloader, transitions, text reveals, tilt, kinetic type
@@ -87,6 +90,16 @@ The abstract, in Markdown.
 
 **A concept** — create `src/content/concepts/<slug>.md` with `title`, `definition`, `relations` (`to`, `type`, `note`), `areas`, and `spine: true` if it belongs on the central thread.
 
+## Search and answer engines
+
+Every page that answers something leads with the answer (`Doc.astro`), so the first lines are what a search result, an answer engine or a reader needs. On top of that:
+
+- **Structured data** (`src/lib/seo.ts`): Person and WebSite on every page; Article, FAQPage and BreadcrumbList on questions; ScholarlyArticle on papers; DefinedTerm and DefinedTermSet in the glossary; CreativeWork in the library. A question's or paper's `faq` field becomes its FAQPage.
+- **Google Scholar**: each paper page carries `citation_*` meta tags, so Scholar can index it and attach it to the author profile.
+- **Answer engines**: `/llms.txt` is a map of the site and `/llms-full.txt` the full text of the answers, papers and glossary. `robots.txt` admits the AI crawlers by name.
+- **URLs** end in a slash (`trailingSlash: 'always'`), as Hostinger serves them, so canonicals never point at a redirect. The sitemap's `lastmod` comes from each page's own dates; undated pages claim none.
+- **Webmaster tools**: paste the Google Search Console and Bing Webmaster tokens into `verification` in `src/data/site.ts`. IndexNow's key file is in `public/`; `npm run seo:indexnow` submits the sitemap.
+
 ## Where the facts come from
 
 Everything about Abhinav's record — contact details, education, publications, presentations, referees — comes from his CV and from the published and forthcoming papers. Abstracts are verbatim. Papers under review carry no abstract until he supplies one (the Abstract button hides itself when the body is empty), and their `note` field holds the editorial status, e.g. "Minor revisions requested". A section of the CV with no real entries is removed rather than left empty.
@@ -123,6 +136,7 @@ Where a section story plays: the host looks at what is on screen and finds the l
 - `src/scripts/story/stories/*.ts` — the pictures: one module per story, each scene a function that paints the whole frame for a moment in time.
 - `src/scripts/story/puppet/` — the theatre: `theatre.ts` (the stage, its lit screen, the camera, the dissolve between scenes and the soft edge into the page), `figure.ts` (articulated people), `beasts.ts`, `scenery.ts`, `objects.ts`, `fx.ts` (fire, light, smoke, weather, sound), `bubbles.ts` (speech and thought bubbles and the pictures inside them), `marks.ts` (threads and the odd word).
 - `src/scripts/story/player.ts` — plays a story; `hero.ts` and `sections.ts` decide where and when. The field dims behind a playing stage, and the stage's light spills out into it.
+- `/puppet-lab` (development only) draws any story as a storyboard: every scene at several moments, in either theme; `qa/lab-sheet.mjs` and `qa/lab-frame.mjs` capture it.
 - Reduced motion: each scene is a still at its most telling moment, chosen with the scene buttons. The stories do not need WebGL.
 - QA: append `?fieldBudget=0.5` to force particle density on software renderers. `window.__story.go(scene, seconds)` jumps the hero's story; `window.__sectionStory.open(id, scene, seconds)` opens a section story and `.debug(id)` prints the room-finding grid.
 

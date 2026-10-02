@@ -25,7 +25,7 @@ for (const [i, frac] of [[0, 0.02], [1, 0.36], [2, 0.86]]) {
 }
 await page.evaluate(() => window.scrollTo(0, 0)); await page.waitForTimeout(800);
 // page transition
-await page.click('nav.primary a[href="/essays"]');
+await page.click('nav.primary a[href="/essays/"]');
 await page.waitForTimeout(380);
 await page.screenshot({ path: 'qa/xp-transition.png' });
 await page.waitForTimeout(1800);

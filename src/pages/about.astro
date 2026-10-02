@@ -3,7 +3,7 @@ import Base from '@/layouts/Base.astro';
 import PublicationEntry from '@/components/PublicationEntry.astro';
 import { site } from '@/data/site';
 import { cv } from '@/data/cv';
-import { getResearch, getPublications, getQuestions } from '@/lib/content';
+import { getResearch, getPublications, getQuestions, pubHref } from '@/lib/content';
 import { breadcrumbJsonLd } from '@/lib/seo';
 
 const [areas, pubs, questions] = await Promise.all([getResearch(), getPublications(), getQuestions()]);
@@ -21,7 +21,7 @@ const profileLd = {
   name: 'About Abhinav Saxena',
 };
 ---
-<Base title="About" description="Abhinav Saxena is a philosopher working in epistemology — testimony and the social epistemology of AI — and on the ethics and politics of algorithmic systems. Background, research, current work and profiles." path="/about" type="profile" jsonLd={[profileLd, breadcrumbJsonLd([{ name: 'Home', path: '/' }, { name: 'About', path: '/about' }])]}>
+<Base title="About" description="Abhinav Saxena is a philosopher working in epistemology — testimony and the social epistemology of AI — and on the ethics and politics of algorithmic systems. Background, research, current work and profiles." path="/about/" type="profile" jsonLd={[profileLd, breadcrumbJsonLd([{ name: 'Home', path: '/' }, { name: 'About', path: '/about/' }])]}>
   <article class="about">
     <header class="section about__head">
       <div class="container grid">
@@ -63,7 +63,7 @@ const profileLd = {
               </div>
             ))}
           </dl>
-          <a class="arrow-link" href="/cv" style="margin-top: var(--s-m); display: inline-flex">Full curriculum vitae <span class="arr" aria-hidden="true"></span></a>
+          <a class="arrow-link" href="/cv/" style="margin-top: var(--s-m); display: inline-flex">Full curriculum vitae <span class="arr" aria-hidden="true"></span></a>
         </div>
       </div>
     </section>
@@ -73,7 +73,7 @@ const profileLd = {
         <div class="about__side"><h2 class="tag" id="interests" data-reveal>Research interests</h2></div>
         <div class="about__main">
           <ul class="about__areas" role="list" data-reveal-group="50">
-            {areas.map((a) => <li data-reveal><a class="about__area" href={`/research/${a.id}`}><span class="serif">{a.data.title}</span><span class="about__area-short">{a.data.short}</span></a></li>)}
+            {areas.map((a) => <li data-reveal><a class="about__area" href={`/research/${a.id}/`}><span class="serif">{a.data.title}</span><span class="about__area-short">{a.data.short}</span></a></li>)}
           </ul>
         </div>
       </div>
@@ -88,7 +88,7 @@ const profileLd = {
             {questions.slice(0, 2).map((q) => <li class="serif" data-reveal>{q.data.question}</li>)}
           </ol>
           <div class="about__now prose" data-reveal>
-            <p>{forthcoming.map((p) => <><a class="link" href={`/publications#${p.id}`}>{p.data.title.split(':')[0]}</a> is forthcoming in <em>{p.data.venue}</em>. </>)}{inReview.length > 0 && <>Under review: {inReview.map((p, i) => <>{i > 0 && (i === inReview.length - 1 ? ' and ' : ', ')}<a class="link" href={`/publications#${p.id}`}>{p.data.title.split(':')[0]}</a> (<em>{p.data.venue}</em>{p.data.note && `, ${p.data.note.toLowerCase()}`})</>)}.</>}</p>
+            <p>{forthcoming.map((p) => <><a class="link" href={pubHref(p)}>{p.data.title.split(':')[0]}</a> is forthcoming in <em>{p.data.venue}</em>. </>)}{inReview.length > 0 && <>Under review: {inReview.map((p, i) => <>{i > 0 && (i === inReview.length - 1 ? ' and ' : ', ')}<a class="link" href={pubHref(p)}>{p.data.title.split(':')[0]}</a> (<em>{p.data.venue}</em>{p.data.note && `, ${p.data.note.toLowerCase()}`})</>)}.</>}</p>
             <p>Recent talks: {talks.map((t, i) => <>{i > 0 && '; '}<em>{t.title.split(':')[0]}</em> ({t.org}, {t.period})</>)}.</p>
           </div>
         </div>
@@ -100,7 +100,7 @@ const profileLd = {
         <div class="about__side"><h2 class="tag" id="selected" data-reveal>Selected publications</h2></div>
         <div class="about__main">
           <div class="about__pubs">{featuredPubs.map((p) => <PublicationEntry pub={p} index={pubs.length - pubs.indexOf(p)} areaTitles={areaTitles} compact />)}</div>
-          <a class="arrow-link" href="/publications" style="margin-top: var(--s-m); display: inline-flex">All publications <span class="arr" aria-hidden="true"></span></a>
+          <a class="arrow-link" href="/publications/" style="margin-top: var(--s-m); display: inline-flex">All publications <span class="arr" aria-hidden="true"></span></a>
         </div>
       </div>
     </section>

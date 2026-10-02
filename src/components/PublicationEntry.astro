@@ -10,7 +10,9 @@ const { Content } = await render(pub);
 const doi = doiUrl(d.doi);
 const link = doi ?? d.url;
 const citation = formatCitation(d);
-const hasAbstract = Boolean(pub.body?.trim());
+// a paper with a page of its own is described there; the list links to it rather than repeating the abstract
+const page = d.summary.length > 0 ? `/publications/${pub.id}/` : null;
+const hasAbstract = !page && Boolean(pub.body?.trim());
 ---
 <article
   class={`pub ${compact ? 'pub--compact' : ''} pub--${d.status}`}
@@ -33,18 +35,19 @@ const hasAbstract = Boolean(pub.body?.trim());
       <span class="pub__type">{venueTypeLabel[d.venueType]}</span>
       {d.note && <span class="pub__note">{d.note}</span>}
     </div>
-    <H class="pub__title serif">{d.title}</H>
+    <H class="pub__title serif">{page ? <a href={page}>{d.title}</a> : d.title}</H>
     <p class="pub__authors">{formatAuthors(d.authors)}</p>
     <p class="pub__venue serif">
       {d.venueType === 'chapter' && <span>In </span>}<em>{d.venue}</em>{d.volume && <span> {d.volume}</span>}{d.issue && <span>({d.issue})</span>}{d.pages && <span>, {d.pages}</span>}
     </p>
     {!compact && (
       <div class="pub__areas">
-        {d.areas.map((a) => <a class="chip" href={`/research/${a.id}`}>{areaTitles[a.id]}</a>)}
+        {d.areas.map((a) => <a class="chip" href={`/research/${a.id}/`}>{areaTitles[a.id]}</a>)}
         {d.topics.map((t) => <span class="tag">{t}</span>)}
       </div>
     )}
     <div class="pub__actions">
+      {page && <a class="pub__link pub__link--page" href={page}>About the paper <span aria-hidden="true">→</span></a>}
       {hasAbstract && (
         <button type="button" class="pub__toggle" aria-expanded="false" aria-controls={`abs-${pub.id}`}>
           <span class="pub__toggle-icon" aria-hidden="true"><i></i><i></i></span>Abstract
@@ -74,6 +77,8 @@ const hasAbstract = Boolean(pub.body?.trim());
   .pub__status--forthcoming::before { background: var(--accent); opacity: 0.6; }
   .pub__status--under-review::before, .pub__status--in-progress::before { background: transparent; border: 1px solid var(--ink-3); }
   .pub__note { color: var(--ink-3); text-transform: none; letter-spacing: 0.02em; font-style: italic; }
+  .pub__title a { transition: color var(--dur-2); }
+  .pub__title a:hover { color: var(--accent); }
   .pub__title { margin-top: var(--s-xs); font-size: var(--step-2); line-height: 1.18; letter-spacing: -0.01em; text-wrap: balance; max-width: 34ch; }
   .pub--compact .pub__title { font-size: var(--step-1); }
   .pub__authors { margin-top: 0.4rem; font-family: var(--font-sans); font-size: var(--step--1); color: var(--ink-2); }

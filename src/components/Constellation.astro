@@ -18,7 +18,7 @@ const nodes = areas.map((a) => {
     id: a.id,
     label: a.data.title,
     short: a.data.short,
-    href: `/research/${a.id}`,
+    href: `/research/${a.id}/`,
     weight: Math.min(4, count(a.id)),
     hx: 0.5 + Math.cos(ang) * rad * 0.42,
     hy: 0.5 + Math.sin(ang) * rad * 0.42,
@@ -51,7 +51,7 @@ const graph = JSON.stringify({ nodes, links });
       <ol class="constellation__index" role="list">
         {areas.map((a, i) => (
           <li>
-            <a href={`/research/${a.id}`} data-select-area={a.id}>
+            <a href={`/research/${a.id}/`} data-select-area={a.id}>
               <span class="tnum">{String(i + 1).padStart(2, '0')}</span>
               <span>{a.data.title}</span>
             </a>
@@ -88,7 +88,7 @@ const graph = JSON.stringify({ nodes, links });
               })}
             </div>
           </div>
-          <a class="arrow-link constellation__go" href={`/research/${a.id}`}>Open this area <span class="arr" aria-hidden="true"></span></a>
+          <a class="arrow-link constellation__go" href={`/research/${a.id}/`}>Open this area <span class="arr" aria-hidden="true"></span></a>
         </div>
       );
     })}

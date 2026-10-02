@@ -64,3 +64,13 @@ export function relatedEssays(
 export function byArea<T extends { data: { areas: { id: string }[] } }>(items: T[], areaId: string) {
   return items.filter((i) => i.data.areas.some((a) => a.id === areaId));
 }
+
+/** Where a paper is described: its own page if it has one, otherwise its entry in the list. */
+export function pubHref(p: CollectionEntry<'publications'>) {
+  return p.data.summary.length > 0 ? `/publications/${p.id}/` : `/publications/#${p.id}`;
+}
+
+export async function getLibrary() {
+  const all = await getCollection('library');
+  return all.sort((a, b) => a.data.order - b.data.order);
+}

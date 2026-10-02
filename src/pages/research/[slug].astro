@@ -22,9 +22,9 @@ const relLab = byArea(lab, area.id);
 const neighbours = (await Promise.all(d.related.map((r) => getEntry(r)))).filter(Boolean);
 const concepts = (await Promise.all(d.concepts.map((c) => getEntry(c)))).filter(Boolean);
 const idx = areas.findIndex((a) => a.id === area.id);
-const path = `/research/${area.id}`;
+const path = `/research/${area.id}/`;
 ---
-<Base title={d.title} description={`${d.title} — ${d.short} Research by Abhinav Saxena.`} path={path} jsonLd={[breadcrumbJsonLd([{ name: 'Home', path: '/' }, { name: 'Research', path: '/research' }, { name: d.title, path }])]}>
+<Base title={d.title} description={d.description ?? `${d.title}: ${d.short} Research by Abhinav Saxena.`} path={path} jsonLd={[breadcrumbJsonLd([{ name: 'Home', path: '/' }, { name: 'Research', path: '/research/' }, { name: d.title, path }])]}>
   <article class="area">
     <header class="section area__head">
       <div class="container grid">
@@ -51,13 +51,13 @@ const path = `/research/${area.id}`;
             {concepts.length > 0 && (
               <div class="area__concepts">
                 <span class="tag">Concepts</span>
-                <div class="area__chips">{concepts.map((c) => c && <a class="chip" href={`/ideas#${c.id}`}>{c.data.title}</a>)}</div>
+                <div class="area__chips">{concepts.map((c) => c && <a class="chip" href={`/glossary/${c.id}/`}>{c.data.title}</a>)}</div>
               </div>
             )}
             {neighbours.length > 0 && (
               <div class="area__concepts">
                 <span class="tag">Neighbouring areas</span>
-                <div class="area__chips">{neighbours.map((n) => n && <a class="chip" href={`/research/${n.id}`}>{n.data.title}</a>)}</div>
+                <div class="area__chips">{neighbours.map((n) => n && <a class="chip" href={`/research/${n.id}/`}>{n.data.title}</a>)}</div>
               </div>
             )}
           </div>

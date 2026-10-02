@@ -1,0 +1,95 @@
+---
+import Base from '@/layouts/Base.astro';
+import Doc from '@/components/Doc.astro';
+import DocSection from '@/components/DocSection.astro';
+import { getEntry, render } from 'astro:content';
+import { getConcepts, getQuestions } from '@/lib/content';
+import { breadcrumbJsonLd, definedTermJsonLd } from '@/lib/seo';
+import { site } from '@/data/site';
+
+export async function getStaticPaths() {
+  const concepts = await getConcepts();
+  return concepts.map((concept) => ({ params: { slug: concept.id }, props: { concept } }));
+}
+const { concept } = Astro.props;
+const d = concept.data;
+const { Content, headings } = await render(concept);
+const path = `/glossary/${concept.id}/`;
+const all = await getConcepts();
+const linked = new Map<string, string>();
+for (const r of d.relations) linked.set(r.to.id, r.note);
+for (const s of d.seeAlso) if (!linked.has(s.id)) linked.set(s.id, '');
+const seeAlso = (await Promise.all([...linked.keys()].map((id) => getEntry('concepts', id)))).filter(Boolean);
+const areas = (await Promise.all(d.areas.map((a) => getEntry(a)))).filter(Boolean);
+const questions = (await getQuestions()).filter((q) => q.data.concepts.some((c) => c.id === concept.id));
+// terms that point back here, so the glossary links in both directions
+const backlinks = all.filter((c) => c.id !== concept.id && !linked.has(c.id) && (c.data.seeAlso.some((s) => s.id === concept.id) || c.data.relations.some((r) => r.to.id === concept.id)));
+const md = (s: string) => s.replace(/\*(.+?)\*/g, '<em>$1</em>');
+const plain = (s: string) => s.replace(/\*(.+?)\*/g, '$1');
+const jsonLd = [
+  definedTermJsonLd({ id: concept.id, name: d.title, description: plain(d.definition), aka: d.aka }),
+  {
+    '@context': 'https://schema.org',
+    '@type': 'Article',
+    '@id': `${site.url}${path}#entry`,
+    headline: `${d.title}: definition and explanation`,
+    description: plain(d.definition),
+    author: { '@id': `${site.url}/#person` },
+    about: { '@id': `${site.url}${path}#term` },
+    mainEntityOfPage: `${site.url}${path}`,
+    inLanguage: 'en',
+  },
+  breadcrumbJsonLd([{ name: 'Home', path: '/' }, { name: 'Glossary', path: '/glossary/' }, { name: d.title, path }]),
+];
+const description = `${plain(d.definition)} ${d.title} explained by philosopher Abhinav Saxena.`.slice(0, 300);
+---
+<Base title={`${d.title}: definition`} description={description} path={path} type="article" jsonLd={jsonLd} bodyClass="reading" field="reading">
+  <Doc eyebrow="Glossary" eyebrowHref="/glossary/" title={d.title} answer={d.definition} answerLabel="Definition" standfirst={d.aka.length ? `Also called: ${d.aka.join(', ')}` : undefined} toc={headings.filter((h) => h.depth === 2)} crumbs={[{ name: 'Home', path: '/' }, { name: 'Glossary', path: '/glossary/' }, { name: d.title, path }]}>
+    <Content />
+
+    <Fragment slot="side">
+      {areas.length > 0 && (
+        <div class="g-side">
+          <span class="tag">Research areas</span>
+          <div class="g-side__chips">{areas.map((a) => a && <a class="chip" href={`/research/${a.id}/`}>{a.data.title}</a>)}</div>
+        </div>
+      )}
+      {d.map && <a class="arrow-link" href={`/ideas/#${concept.id}`}>See it on the map of ideas <span class="arr" aria-hidden="true"></span></a>}
+    </Fragment>
+
+    <Fragment slot="foot">
+      {seeAlso.length > 0 && (
+        <DocSection title="Related terms" id="related">
+          <div class="links">
+            {seeAlso.map((c) => c && (
+              <a href={`/glossary/${c.id}/`}>
+                <small>{c.data.title}</small>
+                <span class="serif" set:html={md(linked.get(c.id) || c.data.definition)} />
+              </a>
+            ))}
+          </div>
+        </DocSection>
+      )}
+      {questions.length > 0 && (
+        <DocSection title="Questions that turn on it" id="questions">
+          <div class="links">{questions.map((q) => <a href={`/questions/${q.id}/`}><small>Question</small><span class="serif">{q.data.question}</span></a>)}</div>
+        </DocSection>
+      )}
+      {backlinks.length > 0 && (
+        <DocSection title="Referred to by" id="backlinks">
+          <div class="chips">{backlinks.map((c) => <a class="chip" href={`/glossary/${c.id}/`}>{c.data.title}</a>)}</div>
+        </DocSection>
+      )}
+      {d.sources.length > 0 && (
+        <DocSection title="Further reading" id="sources">
+          <ol class="srcs">{d.sources.map((s) => <li><span set:html={md(s.text)} />{s.url && <a href={s.url} rel="noopener" target="_blank">{s.url.replace(/^https?:\/\//, '')}</a>}</li>)}</ol>
+        </DocSection>
+      )}
+    </Fragment>
+  </Doc>
+</Base>
+
+<style>
+  .g-side { display: flex; flex-direction: column; gap: 0.4rem; }
+  .g-side__chips { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+</style>

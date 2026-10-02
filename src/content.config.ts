@@ -10,18 +10,26 @@ import { glob } from 'astro/loaders';
  *   src/content/publications/  one .md per paper           (body = abstract)
  *   src/content/essays/        one .mdx per essay          (body = the essay)
  *   src/content/lab/           one .md per experiment      (body = framing / instructions)
- *   src/content/questions/     one .md per open question   (body = why it matters)
- *   src/content/concepts/      one .md per concept node    (body = longer note)
+ *   src/content/questions/     one .md per question        (body = the long answer)
+ *   src/content/concepts/      one .md per glossary term   (body = the full entry)
+ *   src/content/library/       one .md per open text       (body = commentary)
  *
  * Cross-references use `reference()` so a typo in an id fails the build
  * instead of silently producing a dead link.
  */
+
+/** A question and its answer, for FAQ blocks (rendered visibly and as FAQPage data). */
+const faq = z.array(z.object({ q: z.string(), a: z.string() })).default([]);
+/** A source to read next: citation text and, where there is one, a link. */
+const sources = z.array(z.object({ text: z.string(), url: z.string().url().optional() })).default([]);
 
 const research = defineCollection({
   loader: glob({ pattern: '**/*.md', base: './src/content/research' }),
   schema: z.object({
     title: z.string(),
     short: z.string().describe('One-line description shown in the constellation panel'),
+    /** Meta description; falls back to `short`. */
+    description: z.string().optional(),
     order: z.number().default(99),
     keyQuestions: z.array(z.string()).default([]),
     related: z.array(reference('research')).default([]),
@@ -56,6 +64,19 @@ const publications = defineCollection({
     featured: z.boolean().default(false),
     /** Short editorial status shown beside the status stamp, e.g. "Minor revisions requested". */
     note: z.string().optional(),
+    /** Dates in the editorial record, where known. */
+    received: z.coerce.date().optional(),
+    accepted: z.coerce.date().optional(),
+    published: z.coerce.date().optional(),
+    /** Meta description and search-result title for the paper's own page. */
+    description: z.string().optional(),
+    seoTitle: z.string().optional(),
+    /** The argument in plain words, a paragraph per item; papers with none get no page of their own. */
+    summary: z.array(z.string()).default([]),
+    /** The paper's main claims, one sentence each. */
+    claims: z.array(z.string()).default([]),
+    concepts: z.array(reference('concepts')).default([]),
+    faq,
   }),
 });
 
@@ -108,7 +129,17 @@ const lab = defineCollection({
 const questions = defineCollection({
   loader: glob({ pattern: '**/*.md', base: './src/content/questions' }),
   schema: z.object({
+    /** The page's heading and title. The file name is its address: /questions/<file name>. */
     question: z.string(),
+    /** A shorter title for search results, when the question is long. */
+    seoTitle: z.string().optional(),
+    /** The short answer, given first (two or three sentences). */
+    answer: z.string(),
+    description: z.string(),
+    date: z.coerce.date(),
+    updated: z.coerce.date().optional(),
+    /** Listed among the open research questions on the home page. */
+    onHome: z.boolean().default(false),
     order: z.number().default(99),
     /** Words in the question to emphasise on hover, e.g. ["know", "artificial system"] */
     emphasis: z.array(z.string()).default([]),
@@ -118,6 +149,9 @@ const questions = defineCollection({
     publication: reference('publications').optional(),
     experiment: reference('lab').optional(),
     concepts: z.array(reference('concepts')).default([]),
+    related: z.array(reference('questions')).default([]),
+    faq,
+    sources,
   }),
 });
 
@@ -136,6 +170,10 @@ const concepts = defineCollection({
   schema: z.object({
     title: z.string(),
     definition: z.string(),
+    /** Other names the term goes by. */
+    aka: z.array(z.string()).default([]),
+    /** Drawn as a node on the ideas map; glossary-only terms are not. */
+    map: z.boolean().default(true),
     order: z.number().default(99),
     /** Part of the site's central thread AI → Mind → Agency → Knowledge → Ethics → Responsibility → Technology */
     spine: z.boolean().default(false),
@@ -149,7 +187,39 @@ const concepts = defineCollection({
       )
       .default([]),
     areas: z.array(reference('research')).default([]),
+    /** Further terms in the glossary worth reading next. */
+    seeAlso: z.array(reference('concepts')).default([]),
+    sources,
   }),
 });
 
-export const collections = { research, publications, essays, lab, questions, concepts };
+const library = defineCollection({
+  loader: glob({ pattern: '**/*.md', base: './src/content/library' }),
+  schema: z.object({
+    /** The work's own title. */
+    title: z.string(),
+    /** The page's heading, e.g. "Hume on testimony: Of Miracles". */
+    heading: z.string(),
+    seoTitle: z.string().optional(),
+    author: z.string(),
+    translator: z.string().optional(),
+    /** Year of first publication of the original work (negative for BCE). */
+    year: z.number().int(),
+    /** The edition the passages are taken from. */
+    edition: z.string(),
+    sourceName: z.string(),
+    sourceUrl: z.string().url(),
+    licence: z.string(),
+    description: z.string(),
+    /** Why the text is in this library, in a sentence. */
+    lede: z.string(),
+    order: z.number().default(99),
+    passages: z.array(z.object({ locator: z.string(), label: z.string(), text: z.string() })),
+    /** Editorial notes on the text as reproduced (sic readings, omissions). */
+    notes: z.string().optional(),
+    questions: z.array(reference('questions')).default([]),
+    concepts: z.array(reference('concepts')).default([]),
+  }),
+});
+
+export const collections = { research, publications, essays, lab, questions, concepts, library };

@@ -24,6 +24,7 @@ interface Props {
   jsonLd?: Record<string, unknown>[];
   noindex?: boolean;
   isHome?: boolean;
+  meta?: { name: string; content: string }[];
   bodyClass?: string;
   /** How the WebGL field behaves on this page. */
   field?: 'hero' | 'ambient' | 'reading' | 'off';

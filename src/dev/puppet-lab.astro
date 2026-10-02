@@ -1,0 +1,134 @@
+---
+/**
+ * A workbench for the story puppets (not linked from anywhere, not indexed).
+ *   ?sheet=cave&n=4&w=300            every scene of a story at n moments
+ *   ?sheet=cave&scenes=1,2           only some scenes
+ *   ?stills=cave&w=300               each scene as a reduced-motion still
+ *   ?story=cave&scene=2&t=4&w=900    one frame (&feather=1 for the soft edge of a page stage)
+ *   ?figures=1                       the figure's poses
+ * Add &theme=light for the light theme. Each story is loaded on its own, so a
+ * story with an error does not stop the others from rendering.
+ */
+import '@/styles/tokens.css';
+---
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="robots" content="noindex" />
+    <title>Puppet lab</title>
+    <script is:inline>
+      document.documentElement.setAttribute('data-theme', new URLSearchParams(location.search).get('theme') === 'light' ? 'light' : 'dark');
+    </script>
+    <style is:global>
+      body { margin: 0; padding: 16px; background: var(--paper); color: var(--ink); font: 12px/1.3 system-ui, sans-serif; }
+      .grid { display: grid; gap: 10px; }
+      .row { display: flex; gap: 8px; align-items: flex-start; }
+      .cell { display: flex; flex-direction: column; gap: 3px; }
+      .cell span { opacity: 0.6; }
+      .err { color: #e0653f; white-space: pre-wrap; font: 12px ui-monospace, monospace; }
+      canvas { display: block; }
+      astro-dev-toolbar { display: none !important; }
+    </style>
+  </head>
+  <body>
+    <div id="lab" class="grid"></div>
+    <script>
+      import { stories, type StoryId } from '@/data/stories';
+      import { Theatre, readTheme, type StoryVisuals } from '@/scripts/story/puppet/theatre';
+      import { person, walk, GESTURE, SIT, CHAIR, KNEEL } from '@/scripts/story/puppet/figure';
+
+      const modules = import.meta.glob('/src/scripts/story/stories/*.ts');
+      const q = new URLSearchParams(location.search);
+      const lab = document.getElementById('lab')!;
+      const fail = (msg: string) => { const p = document.createElement('pre'); p.className = 'err'; p.textContent = msg; lab.append(p); console.error(msg); };
+
+      async function load(id: string): Promise<StoryVisuals | null> {
+        const loader = modules[`/src/scripts/story/stories/${id}.ts`];
+        if (!loader) { fail(`no story file for "${id}"`); return null; }
+        try {
+          const mod = (await loader()) as Record<string, unknown>;
+          const v = (mod[id] ?? Object.values(mod).find((x: any) => x && x.scenes)) as StoryVisuals | undefined;
+          if (!v || !Array.isArray(v.scenes)) { fail(`"${id}" does not export its visuals as \`${id}\``); return null; }
+          return v;
+        } catch (e) { fail(`"${id}" failed to load: ${(e as Error).message}`); return null; }
+      }
+
+      function frame(v: StoryVisuals, id: StoryId, scene: number, t: number, w: number, o: { feather?: number; still?: boolean } = {}) {
+        const cv = document.createElement('canvas');
+        const h = w / v.aspect;
+        cv.style.width = `${w}px`; cv.style.height = `${h}px`;
+        const th = new Theatre(cv);
+        const d = stories[id].scenes[scene]?.duration ?? 10;
+        try {
+          if (!v.scenes[scene]) throw new Error(`no scene function for scene ${scene + 1} (the text has ${stories[id].scenes.length} scenes)`);
+          th.render(v.scenes[scene], { w, h, aspect: v.aspect, t, d, clock: t, dt: 1 / 60, still: !!o.still, feather: o.feather ?? 0 });
+        } catch (e) { fail(`${id} scene ${scene + 1} at ${t.toFixed(1)}s: ${(e as Error).stack ?? e}`); }
+        return cv;
+      }
+
+      async function main() {
+        readTheme();
+        await document.fonts?.ready;
+        const sheet = (q.get('sheet') ?? q.get('stills')) as StoryId | null;
+        const one = q.get('story') as StoryId | null;
+        if (sheet) {
+          const v = await load(sheet);
+          if (v) {
+            const stillsMode = q.has('stills');
+            const n = stillsMode ? 1 : Number(q.get('n') ?? 4), w = Number(q.get('w') ?? 300);
+            const only = q.get('scenes')?.split(',').map(Number);
+            if (v.scenes.length !== stories[sheet].scenes.length) fail(`${sheet}: ${v.scenes.length} scene functions for ${stories[sheet].scenes.length} scenes of text`);
+            const row = (sc: { numeral: string; title: string }, i: number, times: number[], still: boolean) => {
+              const r = document.createElement('div'); r.className = 'row';
+              for (const t of times) {
+                const cell = document.createElement('div'); cell.className = 'cell';
+                const label = document.createElement('span'); label.textContent = `${sc.numeral} ${sc.title} · ${t.toFixed(1)}s${still ? ' (still)' : ''}`;
+                cell.append(frame(v, sheet, i, t, w, { still, feather: q.get('feather') ? Math.min(w, w / v.aspect) * 0.12 : 0 }), label); r.append(cell);
+              }
+              lab.append(r);
+            };
+            stories[sheet].scenes.forEach((sc, i) => {
+              if (only && !only.includes(i)) return;
+              if (stillsMode) row(sc, i, [v.stills[i] ?? sc.duration * 0.6], true);
+              else row(sc, i, Array.from({ length: n }, (_, k) => (sc.duration * (k + 0.5)) / n), false);
+            });
+          }
+        } else if (one) {
+          const v = await load(one);
+          if (v) {
+            const w = Number(q.get('w') ?? 900);
+            lab.append(frame(v, one, Number(q.get('scene') ?? 0), Number(q.get('t') ?? 3), w, { still: q.has('still'), feather: q.get('feather') ? Math.min(w, w / v.aspect) * 0.12 : 0 }));
+          }
+        } else if (q.get('figures')) {
+          const cv = document.createElement('canvas');
+          const W = 1300, H = 760;
+          cv.width = W * 2; cv.height = H * 2; cv.style.width = `${W}px`; cv.style.height = `${H}px`;
+          const c = cv.getContext('2d')!;
+          c.scale(2, 2);
+          const ground = '#e8c99a';
+          c.fillStyle = ground; c.fillRect(0, 0, W, H);
+          const poses = Object.entries(GESTURE);
+          poses.forEach(([name, g], i) => {
+            const x = 60 + (i % 10) * 124, y = 250 + Math.floor(i / 10) * 250;
+            c.fillStyle = '#16141a'; c.strokeStyle = '#16141a';
+            person(c, { x, y, h: 190, ...g, robe: i % 3 === 0 ? 'long' : i % 3 === 1 ? 'short' : 'cloak', beard: i % 2 === 0, hat: i === 4 ? 'petasos' : i === 9 ? 'crown' : i === 13 ? 'brim' : null, hold: i === 6 ? 'torch' : i === 7 ? 'scroll' : i === 11 ? 'lyre' : i === 12 ? 'hammer' : null, t: 1, cut: ground, eye: i === 3 ? 'blind' : i === 5 ? 'closed' : 'open', mouth: i === 1 ? 1 : 0 });
+            c.fillStyle = '#16141a'; c.fillText(name, x - 20, y + 16);
+          });
+          for (let i = 0; i < 6; i++) {
+            c.fillStyle = '#16141a'; c.strokeStyle = '#16141a';
+            person(c, { x: 60 + i * 100, y: 740, h: 190, ...walk(i / 6), robe: i < 3 ? 'short' : 'long', t: i, cut: ground });
+          }
+          c.fillStyle = '#16141a'; c.strokeStyle = '#16141a';
+          person(c, { x: 700, y: 740, h: 190, ...SIT, robe: 'short', ...GESTURE.cross, cut: ground });
+          person(c, { x: 840, y: 740, h: 190, ...CHAIR, robe: 'long', beard: true, ...GESTURE.chin, cut: ground });
+          person(c, { x: 980, y: 740, h: 190, ...KNEEL, robe: 'short', ...GESTURE.plead, cut: ground });
+          person(c, { x: 1120, y: 740, h: 190, robe: 'long', head: 'ibis', hold: 'scroll', ...GESTURE.offer, cut: ground });
+          person(c, { x: 1230, y: 740, h: 190, robe: 'short', reach: [1290, 600], reach2: [1180, 560], cut: ground, eye: 'blind' });
+          lab.append(cv);
+        }
+        lab.dataset.done = '1';
+      }
+      main().catch((e) => { fail(String(e?.stack ?? e)); lab.dataset.done = '1'; });
+    </script>
+  </body>
+</html>

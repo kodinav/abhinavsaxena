@@ -18,9 +18,9 @@ const idx = lab.findIndex((x) => x.id === exp.id);
 const areas = (await Promise.all(d.areas.map((a) => getEntry(a)))).filter(Boolean);
 const concepts = (await Promise.all(d.concepts.map((c) => getEntry(c)))).filter(Boolean);
 const others = lab.filter((x) => x.id !== exp.id).slice(0, 3);
-const path = `/lab/${exp.id}`;
+const path = `/lab/${exp.id}/`;
 ---
-<Base title={`${d.title} — Philosophy Lab`} description={`${d.question} ${d.summary}`} path={path} jsonLd={[breadcrumbJsonLd([{ name: 'Home', path: '/' }, { name: 'Philosophy Lab', path: '/lab' }, { name: d.title, path }])]}>
+<Base title={`${d.title} — Philosophy Lab`} description={`${d.question} ${d.summary}`} path={path} jsonLd={[breadcrumbJsonLd([{ name: 'Home', path: '/' }, { name: 'Philosophy Lab', path: '/lab/' }, { name: d.title, path }])]}>
   <article class="exp">
     <header class="section exp__head">
       <div class="container grid">
@@ -28,8 +28,8 @@ const path = `/lab/${exp.id}`;
           <span class="eyebrow" data-reveal><span class="num">Exp. {String(idx + 1).padStart(2, '0')}</span>Philosophy Lab</span>
           <dl class="exp__facts" data-reveal>
             <div><dt>Duration</dt><dd>{d.duration}</dd></div>
-            <div><dt>Areas</dt><dd>{areas.map((a) => a && <a class="link" href={`/research/${a.id}`}>{a.data.title}</a>)}</dd></div>
-            {concepts.length > 0 && <div><dt>Concepts</dt><dd>{concepts.map((c) => c && <a class="link" href={`/ideas#${c.id}`}>{c.data.title}</a>)}</dd></div>}
+            <div><dt>Areas</dt><dd>{areas.map((a) => a && <a class="link" href={`/research/${a.id}/`}>{a.data.title}</a>)}</dd></div>
+            {concepts.length > 0 && <div><dt>Concepts</dt><dd>{concepts.map((c) => c && <a class="link" href={`/glossary/${c.id}/`}>{c.data.title}</a>)}</dd></div>}
           </dl>
         </div>
         <div class="exp__head-main">

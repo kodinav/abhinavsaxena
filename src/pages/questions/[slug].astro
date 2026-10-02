@@ -1,0 +1,99 @@
+---
+import Base from '@/layouts/Base.astro';
+import Doc from '@/components/Doc.astro';
+import DocSection from '@/components/DocSection.astro';
+import { getEntry, render } from 'astro:content';
+import { getQuestions } from '@/lib/content';
+import { articleJsonLd, breadcrumbJsonLd, faqJsonLd } from '@/lib/seo';
+import { site } from '@/data/site';
+
+export async function getStaticPaths() {
+  const questions = await getQuestions();
+  return questions.map((question) => ({ params: { slug: question.id }, props: { question } }));
+}
+const { question } = Astro.props;
+const d = question.data;
+const { Content, headings } = await render(question);
+const path = `/questions/${question.id}/`;
+const [areas, concepts, related] = await Promise.all([
+  Promise.all(d.areas.map((a) => getEntry(a))),
+  Promise.all(d.concepts.map((c) => getEntry(c))),
+  Promise.all(d.related.map((r) => getEntry(r))),
+]);
+const publication = d.publication ? await getEntry(d.publication) : null;
+const essay = d.essay ? await getEntry(d.essay) : null;
+const experiment = d.experiment ? await getEntry(d.experiment) : null;
+// the page's own question leads the FAQ data, so answer engines get the short answer first
+const faq = [{ q: d.question, a: d.answer }, ...d.faq];
+const plain = (s: string) => s.replace(/\*(.+?)\*/g, '$1');
+const md = (s: string) => s.replace(/\*(.+?)\*/g, '<em>$1</em>');
+const jsonLd = [
+  {
+    ...articleJsonLd({ path, title: d.question, description: d.description, published: d.date, updated: d.updated, tags: concepts.filter(Boolean).map((c) => c!.data.title) }),
+    about: concepts.filter(Boolean).map((c) => ({ '@id': `${site.url}/glossary/${c!.id}#term` })),
+    ...(publication ? { citation: { '@id': `${site.url}/publications/${publication.id}#article` } } : {}),
+  },
+  faqJsonLd(faq.map((f) => ({ q: f.q, a: plain(f.a) })), path),
+  breadcrumbJsonLd([{ name: 'Home', path: '/' }, { name: 'Questions', path: '/questions/' }, { name: d.question, path }]),
+];
+const citation = `Saxena, A. (${d.date.getUTCFullYear()}). ${d.question} abhinavsaxena.in. ${site.url}${path}`;
+---
+<Base title={d.seoTitle ?? d.question} description={d.description} path={path} type="article" published={d.date} updated={d.updated} jsonLd={jsonLd} bodyClass="reading" field="reading">
+  <Doc eyebrow="Questions" eyebrowHref="/questions/" title={d.question} answer={d.answer} date={d.date} updated={d.updated} toc={headings.filter((h) => h.depth === 2)} crumbs={[{ name: 'Home', path: '/' }, { name: 'Questions', path: '/questions/' }, { name: d.question, path }]}>
+    <Content />
+
+    <Fragment slot="side">
+      {publication && (
+        <div class="q-side">
+          <span class="tag">Worked out in</span>
+          <a class="q-side__link serif" href={`/publications/${publication.id}/`}>{publication.data.title}</a>
+          <span class="q-side__note">{publication.data.venue}{publication.data.status === 'forthcoming' ? ', forthcoming' : `, ${publication.data.year}`}</span>
+        </div>
+      )}
+      {concepts.filter(Boolean).length > 0 && (
+        <div class="q-side">
+          <span class="tag">Terms</span>
+          <div class="q-side__chips">{concepts.map((c) => c && <a class="chip" href={`/glossary/${c.id}/`}>{c.data.title}</a>)}</div>
+        </div>
+      )}
+    </Fragment>
+
+    <Fragment slot="foot">
+      {d.faq.length > 0 && (
+        <DocSection title="Questions people also ask" id="faq">
+          <div class="faq">
+            {d.faq.map((f) => <div><h3>{f.q}</h3><p set:html={md(f.a)} /></div>)}
+          </div>
+        </DocSection>
+      )}
+      {(related.filter(Boolean).length > 0 || essay || experiment) && (
+        <DocSection title="Read next" id="next">
+          <div class="links">
+            {related.map((r) => r && <a href={`/questions/${r.id}/`}><small>Question</small><span class="serif">{r.data.question}</span></a>)}
+            {essay && <a href={`/essays/${essay.id}/`}><small>Essay</small><span class="serif">{essay.data.title}</span></a>}
+            {experiment && <a href={`/lab/${experiment.id}/`}><small>Experiment</small><span class="serif">{experiment.data.title}</span></a>}
+          </div>
+        </DocSection>
+      )}
+      {d.sources.length > 0 && (
+        <DocSection title="Sources and further reading" id="sources">
+          <ol class="srcs">
+            {d.sources.map((s) => <li><span set:html={md(s.text)} />{s.url && <a href={s.url} rel="noopener" target="_blank">{s.url.replace(/^https?:\/\//, '')}</a>}</li>)}
+          </ol>
+        </DocSection>
+      )}
+      <DocSection title="Cite this page" id="cite">
+        <p class="cite">{citation}</p>
+        {areas.filter(Boolean).length > 0 && <div class="chips" style="margin-top: var(--s-m)">{areas.map((a) => a && <a class="chip" href={`/research/${a.id}/`}>{a.data.title}</a>)}</div>}
+      </DocSection>
+    </Fragment>
+  </Doc>
+</Base>
+
+<style>
+  .q-side { display: flex; flex-direction: column; gap: 0.4rem; }
+  .q-side__link { font-size: var(--step-0); line-height: 1.3; }
+  .q-side__link:hover { color: var(--accent); }
+  .q-side__note { font-family: var(--font-sans); font-size: var(--step--2); color: var(--ink-3); }
+  .q-side__chips { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+</style>

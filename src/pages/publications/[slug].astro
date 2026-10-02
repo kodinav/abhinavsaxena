@@ -1,0 +1,112 @@
+---
+import Base from '@/layouts/Base.astro';
+import Doc from '@/components/Doc.astro';
+import DocSection from '@/components/DocSection.astro';
+import { getEntry, render } from 'astro:content';
+import { getPublications, getQuestions } from '@/lib/content';
+import { formatDate, statusLabel } from '@/lib/format';
+import { breadcrumbJsonLd, faqJsonLd, scholarlyArticleJsonLd, scholarMeta } from '@/lib/seo';
+import { site } from '@/data/site';
+
+/** Only papers with a plain-words summary get a page of their own; work under review is listed, not described. */
+export async function getStaticPaths() {
+  const pubs = await getPublications();
+  return pubs.filter((p) => p.data.summary.length > 0).map((pub) => ({ params: { slug: pub.id }, props: { pub } }));
+}
+const { pub } = Astro.props;
+const d = pub.data;
+const { Content } = await render(pub);
+const path = `/publications/${pub.id}/`;
+const concepts = (await Promise.all(d.concepts.map((c) => getEntry(c)))).filter(Boolean);
+const areas = (await Promise.all(d.areas.map((a) => getEntry(a)))).filter(Boolean);
+const questions = (await getQuestions()).filter((q) => q.data.publication?.id === pub.id);
+const doiUrl = d.doi ? `https://doi.org/${d.doi}` : undefined;
+const year = d.status === 'forthcoming' ? 'forthcoming' : String(d.year);
+const where = `${d.venue}${d.volume ? ` ${d.volume}` : ''}${d.pages ? `: ${d.pages}` : ''}`;
+const apa = `Saxena, A. (${year}). ${d.title}. ${d.venue}${d.volume ? `, ${d.volume}` : ''}${d.pages ? `, ${d.pages}` : ''}.${doiUrl ? ` ${doiUrl}` : ''}`;
+const chicago = `Saxena, Abhinav. ${d.status === 'forthcoming' ? 'Forthcoming' : d.year}. “${d.title}.” ${where}.${doiUrl ? ` ${doiUrl}.` : ''}`;
+const bibKey = `saxena${d.year}${pub.id.split('-')[0]}`;
+const bibtex = [
+  `@article{${bibKey},`,
+  `  author  = {Saxena, Abhinav},`,
+  `  title   = {${d.title}},`,
+  `  journal = {${d.venue}},`,
+  `  year    = {${d.status === 'forthcoming' ? 'forthcoming' : d.year}},`,
+  ...(d.volume ? [`  volume  = {${d.volume}},`] : []),
+  ...(d.pages ? [`  pages   = {${d.pages}},`] : []),
+  ...(d.doi ? [`  doi     = {${d.doi}},`] : []),
+  `}`,
+].join('\n');
+const abstract = (pub.body ?? '').replace(/\*(.+?)\*/g, '$1').replace(/\s+/g, ' ').trim();
+const article = {
+  ...scholarlyArticleJsonLd({ id: pub.id, title: d.title, authors: d.authors, year: d.year, published: d.status === 'published', venue: d.venue, venueType: d.venueType, doi: d.doi, url: d.url, abstract, topics: d.topics }),
+  '@id': `${site.url}${path}#article`,
+  mainEntityOfPage: `${site.url}${path}`,
+  ...(d.published ? { datePublished: d.published.toISOString().slice(0, 10) } : {}),
+  ...(d.volume ? { isPartOf: { '@type': 'PublicationVolume', volumeNumber: d.volume, isPartOf: { '@type': 'Periodical', name: d.venue } } } : {}),
+  ...(d.pages ? { pagination: d.pages } : {}),
+  about: concepts.map((c) => ({ '@id': `${site.url}/glossary/${c!.id}#term` })),
+  description: d.summary[0],
+};
+const jsonLd = [article, ...(d.faq.length ? [faqJsonLd(d.faq, path)] : []), breadcrumbJsonLd([{ name: 'Home', path: '/' }, { name: 'Publications', path: '/publications/' }, { name: d.title, path }])];
+const meta = scholarMeta({ title: d.title, authors: d.authors, venue: d.venue, year: d.year, published: d.published, doi: d.doi, volume: d.volume, issue: d.issue, pages: d.pages, pdf: d.pdf, path, keywords: d.topics });
+const statusLine = d.status === 'forthcoming' ? `Forthcoming in ${d.venue}` : `${d.venue}${d.volume ? ` ${d.volume}` : ''}, ${d.year}`;
+---
+<Base title={d.seoTitle ?? d.title} description={d.description ?? d.summary[0]} path={path} type="article" published={d.published} meta={meta} jsonLd={jsonLd} bodyClass="reading" field="reading">
+  <Doc eyebrow={`${statusLabel[d.status]} · ${d.venue}`} eyebrowHref="/publications/" title={d.title} answer={d.summary[0]} answerLabel="In brief" crumbs={[{ name: 'Home', path: '/' }, { name: 'Publications', path: '/publications/' }, { name: d.title.split(':')[0], path }]}>
+    {d.summary.slice(1).map((p) => <p>{p}</p>)}
+    {d.claims.length > 0 && (
+      <>
+        <h2 id="claims">The main claims</h2>
+        <ol>{d.claims.map((c) => <li>{c}</li>)}</ol>
+      </>
+    )}
+    <h2 id="abstract">Abstract</h2>
+    <Content />
+
+    <Fragment slot="side">
+      <dl class="pub-facts">
+        <div><dt class="tag">Journal</dt><dd class="serif">{statusLine}</dd></div>
+        {d.received && <div><dt class="tag">Received</dt><dd>{formatDate(d.received)}</dd></div>}
+        {d.accepted && <div><dt class="tag">Accepted</dt><dd>{formatDate(d.accepted)}</dd></div>}
+        {d.published && <div><dt class="tag">Published</dt><dd>{formatDate(d.published)}</dd></div>}
+        {d.doi && <div><dt class="tag">DOI</dt><dd><a class="link" href={doiUrl} rel="noopener" target="_blank">{d.doi}</a></dd></div>}
+      </dl>
+      {d.url && <a class="btn btn--solid pub-read" href={d.url} rel="noopener" target="_blank">Read at the publisher</a>}
+    </Fragment>
+
+    <Fragment slot="foot">
+      {questions.length > 0 && (
+        <DocSection title="The argument, question by question" id="questions">
+          <div class="links">{questions.map((q) => <a href={`/questions/${q.id}/`}><small>Question</small><span class="serif">{q.data.question}</span></a>)}</div>
+        </DocSection>
+      )}
+      {d.faq.length > 0 && (
+        <DocSection title="About this paper" id="faq">
+          <div class="faq">{d.faq.map((f) => <div><h3>{f.q}</h3><p>{f.a}</p></div>)}</div>
+        </DocSection>
+      )}
+      <DocSection title="How to cite" id="cite">
+        <p class="cite"><span class="tag">APA</span><br />{apa}</p>
+        <p class="cite" style="margin-top: var(--s-s)"><span class="tag">Chicago</span><br />{chicago}</p>
+        <pre class="bib">{bibtex}</pre>
+      </DocSection>
+      {(concepts.length > 0 || areas.length > 0) && (
+        <DocSection title="Terms and areas" id="terms">
+          <div class="chips">
+            {concepts.map((c) => c && <a class="chip" href={`/glossary/${c.id}/`}>{c.data.title}</a>)}
+            {areas.map((a) => a && <a class="chip" href={`/research/${a.id}/`}>{a.data.title}</a>)}
+          </div>
+        </DocSection>
+      )}
+    </Fragment>
+  </Doc>
+</Base>
+
+<style>
+  .pub-facts { display: flex; flex-direction: column; gap: var(--s-s); }
+  .pub-facts dt { display: block; margin-bottom: 0.2rem; }
+  .pub-facts dd { font-size: var(--step--1); color: var(--ink-2); word-break: break-word; }
+  .pub-facts dd.serif { font-size: var(--step-0); color: var(--ink); }
+  .pub-read { align-self: flex-start; }
+</style>

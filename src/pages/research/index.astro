@@ -12,7 +12,7 @@ const counts = (id: string) => ({
   lab: lab.filter((l) => l.data.areas.some((a) => a.id === id)).length,
 });
 ---
-<Base title="Research" description="Research areas of Abhinav Saxena: epistemology and the social epistemology of AI, philosophy of AI, ethics of AI, political philosophy, ethics and technology, environmental ethics, philosophy of mind, Indian philosophy, phenomenology and existentialism." path="/research" jsonLd={[breadcrumbJsonLd([{ name: 'Home', path: '/' }, { name: 'Research', path: '/research' }])]}>
+<Base title="Research" description="Research areas of Abhinav Saxena: epistemology and the social epistemology of AI, philosophy of AI, ethics of AI, political philosophy, ethics and technology, environmental ethics, philosophy of mind, Indian philosophy, phenomenology and existentialism." path="/research/" jsonLd={[breadcrumbJsonLd([{ name: 'Home', path: '/' }, { name: 'Research', path: '/research/' }])]}>
   <section class="section">
     <div class="container">
       <header class="page-head">
@@ -33,7 +33,7 @@ const counts = (id: string) => ({
           const c = counts(a.id);
           return (
             <li class="area-index__item" data-reveal>
-              <a class="area-index__link" href={`/research/${a.id}`} data-cursor="Open">
+              <a class="area-index__link" href={`/research/${a.id}/`} data-cursor="Open">
                 <span class="area-index__num tnum">{String(i + 1).padStart(2, '0')}</span>
                 <span class="area-index__main">
                   <span class="area-index__title serif">{a.data.title}</span>

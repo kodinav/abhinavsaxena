@@ -1,19 +1,39 @@
 ---
 title: Epistemology
 short: Testimony, and what a source must do for a hearer to know from it.
+description: "Epistemology research by Abhinav Saxena on testimony and the Tracking Minimum: why reliable chatbots do not, on current evidence, transmit knowledge."
 order: 1
 angle: 250
 radius: 0.5
 keyQuestions:
-  - What must be true of the way a source produces an assertion for a hearer to come to know from it?
-  - Is a language model's output testimony, an instrument reading, or a third kind of thing?
-  - Can reliability that runs through a proxy ever be the reliability knowledge needs?
+  - Can you know something because a chatbot told you?
+  - What must be true of a source for a hearer to come to know from what it says?
+  - Is reliability enough for testimonial knowledge, or does it matter what the reliability runs through?
+  - Is a language model's answer testimony, or a reading taken from an instrument?
 related: [social-epistemology, philosophy-of-ai, philosophy-of-mind, indian-philosophy]
-concepts: [knowledge, justification, testimony, understanding]
+concepts: [knowledge, testimony, justification, tracking-minimum, endogeneity-requirement, reliabilism, instrument-reading, gettier-problem]
 ---
 
-Epistemology is my area of specialisation, and within it the epistemology of testimony: how we come to know things because someone, or something, has told us.
+Epistemology is the part of philosophy that studies knowledge: what it is, how it is acquired, and what makes a belief justified rather than merely true. It is my area of specialisation, and within it I work on testimony: what we know because someone, or something, has told us.
 
-The leading accounts of testimony disagree about a great deal. Burge grounds the hearer's entitlement in the presumption of a rational source; Williamson ties assertion to a knowledge norm; Goldberg locates the relevant reliability partly in the speaker's own production; Faulkner grounds warrant in assurance; Lackey shows that the speaker need not believe what she says. In "Assertion Without a Speaker" (forthcoming in *Episteme*) I argue that beneath these disagreements they share a minimal condition, the **Tracking Minimum**: a source transmits testimonial knowledge only if the truth of what it asserts, or the evidential support for it, figures in the explanation of its asserting it — and figures there through the source's own production process rather than through a proxy on which that process depends.
+A patient asks a chatbot what dose of acetaminophen is safe for her ten-year-old. The chatbot answers correctly, she gives the dose, and the child is fine. Did she learn the dose from the chatbot in the way she would have learned it from her paediatrician? That is the question of my paper ["Assertion Without a Speaker"](/publications/assertion-without-a-speaker/), forthcoming in *Episteme*, and the answer is less obvious than the case looks.
 
-That **endogeneity** requirement, not any modal profile, is what the accounts have in common. It is third-personal and testable by intervention, so it does not settle the machine case by stipulating that a source must have a mind. It also has a consequence that is easy to miss: a working barometer satisfies it. The line it draws is not between people and instruments but between sources whose outputs are connected to the truth of what they emit and sources whose outputs are not.
+## What a source must do for a hearer to know from it
+
+The leading accounts of testimony disagree about a great deal. Burge grounds the hearer's entitlement in the presumption of a rational source; Williamson ties assertion to a knowledge norm; Goldberg locates part of the relevant reliability in the speaker's own production; Faulkner grounds warrant in assurance; Lackey shows that a speaker need not believe what she says for her hearers to learn from her. Beneath these disagreements they share a condition I call the [Tracking Minimum](/glossary/tracking-minimum/): a source can transmit testimonial knowledge that p only if the truth of p, or the evidential support for p, figures in the explanation of its producing the assertion that p, and figures there through the source's own production process rather than through a proxy on which that process depends.
+
+The clause about proxies, the [endogeneity requirement](/glossary/endogeneity-requirement/), carries most of the weight. Take a broken thermometer in a room held at a constant temperature by a thermostat. Its readings are always correct, and correct for a stable, explicable reason, yet posting them transmits no knowledge of the temperature. A belief formed on them is true by a kind of luck that precludes knowledge, the trouble epistemology has worried at since [Gettier](/glossary/gettier-problem/). The test the condition sets is interventionist rather than psychological: hold the evidence fixed and vary the proxy, then hold the proxy fixed and vary the evidence, and see which the output follows. Nothing in it requires a mind, and a working barometer passes it ([the Tracking Minimum in brief](/questions/tracking-minimum/)).
+
+## Reliability is not enough
+
+The condition separates two kinds of reliability. Frequency reliability is a high rate of accurate outputs under a fixed distribution; tracking reliability is production that would move with the truth, or with the evidence, if they changed. Language models plainly have the first, often to a high degree. Testimony needs the second. Even a [reliabilist](/glossary/reliabilism/) like Goldberg draws the line here, between relying on an epistemic subject and relying on a mechanism: the reliability must be the source's own.
+
+Two conclusions follow, and they differ in strength. The constitutive conclusion is that, on the best current evidence, current language models do not satisfy the Tracking Minimum and do not transmit testimonial knowledge. It is an empirical claim about what governs their production, held with the confidence the evidence supports and no more ([do large language models know?](/questions/do-large-language-models-know/)). The practical conclusion is that hearers are not now positioned to give these outputs testimonial uptake, and it does not wait on the first ([can AI testify?](/questions/can-ai-testify/)).
+
+The positive proposal is [instrument reading](/glossary/instrument-reading/). When a user does come to know through a model, she stands to it as a competent reader stands to an instrument: no warrant is transmitted, her warrant is generated by her own use, and the load is on her. That is not a demotion, since instruments are genuine sources of knowledge. But a barometer meets the condition these systems fail, which makes them instruments of a degenerate kind ([instrument or informant?](/questions/instrument-or-informant/)).
+
+## What remains open
+
+My disagreement with the strongest opposing view is not a clash of intuitions but a question about what a model's arbitration between conflicting inputs responds to: evidential quality, or presentation. Passages matched for coherence and specificity but differing in evidential quality would decide it, and to my knowledge that experiment has not been run. Also open: whether competence learned under verifiable rewards transfers to domains where nothing checks, and whether anti-reductionism about testimony is true, which I presuppose rather than argue for and on which the contrast between deference and calibrated reliance depends.
+
+The thesis is not that no machine could testify, but that these machines, as they are now built and as we now understand them, do not.

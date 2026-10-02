@@ -3,7 +3,7 @@ import Base from '@/layouts/Base.astro';
 import { site } from '@/data/site';
 import { breadcrumbJsonLd } from '@/lib/seo';
 ---
-<Base title="Contact" description="Contact Abhinav Saxena — academic correspondence, collaboration, review, talks and profiles." path="/contact" jsonLd={[breadcrumbJsonLd([{ name: 'Home', path: '/' }, { name: 'Contact', path: '/contact' }])]}>
+<Base title="Contact" description="Contact Abhinav Saxena — academic correspondence, collaboration, review, talks and profiles." path="/contact/" jsonLd={[breadcrumbJsonLd([{ name: 'Home', path: '/' }, { name: 'Contact', path: '/contact/' }])]}>
   <section class="section contact">
     <div class="container grid">
       <div class="contact__side"><span class="eyebrow" data-reveal>Contact</span></div>
@@ -19,7 +19,7 @@ import { breadcrumbJsonLd } from '@/lib/seo';
           {site.affiliation && <div><dt>Affiliation</dt><dd>{site.affiliation}</dd></div>}
           {site.location && <div><dt>Location</dt><dd>{site.location}</dd></div>}
           <div><dt>Feed</dt><dd><a class="link" href="/rss.xml">RSS feed of essays</a></dd></div>
-          <div><dt>CV</dt><dd><a class="link" href="/cv">Curriculum vitae</a></dd></div>
+          <div><dt>CV</dt><dd><a class="link" href="/cv/">Curriculum vitae</a></dd></div>
         </dl>
         <div class="contact__profiles" data-reveal>
           <span class="tag">Academic profiles</span>

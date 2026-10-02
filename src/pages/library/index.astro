@@ -1,0 +1,57 @@
+---
+import Base from '@/layouts/Base.astro';
+import { getLibrary } from '@/lib/content';
+import { breadcrumbJsonLd, itemListJsonLd } from '@/lib/seo';
+import { readingList } from '@/data/reading-list';
+
+const texts = await getLibrary();
+const year = (y: number) => (y < 0 ? `c. ${-y} BCE` : String(y));
+const jsonLd = [
+  itemListJsonLd('/library/', 'An open library on testimony, knowledge and machines', texts.map((t) => ({ name: t.data.heading, path: `/library/${t.id}/` }))),
+  breadcrumbJsonLd([{ name: 'Home', path: '/' }, { name: 'Library', path: '/library/' }]),
+];
+---
+<Base title="Open library: classic texts on testimony and knowledge" description="Public-domain classics on testimony, belief and machines, from Plato's cave and Hume's 'Of Miracles' to Lovelace's Note G, reproduced word for word with commentary by philosopher Abhinav Saxena." path="/library/" jsonLd={jsonLd}>
+  <section class="section lib">
+    <div class="container">
+      <header class="section-head">
+        <span class="eyebrow">Library</span>
+        <h1 class="h1">An open library</h1>
+        <p class="lede">The old arguments about whom to believe, and why, read against machines that answer. Every passage is in the public domain and is reproduced word for word from an open edition (Project Gutenberg, Wikisource or the Internet Archive), with its source and a note on why it matters now.</p>
+      </header>
+      <ol class="lib__list" role="list">
+        {texts.map((t) => (
+          <li>
+            <a class="lib__item" href={`/library/${t.id}/`}>
+              <span class="lib__year tnum">{year(t.data.year)}</span>
+              <span class="lib__main">
+                <span class="lib__head serif">{t.data.heading}</span>
+                <span class="lib__lede">{t.data.lede}</span>
+              </span>
+              <span class="lib__author">{t.data.author}</span>
+            </a>
+          </li>
+        ))}
+      </ol>
+      {readingList.length > 0 && (
+        <aside class="lib__more">
+          <h2 class="tag">Reading on</h2>
+          <a class="arrow-link" href="/library/reading-list/">The literature on AI testimony: {readingList.length} works, with open links <span class="arr" aria-hidden="true"></span></a>
+        </aside>
+      )}
+    </div>
+  </section>
+</Base>
+
+<style>
+  .lib__list { margin-top: var(--s-2xl); border-top: 1px solid var(--line); }
+  .lib__item { display: grid; grid-template-columns: 7rem minmax(0, 1fr) 12rem; gap: var(--s-l); align-items: baseline; padding: var(--s-m) 0; border-bottom: 1px solid var(--line); transition: color var(--dur-2); }
+  .lib__item:hover { color: var(--accent); }
+  .lib__year { font-family: var(--font-sans); font-size: var(--step--1); color: var(--ink-3); }
+  .lib__main { display: flex; flex-direction: column; gap: 0.35rem; }
+  .lib__head { font-size: var(--step-1); line-height: 1.25; }
+  .lib__lede { color: var(--ink-2); font-size: var(--step--1); line-height: 1.55; max-width: 62ch; }
+  .lib__author { font-family: var(--font-sans); font-size: var(--step--1); color: var(--ink-3); text-align: right; }
+  .lib__more { margin-top: var(--s-2xl); display: flex; flex-direction: column; gap: var(--s-s); }
+  @media (max-width: 800px) { .lib__item { grid-template-columns: 1fr; gap: 0.35rem; } .lib__author { text-align: left; } }
+</style>

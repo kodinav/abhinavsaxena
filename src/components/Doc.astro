@@ -1,0 +1,109 @@
+---
+/**
+ * The page for a piece of reference writing: a question and its answer, a
+ * paper, a glossary entry, a text in the library. It leads with the answer
+ * (or definition) so that a reader, a search engine or an answer engine can
+ * take the point from the first lines, then gives the argument, then what to
+ * read next.
+ *
+ * Slots: default (the body, set as prose), `foot` (sections after the body),
+ * `side` (extra blocks under the contents).
+ */
+import { formatDate } from '@/lib/format';
+
+interface Crumb { name: string; path: string }
+interface Props {
+  eyebrow: string;
+  /** Where the eyebrow links (the section index). */
+  eyebrowHref?: string;
+  title: string;
+  /** The answer or definition, shown first in a callout. */
+  answer?: string;
+  /** Label above the callout ("Short answer", "Definition", "In brief"). */
+  answerLabel?: string;
+  standfirst?: string;
+  date?: Date;
+  updated?: Date;
+  toc?: { slug: string; text: string }[];
+  crumbs?: Crumb[];
+  byline?: boolean;
+}
+const { eyebrow, eyebrowHref, title, answer, answerLabel = 'Short answer', standfirst, date, updated, toc = [], crumbs = [], byline = true } = Astro.props;
+---
+<article class="doc">
+  <header class="doc__head container">
+    {crumbs.length > 0 && (
+      <nav class="doc__crumbs" aria-label="Breadcrumb">
+        <ol role="list">
+          {crumbs.map((c, i) => <li>{i < crumbs.length - 1 ? <a href={c.path}>{c.name}</a> : <span aria-current="page">{c.name}</span>}</li>)}
+        </ol>
+      </nav>
+    )}
+    <span class="eyebrow doc__eyebrow">{eyebrowHref ? <a href={eyebrowHref}>{eyebrow}</a> : eyebrow}</span>
+    <h1 class="doc__title display">{title}</h1>
+    {standfirst && <p class="doc__standfirst serif">{standfirst}</p>}
+    {answer && (
+      <div class="doc__answer" role="note" aria-label={answerLabel}>
+        <span class="tag">{answerLabel}</span>
+        <p class="serif" set:html={answer.replace(/\*(.+?)\*/g, '<em>$1</em>')} />
+      </div>
+    )}
+    {byline && (
+      <p class="doc__byline">
+        <span class="doc__rule" aria-hidden="true"></span>
+        <span>By <a class="link" href="/about/" rel="author">Abhinav Saxena</a></span>
+        {date && <span class="muted">· <time datetime={date.toISOString()}>{formatDate(date)}</time></span>}
+        {updated && <span class="muted">· Updated <time datetime={updated.toISOString()}>{formatDate(updated)}</time></span>}
+      </p>
+    )}
+  </header>
+
+  <div class="doc__layout container">
+    <aside class="doc__side">
+      <div class="doc__sticky">
+        {toc.length > 1 && (
+          <nav class="doc__toc" aria-label="Contents">
+            <span class="tag">Contents</span>
+            <ol role="list">{toc.map((h) => <li><a href={`#${h.slug}`}>{h.text}</a></li>)}</ol>
+          </nav>
+        )}
+        <slot name="side" />
+      </div>
+    </aside>
+    <div class="doc__main">
+      <div class="doc__body prose">
+        <slot />
+      </div>
+      <slot name="foot" />
+    </div>
+  </div>
+</article>
+
+<style>
+  .doc { padding-bottom: var(--s-2xl); }
+  .doc__head { padding-top: var(--s-2xl); }
+  .doc__crumbs ol { display: flex; flex-wrap: wrap; gap: 0.4rem; font-family: var(--font-sans); font-size: var(--step--2); letter-spacing: 0.06em; color: var(--ink-3); }
+  .doc__crumbs li + li::before { content: '/'; margin-right: 0.4rem; color: var(--line-2); }
+  .doc__crumbs a:hover { color: var(--ink); }
+  .doc__eyebrow { display: block; margin-top: var(--s-l); }
+  .doc__eyebrow a { color: inherit; }
+  .doc__eyebrow a:hover { color: var(--accent); }
+  .doc__title { margin-top: var(--s-s); font-size: var(--step-5); line-height: 1.04; max-width: 22ch; text-wrap: balance; }
+  .doc__standfirst { margin-top: var(--s-m); font-size: var(--step-1); line-height: 1.45; color: var(--ink-2); max-width: 60ch; text-wrap: pretty; }
+  .doc__answer { margin-top: var(--s-l); padding: var(--s-m) var(--s-l); border-left: 2px solid var(--accent); background: rgb(var(--ink-rgb) / 0.04); border-radius: 0 var(--radius-l) var(--radius-l) 0; max-width: 64ch; }
+  .doc__answer p { margin-top: 0.5rem; font-size: var(--step-1); line-height: 1.5; color: var(--ink); text-wrap: pretty; }
+  .doc__byline { margin-top: var(--s-l); display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; font-family: var(--font-sans); font-size: var(--step--1); }
+  .doc__rule { width: 3rem; height: 1px; background: var(--ink); }
+  .doc__layout { margin-top: var(--s-2xl); display: grid; grid-template-columns: 15rem minmax(0, 1fr); gap: var(--s-2xl); align-items: start; }
+  .doc__sticky { position: sticky; top: calc(var(--nav-h) + 1.5rem); display: flex; flex-direction: column; gap: var(--s-l); }
+  .doc__toc .tag { display: block; margin-bottom: 0.5rem; }
+  .doc__toc ol { border-left: 1px solid var(--line); }
+  .doc__toc a { display: block; padding: 0.3rem 0 0.3rem 1rem; font-family: var(--font-sans); font-size: var(--step--1); line-height: 1.35; color: var(--ink-3); transition: color var(--dur-1); text-wrap: pretty; }
+  .doc__toc a:hover { color: var(--ink); }
+  .doc__main { min-width: 0; max-width: var(--measure-wide); }
+  @media (max-width: 1000px) {
+    .doc__layout { grid-template-columns: 1fr; gap: var(--s-l); }
+    .doc__sticky { position: static; }
+    .doc__side:empty, .doc__sticky:empty { display: none; }
+  }
+</style>

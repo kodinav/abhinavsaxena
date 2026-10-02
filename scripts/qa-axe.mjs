@@ -3,7 +3,7 @@ import AxeBuilder from '@axe-core/playwright';
 import { serveDist } from './serve.mjs';
 const server = await serveDist(0); const PORT = server.port;
 const browser = await chromium.launch();
-const pages = ['/', '/research', '/research/philosophy-of-ai', '/publications', '/essays', '/essays/knowing-without-a-knower', '/lab', '/lab/mind-detector', '/ideas', '/about', '/cv', '/contact'];
+const pages = ['/', '/research', '/research/philosophy-of-ai', '/publications', '/essays', '/essays/your-chatbot-is-not-a-witness', '/lab', '/lab/mind-detector', '/ideas', '/about', '/cv', '/contact', '/questions', '/questions/can-ai-testify', '/glossary', '/glossary/tracking-minimum', '/publications/assertion-without-a-speaker', '/library', '/library/hume-of-miracles', '/library/reading-list', '/research/indian-philosophy'];
 let total = 0;
 for (const theme of ['light', 'dark']) {
   const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 }, colorScheme: theme, reducedMotion: 'reduce' });

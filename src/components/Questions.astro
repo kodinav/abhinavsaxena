@@ -1,13 +1,13 @@
 ---
 import { getQuestions } from '@/lib/content';
-import { getEntry, render } from 'astro:content';
+import { getEntry } from 'astro:content';
 
 interface Props { num?: string }
 const { num = '02' } = Astro.props;
-const questions = await getQuestions();
+// the open research questions; each links to its own page, which carries the full answer
+const questions = (await getQuestions()).filter((q) => q.data.onHome);
 const items = await Promise.all(
   questions.map(async (q) => {
-    const { Content } = await render(q);
     const areas = await Promise.all(q.data.areas.map((a) => getEntry(a)));
     const essay = q.data.essay ? await getEntry(q.data.essay) : null;
     const publication = q.data.publication ? await getEntry(q.data.publication) : null;
@@ -17,7 +17,7 @@ const items = await Promise.all(
     for (const phrase of q.data.emphasis) {
       html = html.replace(phrase, `<em class="q-em">${phrase}</em>`);
     }
-    return { q, Content, areas: areas.filter(Boolean), essay, publication, experiment, html };
+    return { q, areas: areas.filter(Boolean), essay, publication, experiment, html };
   }),
 );
 ---
@@ -26,10 +26,10 @@ const items = await Promise.all(
     <header class="section-head">
       <span class="eyebrow"><span class="num">{num}</span>Current questions</span>
       <h2 class="h2" id="questions-title" data-split="lines">Questions I am working on</h2>
-      <p class="lede">Open problems, some of them worked out in papers. Each one is a door into a research area, a paper, an essay, or an experiment in the lab.</p>
+      <p class="lede">Open problems, some of them worked out in papers. Each one has a short answer here and a full one on its own page, and leads into a research area, a paper, an essay or an experiment in the lab. <a class="link" href="/questions/">All questions</a></p>
     </header>
     <ol class="questions__list" role="list" data-questions data-reveal-group="60">
-      {items.map(({ q, Content, areas, essay, publication, experiment, html }, i) => (
+      {items.map(({ q, areas, essay, publication, experiment, html }, i) => (
         <li class="question" data-question data-reveal>
           <h3 class="question__h">
             <button type="button" class="question__trigger" aria-expanded="false" aria-controls={`q-${i + 1}`} id={`q-${i + 1}-trigger`}>
@@ -40,15 +40,18 @@ const items = await Promise.all(
           </h3>
           <div class="question__panel" id={`q-${i + 1}`} role="region" aria-labelledby={`q-${i + 1}-trigger`} hidden>
             <div class="question__inner">
-              <div class="question__body prose prose--compact"><Content /></div>
+              <div class="question__body prose prose--compact">
+                <p>{q.data.answer}</p>
+                <p><a class="arrow-link" href={`/questions/${q.id}/`}>Read the full answer <span class="arr" aria-hidden="true"></span></a></p>
+              </div>
               <div class="question__links">
                 <div class="question__areas">
-                  {areas.map((a) => a && <a class="chip" href={`/research/${a.id}`}>{a.data.title}</a>)}
+                  {areas.map((a) => a && <a class="chip" href={`/research/${a.id}/`}>{a.data.title}</a>)}
                 </div>
                 <div class="question__go">
-                  {publication && <a class="arrow-link" href={`/publications#${publication.id}`}>Paper: {publication.data.title.split(':')[0]} <span class="arr" aria-hidden="true"></span></a>}
-                  {essay && <a class="arrow-link" href={`/essays/${essay.id}`}>Essay: {essay.data.title} <span class="arr" aria-hidden="true"></span></a>}
-                  {experiment && <a class="arrow-link" href={`/lab/${experiment.id}`}>Lab: {experiment.data.title} <span class="arr" aria-hidden="true"></span></a>}
+                  {publication && <a class="arrow-link" href={publication.data.summary.length ? `/publications/${publication.id}/` : `/publications/#${publication.id}`}>Paper: {publication.data.title.split(':')[0]} <span class="arr" aria-hidden="true"></span></a>}
+                  {essay && <a class="arrow-link" href={`/essays/${essay.id}/`}>Essay: {essay.data.title} <span class="arr" aria-hidden="true"></span></a>}
+                  {experiment && <a class="arrow-link" href={`/lab/${experiment.id}/`}>Lab: {experiment.data.title} <span class="arr" aria-hidden="true"></span></a>}
                 </div>
               </div>
             </div>

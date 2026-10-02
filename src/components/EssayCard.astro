@@ -7,7 +7,7 @@ const H = headingLevel;
 const d = essay.data;
 ---
 <article class={`essay-card essay-card--${size}`} data-reveal>
-  <a class="essay-card__link" href={`/essays/${essay.id}`} data-cursor="Read">
+  <a class="essay-card__link" href={`/essays/${essay.id}/`} data-cursor="Read">
     <div class="essay-card__meta">
       <time datetime={d.date.toISOString()}>{formatDate(d.date, { day: undefined })}</time>
       <span aria-hidden="true">·</span>

@@ -5,7 +5,7 @@ import { personJsonLd } from '@/lib/seo';
 interface Props {
   title: string;
   description?: string;
-  /** Path (e.g. /essays/foo) used for canonical + OG url */
+  /** Path (e.g. /essays/foo/) used for the canonical and Open Graph address */
   path?: string;
   type?: 'website' | 'article' | 'profile';
   image?: string;
@@ -16,6 +16,8 @@ interface Props {
   jsonLd?: Record<string, unknown>[];
   noindex?: boolean;
   isHome?: boolean;
+  /** Extra name/content meta tags (Google Scholar's citation_* tags, for instance). */
+  meta?: { name: string; content: string }[];
 }
 
 const {
@@ -31,20 +33,24 @@ const {
   jsonLd = [],
   noindex = false,
   isHome = false,
+  meta = [],
 } = Astro.props;
 
-const cleanPath = path === '/' ? '/' : path.replace(/\/$/, '');
-const canonical = new URL(cleanPath, site.url).toString().replace(/\/$/, cleanPath === '/' ? '/' : '');
-const fullTitle = isHome ? site.title : `${title} — ${site.name}`;
+// pages are served from directories, so the address that answers without a redirect ends in a slash
+const cleanPath = /\.[a-z0-9]+$/i.test(path) || path.endsWith('/') ? path : `${path}/`;
+const canonical = new URL(cleanPath, site.url).toString();
+// search results show about 60 characters of a title and 155 of a description: keep the name when it fits, trim at a word when it does not
+const fullTitle = isHome ? site.title : `${title} — ${site.name}`.length <= 66 ? `${title} — ${site.name}` : title;
+const desc = description.length > 160 ? `${description.slice(0, 156).replace(/[\s,;:]+\S*$/, '')}…` : description;
 const ogImage = new URL(image, site.url).toString();
 const ld = [personJsonLd(), ...jsonLd];
 ---
 
 <title>{fullTitle}</title>
-<meta name="description" content={description} />
+<meta name="description" content={desc} />
 <meta name="author" content={site.name} />
 <meta name="keywords" content={site.keywords.join(', ')} />
-<link rel="canonical" href={canonical} />
+{!noindex && <link rel="canonical" href={canonical} />}
 {noindex ? <meta name="robots" content="noindex, nofollow" /> : <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1" />}
 <meta name="theme-color" content="#0d0d10" />
 <meta name="color-scheme" content="dark light" />
@@ -60,7 +66,7 @@ const ld = [personJsonLd(), ...jsonLd];
 <meta property="og:site_name" content={site.name} />
 <meta property="og:locale" content={site.locale} />
 <meta property="og:title" content={fullTitle} />
-<meta property="og:description" content={description} />
+<meta property="og:description" content={desc} />
 <meta property="og:url" content={canonical} />
 <meta property="og:image" content={ogImage} />
 <meta property="og:image:width" content="1200" />
@@ -75,10 +81,14 @@ const ld = [personJsonLd(), ...jsonLd];
 
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:title" content={fullTitle} />
-<meta name="twitter:description" content={description} />
+<meta name="twitter:description" content={desc} />
 <meta name="twitter:image" content={ogImage} />
 <meta name="twitter:image:alt" content={imageAlt} />
 {site.twitterHandle && <meta name="twitter:site" content={`@${site.twitterHandle}`} />}
 {site.twitterHandle && <meta name="twitter:creator" content={`@${site.twitterHandle}`} />}
+
+{meta.map((m) => <meta name={m.name} content={m.content} />)}
+{site.verification.google && <meta name="google-site-verification" content={site.verification.google} />}
+{site.verification.bing && <meta name="msvalidate.01" content={site.verification.bing} />}
 
 {ld.map((obj) => <script type="application/ld+json" set:html={JSON.stringify(obj)} />)}

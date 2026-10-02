@@ -1,11 +1,13 @@
 ---
 import Base from '@/layouts/Base.astro';
-import { getEntry, render } from 'astro:content';
+
 import { getConcepts, getResearch, getEssays, getLab } from '@/lib/content';
 import { breadcrumbJsonLd } from '@/lib/seo';
 import { countWord } from '@/lib/format';
 
-const [concepts, areas, essays, lab] = await Promise.all([getConcepts(), getResearch(), getEssays(), getLab()]);
+const [allConcepts, areas, essays, lab] = await Promise.all([getConcepts(), getResearch(), getEssays(), getLab()]);
+// the map shows the thread's concepts; terms that live only in the glossary are not drawn
+const concepts = allConcepts.filter((c) => c.data.map);
 const areaTitle = Object.fromEntries(areas.map((a) => [a.id, a.data.title]));
 const nodes = concepts.map((c) => ({ id: c.id, label: c.data.title === 'Artificial Intelligence' ? 'AI' : c.data.title, definition: c.data.definition, spine: c.data.spine, order: c.data.order, r: 6 }));
 const seen = new Set<string>();
@@ -19,15 +21,14 @@ for (const c of concepts) for (const r of c.data.relations) {
 const graph = JSON.stringify({ nodes, links });
 const spine = concepts.filter((c) => c.data.spine).sort((a, b) => a.data.order - b.data.order);
 const rendered = await Promise.all(concepts.map(async (c) => {
-  const { Content } = await render(c);
   const incoming = concepts.flatMap((o) => o.data.relations.filter((r) => r.to.id === c.id).map((r) => ({ from: o, r })));
   const relEssays = essays.filter((e) => c.data.areas.some((a) => e.data.areas.some((x) => x.id === a.id))).slice(0, 2);
   const relLab = lab.filter((l) => l.data.concepts.some((x) => x.id === c.id)).slice(0, 2);
-  return { c, Content, incoming, relEssays, relLab };
+  return { c, incoming, relEssays, relLab };
 }));
 const legend = ['grounds', 'requires', 'presupposes', 'extends', 'mediates', 'constrains', 'challenges'];
 ---
-<Base title="Ideas — a map of the concepts" description="An interactive map of the concepts in Abhinav Saxena's work: AI, mind, agency, knowledge, ethics, responsibility, technology and the relations between them." path="/ideas" jsonLd={[breadcrumbJsonLd([{ name: 'Home', path: '/' }, { name: 'Ideas', path: '/ideas' }])]}>
+<Base title="Ideas — a map of the concepts" description="An interactive map of the concepts in Abhinav Saxena's work: AI, mind, agency, knowledge, ethics, responsibility, technology and the relations between them." path="/ideas/" jsonLd={[breadcrumbJsonLd([{ name: 'Home', path: '/' }, { name: 'Ideas', path: '/ideas/' }])]}>
   <section class="section ideas" data-concept-graph data-graph={graph}>
     <div class="container">
       <header class="page-head">
@@ -65,7 +66,7 @@ const legend = ['grounds', 'requires', 'presupposes', 'extends', 'mediates', 'co
               {concepts.filter((c) => !c.data.spine).map((c) => <button type="button" class="chip" data-select-concept={c.id}>{c.data.title}</button>)}
             </div>
           </div>
-          {rendered.map(({ c, Content, incoming, relEssays, relLab }) => (
+          {rendered.map(({ c, incoming, relEssays, relLab }) => (
             <div class="ideas__concept" data-concept-panel={c.id} hidden>
               <div class="ideas__concept-top">
                 <span class="eyebrow eyebrow--accent">{c.data.spine ? 'On the thread' : 'Concept'}</span>
@@ -73,7 +74,7 @@ const legend = ['grounds', 'requires', 'presupposes', 'extends', 'mediates', 'co
               </div>
               <h2 class="h3">{c.data.title}</h2>
               <p class="ideas__def serif">{c.data.definition}</p>
-              <div class="ideas__body prose prose--compact"><Content /></div>
+              <a class="arrow-link ideas__more" href={`/glossary/${c.id}/`}>Read the full entry <span class="arr" aria-hidden="true"></span></a>
               <div class="ideas__rels">
                 <span class="tag">Relations</span>
                 <ul role="list">
@@ -88,9 +89,9 @@ const legend = ['grounds', 'requires', 'presupposes', 'extends', 'mediates', 'co
               </div>
               {(c.data.areas.length > 0 || relEssays.length > 0 || relLab.length > 0) && (
                 <div class="ideas__links">
-                  {c.data.areas.length > 0 && <div><span class="tag">Research</span><div class="ideas__chips">{c.data.areas.map((a) => <a class="chip" href={`/research/${a.id}`}>{areaTitle[a.id]}</a>)}</div></div>}
-                  {relEssays.length > 0 && <div><span class="tag">Essays</span><ul role="list" class="ideas__list">{relEssays.map((e) => <li><a class="link" href={`/essays/${e.id}`}>{e.data.title}</a></li>)}</ul></div>}
-                  {relLab.length > 0 && <div><span class="tag">Lab</span><ul role="list" class="ideas__list">{relLab.map((l) => <li><a class="link" href={`/lab/${l.id}`}>{l.data.title}</a></li>)}</ul></div>}
+                  {c.data.areas.length > 0 && <div><span class="tag">Research</span><div class="ideas__chips">{c.data.areas.map((a) => <a class="chip" href={`/research/${a.id}/`}>{areaTitle[a.id]}</a>)}</div></div>}
+                  {relEssays.length > 0 && <div><span class="tag">Essays</span><ul role="list" class="ideas__list">{relEssays.map((e) => <li><a class="link" href={`/essays/${e.id}/`}>{e.data.title}</a></li>)}</ul></div>}
+                  {relLab.length > 0 && <div><span class="tag">Lab</span><ul role="list" class="ideas__list">{relLab.map((l) => <li><a class="link" href={`/lab/${l.id}/`}>{l.data.title}</a></li>)}</ul></div>}
                 </div>
               )}
             </div>

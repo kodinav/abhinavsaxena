@@ -29,7 +29,7 @@ export interface StoryText {
 export type StoryId = 'cave' | 'delphi' | 'prometheus' | 'knowledge' | 'elephant' | 'writing' | 'wax' | 'theseus' | 'indra' | 'fish';
 
 const jowett = (work: string, at: string) => `Plato, ${work} ${at} · tr. Jowett`;
-const paper = { source: 'Abhinav Saxena, “Assertion Without a Speaker”, Episteme (forthcoming)', href: '/publications#assertion-without-a-speaker' };
+const paper = { source: 'Abhinav Saxena, “Assertion Without a Speaker”, Episteme (forthcoming)', href: '/publications/#assertion-without-a-speaker' };
 const saxe = 'John Godfrey Saxe, “The Blind Men and the Elephant” (1872)';
 const veitch = (work: string) => `Descartes, ${work} · tr. Veitch`;
 const plutarch = 'Plutarch, Life of Theseus 23 · tr. Dryden, ed. Clough';
@@ -134,7 +134,7 @@ export const stories: Record<StoryId, StoryText> = {
       { title: 'Plank by plank', duration: 14, source: plutarch, quote: '…for they took away the old planks as they decayed, putting in new and stronger timber in their place' },
       { title: 'The question', duration: 13, source: plutarch, quote: '…insomuch that this ship became a standing example among the philosophers, for the logical question as to things that grow; one side holding that the ship remained the same, and the other contending that it was not the same.' },
       { title: 'A second ship', duration: 12, kind: 'telling', source: 'Told after Thomas Hobbes, De Corpore (1655), II.11.7', quote: 'Hobbes pressed the puzzle further. Suppose the old planks had been kept, and someone built a ship out of them. Now two ships can claim to be the one Theseus sailed.' },
-      { title: 'Your turn', duration: 8, kind: 'telling', source: 'Philosophy Lab · Ship of Theseus, Digital', href: '/lab/ship-of-theseus-digital', quote: 'Where would you draw the line? The lab has a version of the puzzle you can run.' },
+      { title: 'Your turn', duration: 8, kind: 'telling', source: 'Philosophy Lab · Ship of Theseus, Digital', href: '/lab/ship-of-theseus-digital/', quote: 'Where would you draw the line? The lab has a version of the puzzle you can run.' },
     ]),
   },
 
@@ -144,7 +144,7 @@ export const stories: Record<StoryId, StoryText> = {
       { title: 'The net', duration: 11, kind: 'telling', source: indra, quote: 'Over the palace of the god Indra hangs a net that has no edge. At every knot in it hangs a jewel.' },
       { title: 'The jewel', duration: 11, kind: 'telling', source: indra, quote: 'Look into any one of the jewels and you will see every other jewel reflected in it, and in each reflection, all the others again.' },
       { title: 'One touch', duration: 11, kind: 'telling', source: indra, quote: 'Nothing in the net stands alone. Touch one jewel, and the whole net answers.' },
-      { title: 'The map', duration: 10, kind: 'telling', source: indra, href: '/ideas', quote: 'So it may be with ideas: each holds every other within it. The concept map draws a small corner of the net.' },
+      { title: 'The map', duration: 10, kind: 'telling', source: indra, href: '/ideas/', quote: 'So it may be with ideas: each holds every other within it. The concept map draws a small corner of the net.' },
     ]),
   },
 

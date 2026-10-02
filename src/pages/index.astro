@@ -45,8 +45,9 @@ const marquee = [...areas.map((a) => a.data.title)];
           <p data-split="lines">I also work on the ethics and politics of algorithmic systems. Taking India's Aadhaar as the paradigm case, I argue that where an algorithmic system produces the standing of the people it governs, their consent cannot legitimate it; its legitimacy rests instead on obligations of legibility, non-abandonment and remediation that no one can waive. I am an independent researcher in New Delhi, and studied philosophy at the University of Delhi.</p>
         </div>
         <div class="intro__links" data-reveal>
-          <a class="arrow-link" href="/about">About me <span class="arr" aria-hidden="true"></span></a>
-          <a class="arrow-link" href="/cv">Curriculum vitae <span class="arr" aria-hidden="true"></span></a>
+          <a class="arrow-link" href="/about/">About me <span class="arr" aria-hidden="true"></span></a>
+          <a class="arrow-link" href="/questions/">Questions, answered <span class="arr" aria-hidden="true"></span></a>
+          <a class="arrow-link" href="/cv/">Curriculum vitae <span class="arr" aria-hidden="true"></span></a>
         </div>
       </div>
     </div>
@@ -70,7 +71,7 @@ const marquee = [...areas.map((a) => a.data.title)];
                 <h3 class="thread__mask"><span class="thread__word" data-thread-word>{label(c)}</span></h3>
                 <p class="thread__def" data-thread-line>{c.data.definition}</p>
                 {rel && <p class="thread__rel" data-thread-line><strong>{rel.from}</strong> <em>{rel.type}</em> <strong>{rel.to}</strong> — {rel.note}</p>}
-                {!rel && <p class="thread__rel" data-thread-line><a class="arrow-link" href="/ideas">Explore the whole map <span class="arr" aria-hidden="true"></span></a></p>}
+                {!rel && <p class="thread__rel" data-thread-line><a class="arrow-link" href="/ideas/">Explore the whole map <span class="arr" aria-hidden="true"></span></a></p>}
               </div>
             </article>
           );
@@ -93,7 +94,7 @@ const marquee = [...areas.map((a) => a.data.title)];
       <SectionHead num="04" eyebrow="Research" title="A constellation, not a list" id="research-title" lede={`${countWord(areas.length)} areas that share questions. The lines are where one area's problem becomes another's.`} />
       <Constellation compact />
       <div class="section-foot" data-reveal>
-        <a class="btn" href="/research" data-magnetic="0.2">All research areas</a>
+        <a class="btn" href="/research/" data-magnetic="0.2">All research areas</a>
       </div>
     </div>
   </section>
@@ -105,7 +106,7 @@ const marquee = [...areas.map((a) => a.data.title)];
         {featuredPubs.map((p) => <PublicationEntry pub={p} index={pubs.length - pubs.indexOf(p)} areaTitles={areaTitles} compact />)}
       </div>
       <div class="section-foot" data-reveal>
-        <a class="btn" href="/publications" data-magnetic="0.2">Open the archive <span class="tnum muted">({pubs.length})</span></a>
+        <a class="btn" href="/publications/" data-magnetic="0.2">Open the archive <span class="tnum muted">({pubs.length})</span></a>
       </div>
     </div>
   </section>
@@ -120,7 +121,7 @@ const marquee = [...areas.map((a) => a.data.title)];
         </div>
       </div>
       <div class="section-foot" data-reveal>
-        <a class="btn" href="/essays" data-magnetic="0.2">All essays <span class="tnum muted">({essays.length})</span></a>
+        <a class="btn" href="/essays/" data-magnetic="0.2">All essays <span class="tnum muted">({essays.length})</span></a>
       </div>
     </div>
   </section>
@@ -132,7 +133,7 @@ const marquee = [...areas.map((a) => a.data.title)];
         {lab.slice(0, 3).map((x, i) => <LabCard exp={x} index={i + 1} />)}
       </div>
       <div class="section-foot" data-reveal>
-        <a class="btn" href="/lab" data-magnetic="0.2">Enter the lab</a>
+        <a class="btn" href="/lab/" data-magnetic="0.2">Enter the lab</a>
       </div>
     </div>
   </section>
@@ -140,13 +141,14 @@ const marquee = [...areas.map((a) => a.data.title)];
   <section class="section ideas-teaser" id="ideas" aria-labelledby="ideas-title" data-section-story="indra">
     <div class="container grid">
       <div class="ideas-teaser__main">
-        <SectionHead num="08" eyebrow="Ideas" title="A map of the concepts" id="ideas-title" lede={`${countWord(concepts.length)} concepts and the relations between them: what grounds what, what requires what, and where the connections are under strain.`} />
+        <SectionHead num="08" eyebrow="Ideas" title="A map of the concepts" id="ideas-title" lede={`${countWord(concepts.filter((c) => c.data.map).length)} concepts and the relations between them: what grounds what, what requires what, and where the connections are under strain. Every term has its entry in the glossary.`} />
         <div class="section-foot" data-reveal>
-          <a class="btn" href="/ideas" data-magnetic="0.2">Explore the concept map</a>
+          <a class="btn" href="/ideas/" data-magnetic="0.2">Explore the concept map</a>
+          <a class="arrow-link" href="/glossary/">Open the glossary <span class="arr" aria-hidden="true"></span></a>
         </div>
       </div>
       <div class="ideas-teaser__cloud" data-reveal-group="40">
-        {concepts.map((c) => <a class={`chip ${c.data.spine ? 'is-active' : ''}`} href={`/ideas#${c.id}`} data-reveal>{c.data.title}</a>)}
+        {concepts.filter((c) => c.data.map).map((c) => <a class={`chip ${c.data.spine ? 'is-active' : ''}`} href={`/glossary/${c.id}/`} data-reveal>{c.data.title}</a>)}
       </div>
     </div>
   </section>
@@ -159,7 +161,7 @@ const marquee = [...areas.map((a) => a.data.title)];
         <p class="lede" data-split="lines" data-split-delay="0.2">For collaboration, review, talks, or disagreement — the last is often the most useful.</p>
         <div class="closing__links" data-reveal>
           <a class="btn btn--solid" href={`mailto:${site.email}`} data-magnetic="0.2">{site.email}</a>
-          <a class="arrow-link" href="/contact">All ways to reach me <span class="arr" aria-hidden="true"></span></a>
+          <a class="arrow-link" href="/contact/">All ways to reach me <span class="arr" aria-hidden="true"></span></a>
         </div>
       </div>
       <div class="closing__side" data-reveal>

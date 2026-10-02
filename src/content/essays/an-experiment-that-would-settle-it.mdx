@@ -1,0 +1,48 @@
+---
+title: An Experiment That Would Settle It
+subtitle: Where the debate over AI testimony becomes measurable
+description: The dispute over whether language models can testify looks like a clash of intuitions. It is not. It turns on what a model's arbitration between conflicting sources responds to, and that can be tested.
+date: 2026-10-02
+areas: [epistemology, philosophy-of-ai]
+tags: [AI testimony, language models, interpretability, knowledge conflicts, evidence, methodology]
+references:
+  - text: "Saxena, A. (forthcoming). Assertion without a speaker: Testimony, tracking, and large language models. *Episteme*."
+  - text: "Longpre, S., Perisetla, K., Chen, A., Ramesh, N., DuBois, C. and Singh, S. (2021). Entity-based knowledge conflicts in question answering. In *Proceedings of the 2021 Conference on Empirical Methods in Natural Language Processing*, 7052–7063."
+  - text: "Xie, J., Zhang, K., Chen, J., Lou, R. and Su, Y. (2024). Adaptive chameleon or stubborn sloth: Revealing the behavior of large language models in knowledge conflicts. In *Proceedings of the Twelfth International Conference on Learning Representations*."
+  - text: "Herrmann, D. A. and Levinstein, B. A. (2025). Standards for belief representations in LLMs. *Minds and Machines* 35(1): 1–25."
+  - text: "Lackey, J. (2008). *Learning from Words: Testimony as a Source of Knowledge*. Oxford: Oxford University Press."
+---
+
+Philosophical disputes about machines have a way of ending in a stand-off between intuitions. One side says the system obviously understands; the other says obviously it does not; both appeal to cases the other finds unmoving. I want to describe a dispute about machines that does not have to end that way, because it reduces to a measurement nobody has yet made.
+
+## The dispute
+
+I have argued that large language models, on the best current evidence, do not transmit testimonial knowledge. The leading accounts of testimony all require that the truth of what a source asserts, or the evidence for it, figure in why the source asserts it, through the source's own operation rather than through a proxy. I call this the [Tracking Minimum](/questions/tracking-minimum/), and I argue that current systems' open-domain answers are governed by likelihood under learned patterns of text, a proxy for the truth rather than the truth itself.
+
+The sharpest objection to this argument does not deny the condition. It denies that the contrast I draw is real. Consider the creationist biology teacher, Lackey's example of someone who passes on knowledge she does not believe. She is reliable, the objection runs, only conditional on her textbooks; a model is reliable only conditional on its corpus. Both fail when their inputs fail. If the teacher's reliability counts as tracking, so does the model's.
+
+## The obvious answer, and why it is not good enough
+
+The obvious reply is an intervention. Plant a falsehood in the teacher's textbook and she catches it; plant one widely in a model's training text and the model reproduces it. But the two interventions are not the same. One corrupts a single source; the other corrupts the whole environment of evidence. Equalise them and the easy verdict disappears in both directions.
+
+Under global corruption, the teacher fails too. A falsehood planted in every textbook, every teacher and every journal she has ever read is one she will teach with full confidence, because her competence was built out of those sources. And under local corruption, the model does not simply give in. When a passage it is given contradicts what it has learned, it arbitrates, and often rejects the intruding claim. Studies of such knowledge conflicts find the outcome depends on how coherent and specific the conflicting passage is, and on how firmly the model holds its own answer. Both parties can override a corrupted source within some range and fail outside it. The existence of override is not the difference.
+
+## The real difference
+
+The difference is what the override responds to, and it has to be stated counterfactually. Vary the evidential quality of a planted claim while holding fixed how well it is written, how confidently it is stated and how authoritative its source looks. The teacher's verdict moves with the evidence, because the competence she brings was built by engaging with the evidential structure of her subject rather than with the surface features of texts about it. Nothing turns on her being able to articulate her reasons. A teacher who could not say why a claim was unsupported would still decline to teach it, and articulacy is in any case something these systems supply readily.
+
+What a model's arbitration responds to, so far as the evidence goes, are features of a conflict's presentation that correlate with evidential quality without being it: coherence, specificity, how entrenched its prior answer is. Correlation is what one would expect, since these features are not accidentally related to good evidence. But a process that follows the correlate has its connection to the truth screened off by it.
+
+## The experiment
+
+So the claim I need is not that models never override what they have read. They do. It is that their overriding is not governed by evidential quality. And that claim can be tested.
+
+Construct pairs of conflicting passages, matched for coherence, specificity and surface authority, that differ only in the quality of the evidence they offer. One cites a measurement; the other an anecdote. One reports a replicated finding; the other a single unreplicated claim. Present each pair to a model alongside a question the passages answer differently, and record which way its answer goes. Then vary the presentational features while holding the evidence fixed, and see which manipulation moves the answer.
+
+If the arbitration moves with the evidence, the model's production is responsive to evidential quality in a way the Tracking Minimum asks for, and my verdict about that model should change. If it moves with presentation, the verdict stands. To my knowledge the experiment has not been run in that form. Until it is, both the objection and my reply are promissory to that extent, and the case rests on the general description of what governs these systems' production.
+
+## Why this is the right shape for the dispute
+
+A dispute that reduces to a specifiable measurement is in better condition than one that does not, and it is worth noticing that the reduction is available here and not on rival approaches. Arguments that machines cannot testify because they lack minds, intentions or the capacity for responsibility cannot be settled by any experiment; they lapse, without our learning anything, as soon as the systems become describable in mental terms. Arguments that machines can testify because they are reliable cannot be settled either, since reliability in the relevant sense was never in dispute.
+
+The Tracking Minimum asks a question that is third-personal and answerable by intervention: what does the system's production follow when the evidence and its presentation come apart? That is where I think the philosophy of AI testimony should spend its effort, and where engineering and philosophy can, for once, run the same study.

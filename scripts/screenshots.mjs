@@ -6,7 +6,7 @@ import { chromium } from 'playwright';
 import { mkdir } from 'node:fs/promises';
 import { serveDist } from './serve.mjs';
 
-const pages = process.argv.slice(2).length ? process.argv.slice(2) : ['/', '/research', '/research/philosophy-of-ai', '/publications', '/essays', '/essays/knowing-without-a-knower', '/lab', '/lab/mind-detector', '/ideas', '/about', '/cv', '/contact', '/404'];
+const pages = process.argv.slice(2).length ? process.argv.slice(2) : ['/', '/research', '/research/philosophy-of-ai', '/publications', '/essays', '/essays/your-chatbot-is-not-a-witness', '/lab', '/lab/mind-detector', '/ideas', '/about', '/cv', '/contact', '/404'];
 const viewports = { desktop: { width: 1440, height: 900 }, mobile: { width: 390, height: 844 } };
 const themes = ['light', 'dark'];
 

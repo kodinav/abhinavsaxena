@@ -1,0 +1,55 @@
+---
+import Base from '@/layouts/Base.astro';
+import { readingList } from '@/data/reading-list';
+import { breadcrumbJsonLd } from '@/lib/seo';
+import { site } from '@/data/site';
+
+const md = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;');
+const open = readingList.filter((r) => r.openAccess).length;
+const jsonLd = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'CollectionPage',
+    '@id': `${site.url}/library/reading-list/`,
+    name: 'Reading list: the epistemology of AI testimony',
+    author: { '@id': `${site.url}/#person` },
+    mainEntity: {
+      '@type': 'ItemList',
+      itemListElement: readingList.map((r, i) => ({ '@type': 'ListItem', position: i + 1, item: { '@type': 'CreativeWork', name: r.citation, ...(r.url ? { url: r.url } : {}) } })),
+    },
+  },
+  breadcrumbJsonLd([{ name: 'Home', path: '/' }, { name: 'Library', path: '/library/' }, { name: 'Reading list', path: '/library/reading-list/' }]),
+];
+---
+<Base title="Reading list: AI testimony and the epistemology of LLMs" description={`The ${readingList.length} works on testimony, trust, instruments and language models engaged in Abhinav Saxena's 'Assertion Without a Speaker', with DOIs and open-access links.`} path="/library/reading-list/" jsonLd={jsonLd}>
+  <section class="section rl">
+    <div class="container">
+      <header class="section-head">
+        <span class="eyebrow"><a href="/library/">Library</a></span>
+        <h1 class="h1">Reading list: AI testimony</h1>
+        <p class="lede">Everything my paper <a class="link" href="/publications/assertion-without-a-speaker/">Assertion Without a Speaker</a> engages: the epistemology of testimony from Burge to Lackey, the cases for and against AI testimony, and the machine-learning research on what language models represent and how they fail. Links come from open metadata (Crossref for DOIs, Unpaywall for open access); {open} of the {readingList.length} have a free copy.</p>
+      </header>
+      <ol class="rl__list">
+        {readingList.map((r) => (
+          <li>
+            <span class="rl__cite" set:html={md(r.citation)} />
+            <span class="rl__links">
+              {r.url && <a class="rl__link" href={r.url} rel="noopener" target="_blank">{r.doi ? `doi:${r.doi}` : r.url.replace(/^https?:\/\//, '')}</a>}
+              {r.openAccess && <span class="rl__oa">Open access</span>}
+            </span>
+          </li>
+        ))}
+      </ol>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .section-head .eyebrow a { color: inherit; }
+  .rl__list { margin-top: var(--s-2xl); padding-left: 1.6em; display: flex; flex-direction: column; gap: var(--s-s); max-width: 78ch; }
+  .rl__list li::marker { color: var(--ink-3); font-family: var(--font-sans); font-size: var(--step--2); }
+  .rl__cite { font-family: var(--font-serif); color: var(--ink); line-height: 1.5; }
+  .rl__links { display: flex; flex-wrap: wrap; gap: 0.25rem 0.8rem; margin-top: 0.2rem; font-family: var(--font-sans); font-size: var(--step--2); }
+  .rl__link { color: var(--accent); word-break: break-all; }
+  .rl__oa { letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-3); }
+</style>

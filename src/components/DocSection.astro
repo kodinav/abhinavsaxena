@@ -1,0 +1,28 @@
+---
+/** A titled block after a document's body: questions and answers, sources, what to read next. */
+interface Props { title: string; id?: string }
+const { title, id } = Astro.props;
+---
+<section class="doc-section" aria-labelledby={id}>
+  <h2 class="tag doc-section__title" id={id}>{title}</h2>
+  <div class="doc-section__body"><slot /></div>
+</section>
+
+<style>
+  .doc-section { margin-top: var(--s-2xl); padding-top: var(--s-l); border-top: 1px solid var(--line); }
+  .doc-section__title { display: block; }
+  .doc-section__body { margin-top: var(--s-m); }
+  .doc-section__body :global(.faq) { display: flex; flex-direction: column; gap: var(--s-m); }
+  .doc-section__body :global(.faq h3) { font-family: var(--font-serif); font-size: var(--step-1); font-weight: 400; line-height: 1.3; color: var(--ink); }
+  .doc-section__body :global(.faq p) { margin-top: 0.4rem; color: var(--ink-2); max-width: var(--measure); line-height: 1.6; }
+  .doc-section__body :global(.srcs) { padding-left: 1.4em; display: flex; flex-direction: column; gap: 0.45em; font-family: var(--font-serif); color: var(--ink-2); max-width: var(--measure-wide); }
+  .doc-section__body :global(.srcs a) { font-family: var(--font-sans); font-size: var(--step--2); color: var(--accent); margin-left: 0.4em; word-break: break-all; }
+  .doc-section__body :global(.links) { display: grid; grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr)); gap: var(--s-s) var(--s-l); }
+  .doc-section__body :global(.links a) { display: flex; flex-direction: column; gap: 0.25rem; padding: var(--s-s) 0; border-bottom: 1px solid var(--line); transition: color var(--dur-2); }
+  .doc-section__body :global(.links a:hover) { color: var(--accent); }
+  .doc-section__body :global(.links .serif) { font-size: var(--step-0); line-height: 1.3; }
+  .doc-section__body :global(.links small) { font-family: var(--font-sans); font-size: var(--step--2); letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-3); }
+  .doc-section__body :global(.chips) { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+  .doc-section__body :global(.cite) { font-family: var(--font-serif); color: var(--ink-2); max-width: var(--measure-wide); }
+  .doc-section__body :global(pre.bib) { margin-top: var(--s-s); padding: var(--s-s) var(--s-m); border: 1px solid var(--line); border-radius: var(--radius-l); font-family: var(--font-mono, ui-monospace, monospace); font-size: var(--step--2); line-height: 1.5; white-space: pre-wrap; color: var(--ink-2); }
+</style>

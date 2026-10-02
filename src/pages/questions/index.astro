@@ -1,0 +1,50 @@
+---
+import Base from '@/layouts/Base.astro';
+import { getQuestions } from '@/lib/content';
+import { breadcrumbJsonLd, itemListJsonLd } from '@/lib/seo';
+
+const questions = await getQuestions();
+const research = questions.filter((q) => q.data.onHome);
+const asked = questions.filter((q) => !q.data.onHome);
+const all = [...asked, ...research];
+const jsonLd = [
+  itemListJsonLd('/questions/', 'Questions about AI, knowledge and algorithmic power', all.map((q) => ({ name: q.data.question, path: `/questions/${q.id}/` }))),
+  breadcrumbJsonLd([{ name: 'Home', path: '/' }, { name: 'Questions', path: '/questions/' }]),
+];
+---
+<Base title="Questions about AI, knowledge and consent" description="Short, citable answers by philosopher Abhinav Saxena to questions about AI and knowledge: can ChatGPT testify, do language models know, should you trust AI, and what algorithmic welfare systems owe." path="/questions/" jsonLd={jsonLd}>
+  <section class="section qx">
+    <div class="container">
+      <header class="section-head">
+        <span class="eyebrow">Questions</span>
+        <h1 class="h1">Questions, answered</h1>
+        <p class="lede">Each page gives a short answer first and then the argument for it, drawn from my published work. Where a question is still open, the page says how far the evidence goes and what would settle it.</p>
+      </header>
+      {[{ title: 'Questions people ask', items: asked }, { title: 'Questions I am working on', items: research }].map((group) => (
+        <section class="qx__group" aria-label={group.title}>
+          <h2 class="tag">{group.title}</h2>
+          <ol class="qx__list" role="list">
+            {group.items.map((q) => (
+              <li>
+                <a class="qx__item" href={`/questions/${q.id}/`}>
+                  <span class="qx__q serif">{q.data.question}</span>
+                  <span class="qx__a">{q.data.answer.split(/(?<=\.)\s/)[0]}</span>
+                </a>
+              </li>
+            ))}
+          </ol>
+        </section>
+      ))}
+    </div>
+  </section>
+</Base>
+
+<style>
+  .qx__group { margin-top: var(--s-2xl); }
+  .qx__list { margin-top: var(--s-s); border-top: 1px solid var(--line); }
+  .qx__item { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: var(--s-l); padding: var(--s-m) 0; border-bottom: 1px solid var(--line); transition: color var(--dur-2); }
+  .qx__item:hover { color: var(--accent); }
+  .qx__q { font-size: var(--step-1); line-height: 1.25; }
+  .qx__a { color: var(--ink-2); font-size: var(--step--1); line-height: 1.55; }
+  @media (max-width: 800px) { .qx__item { grid-template-columns: 1fr; gap: 0.4rem; } }
+</style>

@@ -2,7 +2,7 @@
 import Base from '@/layouts/Base.astro';
 import { site } from '@/data/site';
 import { cv } from '@/data/cv';
-import { getPublications } from '@/lib/content';
+import { getPublications, pubHref } from '@/lib/content';
 import { doiUrl } from '@/lib/format';
 import { breadcrumbJsonLd } from '@/lib/seo';
 import { existsSync } from 'node:fs';
@@ -16,7 +16,7 @@ const pubsFor = (kind: 'published' | 'under-review') =>
   pubs.filter((p) => (kind === 'under-review' ? p.data.status === 'under-review' : p.data.status !== 'under-review'));
 const today = new Date();
 ---
-<Base title="Curriculum Vitae" description="Curriculum vitae of Abhinav Saxena — areas of specialisation and competence, education, publications, work under review, presentations and referees." path="/cv" jsonLd={[breadcrumbJsonLd([{ name: 'Home', path: '/' }, { name: 'CV', path: '/cv' }])]} bodyClass="cv-page">
+<Base title="Curriculum Vitae" description="Curriculum vitae of Abhinav Saxena — areas of specialisation and competence, education, publications, work under review, presentations and referees." path="/cv/" jsonLd={[breadcrumbJsonLd([{ name: 'Home', path: '/' }, { name: 'CV', path: '/cv/' }])]} bodyClass="cv-page">
   <div class="cv">
     <header class="section cv__head">
       <div class="container grid">
@@ -60,7 +60,7 @@ const today = new Date();
                     <li class="cv__entry">
                       <span class="cv__period tnum">{d.status === 'published' ? d.year : d.status === 'forthcoming' ? 'Forthcoming' : ''}</span>
                       <span class="cv__body">
-                        <a class="serif cv__title cv__title--link" href={`/publications#${p.id}`}>{d.title}</a>
+                        <a class="serif cv__title cv__title--link" href={pubHref(p)}>{d.title}</a>
                         <span class="cv__org">
                           <em>{d.venue}</em>
                           {d.status === 'published'

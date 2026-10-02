@@ -46,7 +46,7 @@ const first = acts[0];
     {nodes.filter((n) => !n.primary).map((n) => {
       const f = floating.find((x) => x.id === n.id)!;
       return (
-        <a class="hero__float" href={`/ideas#${n.id}`} data-concept={n.id} data-hero-in style={`--fx:${f.x * 100}%;--fy:${f.y * 100}%`}>
+        <a class="hero__float" href={`/glossary/${n.id}/`} data-concept={n.id} data-hero-in style={`--fx:${f.x * 100}%;--fy:${f.y * 100}%`}>
           <i class="hero__anchor" data-anchor aria-hidden="true"></i><span>{n.label}</span>
         </a>
       );
@@ -67,14 +67,14 @@ const first = acts[0];
       {nodes.filter((n) => n.primary).map((n) => (
         <>
           <span class="hero__x" aria-hidden="true">×</span>
-          <a class="hero__word" href={`/ideas#${n.id}`} data-concept={n.id}>{n.label}<i class="hero__anchor hero__anchor--sup" data-anchor aria-hidden="true"></i></a>
+          <a class="hero__word" href={`/glossary/${n.id}/`} data-concept={n.id}>{n.label}<i class="hero__anchor hero__anchor--sup" data-anchor aria-hidden="true"></i></a>
         </>
       ))}
     </p>
     <p class="hero__bridge" data-bridge data-default={defaultBridge} aria-live="polite" data-hero-in>{defaultBridge}</p>
     <div class="hero__cta" data-hero-in>
-      <a class="btn btn--solid" href="/research" data-magnetic="0.2">Explore the research</a>
-      <a class="arrow-link" href="/essays">Read the essays <span class="arr" aria-hidden="true"></span></a>
+      <a class="btn btn--solid" href="/research/" data-magnetic="0.2">Explore the research</a>
+      <a class="arrow-link" href="/essays/">Read the essays <span class="arr" aria-hidden="true"></span></a>
     </div>
   </div>
 
