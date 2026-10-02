@@ -6,6 +6,10 @@ import { prometheus } from './prometheus';
 import { knowledge } from './knowledge';
 import { theseus } from './theseus';
 import { fish } from './fish';
+import { elephant } from './elephant';
+import { writing } from './writing';
+import { wax } from './wax';
+import { indra } from './indra';
 
 /** The pictures for each story, by id. The cave is the hero's; the rest belong to sections of the home page. */
-export const VISUALS: Partial<Record<StoryId, StoryVisuals>> = { cave, delphi, prometheus, knowledge, theseus, fish };
+export const VISUALS: Partial<Record<StoryId, StoryVisuals>> = { cave, delphi, prometheus, knowledge, elephant, writing, wax, theseus, indra, fish };

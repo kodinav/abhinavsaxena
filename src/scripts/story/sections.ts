@@ -106,12 +106,14 @@ export function mountSectionStories(card: HTMLElement) {
     mark(0, 0, vw, navH + 16, 0);
     mark(0, vh - 12, vw, vh, 0);
     const seen = new WeakMap<Element, boolean>();
-    // collapsed panels and faded-out steps still report boxes; they are not on screen
+    // collapsed panels and faded-out steps still report boxes; they are not on screen.
+    // Content still waiting for its entrance (a reveal not yet run) is about to be, so it counts.
     const skip = (el: Element | null): boolean => {
       if (!el) return true;
       if (seen.has(el)) return seen.get(el)!;
+      const arriving = !!el.closest('[data-reveal].is-pending');
       const out = !!el.closest('[data-sstory], .story-stage, .marquee, .field, [data-hero], [hidden]') ||
-        (typeof (el as any).checkVisibility === 'function' && !(el as any).checkVisibility({ checkOpacity: true, checkVisibilityCSS: true }));
+        (!arriving && typeof (el as any).checkVisibility === 'function' && !(el as any).checkVisibility({ checkOpacity: true, checkVisibilityCSS: true }));
       seen.set(el, out);
       return out;
     };
@@ -133,13 +135,20 @@ export function mountSectionStories(card: HTMLElement) {
       clips.set(el, out);
       return out;
     };
+    // split text slides in from behind masks: until it has, count the whole block, not its clipped lines
+    const splits = new Set<Element>();
     while (walker.nextNode()) {
       const n = walker.currentNode;
       const el = n.parentElement;
       if (skip(el)) continue;
-      const clip = clipOf(el);
       // a card may cover the corner of a card, never the end of a heading
       const weight = el!.closest('h1, h2, h3') ? 8 : el!.closest('a, button') ? 3 : 1;
+      const split = el!.closest('[data-split]');
+      if (split) {
+        if (!splits.has(split)) { splits.add(split); const r = split.getBoundingClientRect(); if (r.bottom > 0 && r.top < vh) mark(r.left, r.top, r.right, r.bottom, 14, weight); }
+        continue;
+      }
+      const clip = clipOf(el);
       range.selectNodeContents(n);
       for (const r of Array.from(range.getClientRects())) {
         let l = r.left, t = r.top, rr = r.right, b = r.bottom;
